@@ -3,11 +3,15 @@ using WMS_client.db;
 
 namespace WMS_client.Processes.Lamps
 {
+    /// <summary>"Процессы"</summary>
     public class Processes : BusinessProcess
     {
+        /// <summary>Кроки</summary>
         private enum Stages { First, Acceptance, Writeoff, Repair, Exchange }
+        /// <summary>Поточний крок</summary>
         private Stages Stage;
 
+        /// <summary>"Процессы"</summary>
         public Processes(WMSClient MainProcess)
             : base(MainProcess, 1)
         {
@@ -44,6 +48,9 @@ namespace WMS_client.Processes.Lamps
             }
         }
 
+        /// <summary>Отображение кнопок комплектующих</summary>
+        /// <param name="process">Строковая приставка процесса</param>
+        /// <param name="click">Делегат действия при клике</param>
         private void drawAccessoriesBtn(string process, MobileSenderClick click)
         {
             MainProcess.ToDoCommand = "Оберіть тип комлектуючого";
@@ -56,7 +63,6 @@ namespace WMS_client.Processes.Lamps
                                      new object[] {TypeOfAccessories.Case, string.Concat(process, " корпусів")});
         }
 
-        /// <summary>Отсканировано комплектующее для приемки</summary>
         public override void OnBarcode(string Barcode)
         {
         }
@@ -82,30 +88,35 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Button
+        /// <summary>Выбрано "Приемка"</summary>
         private void acceptance_Click()
         {
             Stage = Stages.Acceptance;
             DrawControls();
         }
 
+        /// <summary>Выбрано "Списание"</summary>
         private void writeoff_Click()
         {
             Stage = Stages.Writeoff;
             DrawControls();
         }
 
+        /// <summary>Выбрано "Ремонт"</summary>
         private void repair_Click()
         {
             Stage = Stages.Repair;
             DrawControls();
         }
 
+        /// <summary>Выбрано "Обмен"</summary>
         private void exchange_Click()
         {
             Stage = Stages.Exchange;
             DrawControls();
         }
 
+        /// <summary>Приемка выбранного типа комплектующего</summary>
         private void acceptance_Click(object sender)
         {
             object[] parameters = (object[])((System.Windows.Forms.Button)sender).Tag;
@@ -116,6 +127,7 @@ namespace WMS_client.Processes.Lamps
             MainProcess.Process = new AcceptanceOfNewAccessory(MainProcess, topic, type);
         }
 
+        /// <summary>Списание выбранного типа комплектующего</summary>
         private void writeoff_Click(object sender)
         {
             object[] parameters = (object[])((System.Windows.Forms.Button)sender).Tag;
@@ -126,6 +138,7 @@ namespace WMS_client.Processes.Lamps
             MainProcess.Process = new AcceptionSendingDocs(MainProcess, topic, type, typeof(SubSendingToChargeChargeTable).Name);
         }
 
+        /// <summary>Ремонт выбранного типа комплектующего</summary>
         private void repair_Click(object sender)
         {
             object[] parameters = (object[])((System.Windows.Forms.Button)sender).Tag;
@@ -135,9 +148,6 @@ namespace WMS_client.Processes.Lamps
             MainProcess.ClearControls();
             MainProcess.Process = new AcceptionSendingDocs(MainProcess, topic, type, typeof(SubSendingToRepairRepairTable).Name);
         }
-        #endregion
-
-        #region Query
         #endregion
     }
 }

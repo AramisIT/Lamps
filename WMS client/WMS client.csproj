@@ -84,6 +84,7 @@
     <Compile Include="db\Interfaces\IBarcodeOwner.cs" />
     <Compile Include="db\Objects\Contractors.cs" />
     <Compile Include="db\Base\Sending.cs" />
+    <Compile Include="db\Objects\Movement.cs" />
     <Compile Include="db\Objects\Sending\Charge\SendingToCharge.cs" />
     <Compile Include="db\Base\SubSending.cs" />
     <Compile Include="db\Objects\Sending\Repair\SendingToRepair.cs" />
@@ -111,6 +112,7 @@
     <Compile Include="Enums\ButtonsSet.cs" />
     <Compile Include="Enums\DateTimeFormat.cs" />
     <Compile Include="Enums\FilterSettings.cs" />
+    <Compile Include="Enums\OperationsWithLighters.cs" />
     <Compile Include="Enums\TypesOfAcceptance.cs" />
     <Compile Include="Enums\TypesOfAccessories.cs" />
     <Compile Include="Enums\TypesOfLampsStatus.cs" />

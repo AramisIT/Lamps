@@ -6,7 +6,7 @@ namespace WMS_client.db
         /// <summary>Штрихкод</summary>
         [dbAttributes(Description = "Штрихкод")]
         public string BarCode { get; set; }
-        /// <summary>Синхронизирован?</summary>
+        /// <summary>Статус синхронизации с сервером</summary>
         [dbAttributes(Description = "IsSynced", NotShowInForm = true)]
         public bool IsSynced { get; set; }
 

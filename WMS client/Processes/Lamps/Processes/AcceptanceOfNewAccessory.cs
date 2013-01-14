@@ -14,7 +14,7 @@ namespace WMS_client.Processes.Lamps
         private MobileLabel marking;
         private DataRow selectedRow;
         private string selectedMarking;
-        private int selectedMarkingId;
+        private int selectedMarkingId; //пока не закрыто to-do "Сохранять маркировку или ссылку на "Модель"?" не удалять
         private object documentId;
         private AcceptanceOfNewComponents acceptanceDoc;
         private readonly TypeOfAccessories typeOfAccessory;
@@ -153,16 +153,28 @@ namespace WMS_client.Processes.Lamps
             OnHotKey(KeyAction.Esc);
         }
 
+        /// <summary>Создание комплектующего</summary>
+        /// <param name="barcode">Штрихкод</param>
+        /// <param name="docMarking">Маркировка</param>
         private void createAccessory(string barcode, string docMarking)
         {
             createAccessory(typeOfAccessory, barcode, docMarking);
         }
 
+        /// <summary>Создание комплектующего</summary>
+        /// <param name="type">Тип комплектующего</param>
+        /// <param name="barcode">Штрихкод</param>
+        /// <param name="docMarking">Маркировка</param>
         private void createAccessory(TypeOfAccessories type, string barcode, string docMarking)
         {
             createAccessory(type, barcode, docMarking, 0);
         }
 
+        /// <summary>Создание комплектующего</summary>
+        /// <param name="type">Тип комплектующего</param>
+        /// <param name="barcode">Штрихкод</param>
+        /// <param name="docMarking">Маркировка</param>
+        /// <param name="caseId">Id корпуса</param>
         private long createAccessory(TypeOfAccessories type, string barcode, string docMarking, long caseId)
         {
             Accessory accessory = null;
@@ -202,6 +214,10 @@ namespace WMS_client.Processes.Lamps
                     accessory.Save();
                 }
             }
+
+            //Внесение записи в "Перемещение"
+            Movement movement = new Movement(barcode, OperationsWithLighters.Acceptance);
+            movement.Save();
 
             return Convert.ToInt64(BarcodeWorker.GetIdByBarcode(barcode));
         }

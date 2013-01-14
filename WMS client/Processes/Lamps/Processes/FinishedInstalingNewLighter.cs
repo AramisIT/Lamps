@@ -72,6 +72,7 @@ namespace WMS_client
         #endregion
 
         #region ButtonClick
+
         /// <summary>Сохранение</summary>
         private void Ok_click()
         {
@@ -101,6 +102,10 @@ namespace WMS_client
             query.AddParameter("Position", Parameters[2]);
             query.AddParameter("Barcode", LightBarcode);
             query.ExecuteNonQuery();
+
+            //Внесение записи в "Перемещение"
+            Movement movement = new Movement(LightBarcode, OperationsWithLighters.Installing);
+            movement.Save();
         }
         #endregion
     }

@@ -8,6 +8,7 @@ namespace WMS_client.db
     public class Party : CatalogObject, IBarcodeOwner
     {
         #region Properties
+        /// <summary>Штрихкод</summary>
         [dbAttributes(Description = "Штрихкод", NotShowInForm = true)]
         public string BarCode { get; set; }
         /// <summary>Вид комплектуючих</summary>
@@ -28,6 +29,7 @@ namespace WMS_client.db
         /// <summary>Гарантія (годин)</summary>
         [dbAttributes(Description = "Гарантія (годин)", NotShowInForm = true)]
         public int WarrantlyHours { get; set; }
+        /// <summary>Статус синхронизации с сервером</summary>
         [dbAttributes(Description = "IsSynced", NotShowInForm = true)]
         public bool IsSynced { get; set; } 
         #endregion

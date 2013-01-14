@@ -8,20 +8,29 @@ using System.Windows.Forms;
 
 namespace WMS_client.Processes.Lamps
 {
+    /// <summary>Ремонт ламп</summary>
     public class RepairLight : BusinessProcess
     {
+        /// <summary>Кроки</summary>
         private enum Stages { Begin, UnderWarrantly, OutOfWarrantly, FromUnderWarrantly, FromOutOfWarrantly, ScanBarcode, ExtractionElectricUnit, Exit, Save }
 
         private const string REPAIR_TOPIC = "Ремонт";
         private const string REPLACE_TOPIC = "На обмін";
         
+        /// <summary>Штрихкод светильника</summary>
         private readonly string LightBarcode;
+        /// <summary>Штрихкод блока</summary>
         private string unitBarcode;
+        /// <summary>Новый статус корпуса</summary>
         private TypesOfLampsStatus newCaseStatus;
+        /// <summary>Новый статус корпуса</summary>
         private TypesOfLampsStatus newUnitStatus;
+        /// <summary>Поточний крок</summary>
         private Stages stage;
+        /// <summary>Нужно сохранять штрихкод блока</summary>
         private bool needSaveUnitBarcode;
 
+        /// <summary>Ремонт ламп</summary>
         public RepairLight(WMSClient MainProcess, string lightBarcode)
             : base(MainProcess, 1)
         {
@@ -113,13 +122,15 @@ namespace WMS_client.Processes.Lamps
                         OnHotKey(KeyAction.Esc);
                         break;
                     case Stages.Save:
-                        save();
+                        saveUnitBarcode();
                         OnHotKey(KeyAction.Esc);
                         break;
                 }
             }
         }
 
+        /// <summary>Скан эл. блока</summary>
+        /// <param name="Barcode">Штрихкод</param>
         public override void OnBarcode(string Barcode)
         {
             if(stage == Stages.ScanBarcode)
@@ -152,6 +163,7 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region WindMode
+        /// <summary>Окно с шага "UnderWarrantly"</summary>
         private void warrantlyWin()
         {
             ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, REPAIR_TOPIC, getLightInfo());
@@ -172,6 +184,12 @@ namespace WMS_client.Processes.Lamps
             MainProcess.CreateButton("Ні", 125, 275, 100, 35, "secondButton", button_Click, Stages.OutOfWarrantly, true);
         }
 
+        /// <summary>Окно отображения информации</summary>
+        /// <param name="topic">Заголовок</param>
+        /// <param name="message">Сообщение</param>
+        /// <param name="set">Набор кнопок навигации</param>
+        /// <param name="firstButton">Делегат вызова при нажатии первой кнопки</param>
+        /// <param name="secondButton">Делегат вызова при нажатии второй кнопки</param>
         private void messageWin(string topic, string message, ButtonsSet set, Stages firstButton, Stages secondButton)
         {
             MainProcess.ToDoCommand = topic;
@@ -200,6 +218,7 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Query
+        /// <summary>Находится ли светильник на гарантии</summary>
         private bool UnderWarranty()
         {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
@@ -215,6 +234,8 @@ WHERE RTRIM(c.BarCode)=RTRIM(@BarCode)");
             return result != null && Convert.ToBoolean(result);
         }
 
+        /// <summary>Информация по светильнику</summary>
+        /// <returns>Model, Party, DateOfWarrantyEnd, Contractor</returns>
         private object[] getLightInfo()
         {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
@@ -232,6 +253,7 @@ WHERE RTRIM(c.Barcode)=RTRIM(@BarCode)");
             return query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
         }
 
+        /// <summary>Есть ли у эл.блока штрихкод</summary>
         private bool IsUnitHaveBarcode()
         {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT e.Barcode
@@ -245,7 +267,8 @@ WHERE RTRIM(c.Barcode)=@Barcode");
             return !string.IsNullOrEmpty(unitBarcode);
         }
 
-        private void save()
+        /// <summary>Сохранение штрихкода для эл.блока</summary>
+        private void saveUnitBarcode()
         {
             if (needSaveUnitBarcode)
             {
@@ -263,24 +286,32 @@ WHERE RTRIM(c.Barcode)=@Barcode");
             saveInBd("ElectronicUnits", newUnitStatus, caseId);
         }
 
-        private void saveInBd(string tableName, TypesOfLampsStatus status, string barcode)
+        /// <summary>Сохранение</summary>
+        /// <param name="tableName">Имя таблицы</param>
+        /// <param name="state">Статус</param>
+        /// <param name="barcode">Штрахкод</param>
+        private void saveInBd(string tableName, TypesOfLampsStatus state, string barcode)
         {
             string command = string.Format("UPDATE {0} SET Status=@Status,{1}=0,DateOfActuality=@Date WHERE RTRIM(Barcode)=RTRIM(@BarCode)", 
                 tableName, dbObject.IS_SYNCED);
             SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter("Status", (int)status);
+            query.AddParameter("Status", (int)state);
             query.AddParameter("Barcode", barcode);
             query.AddParameter("Date", DateTime.Now);
 
             query.ExecuteNonQuery();
         }
 
-        private void saveInBd(string tableName, TypesOfLampsStatus status, object caseId)
+        /// <summary>Сохранение</summary>
+        /// <param name="tableName">Имя таблицы</param>
+        /// <param name="state">Статус</param>
+        /// <param name="caseId">ID корпуса</param>
+        private void saveInBd(string tableName, TypesOfLampsStatus state, object caseId)
         {
             string command = string.Format("UPDATE {0} SET Status=@Status,{1}=0,DateOfActuality=@Date WHERE [Case]=@Case",
                 tableName, dbObject.IS_SYNCED);
             SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter("Status", (int)status);
+            query.AddParameter("Status", (int)state);
             query.AddParameter("Case", caseId);
             query.AddParameter("Date", DateTime.Now);
 

@@ -69,6 +69,8 @@ namespace WMS_client.Processes.Lamps
             }
         }
 
+
+
         public override void OnBarcode(string Barcode)
         {
             if(rows.ContainsKey(Barcode))

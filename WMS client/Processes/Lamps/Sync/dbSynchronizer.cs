@@ -13,7 +13,7 @@ namespace WMS_client
     /// <summary>Синхронизация данных между ТСД и сервером</summary>
     public class dbSynchronizer : BusinessProcess
     {
-        /// <summary></summary>
+        /// <summary>Информационная метка для уведомления текущего процессе синхронизации</summary>
         private MobileLabel infoLabel;
         /// <summary>Список отложенных свойств</summary>
         private List<DataAboutDeferredProperty> deferredProperty;
@@ -40,7 +40,6 @@ namespace WMS_client
             SyncObjects<ElectronicUnits>(WaysOfSync.TwoWay);
             infoLabel.Text = "Корпусы";
             SyncObjects<Cases>(WaysOfSync.TwoWay);
-
             updateDeferredProperties();
             PerformQuery("EndOfSync");
 
@@ -52,31 +51,33 @@ namespace WMS_client
             infoLabel.Text = "Отправка на ремонт";
             SyncOutSending<SendingToRepair, SubSendingToRepairRepairTable>();
             SyncInSending<SendingToRepair, SubSendingToRepairRepairTable>();
+            infoLabel.Text = "Перемещения";
+            SyncMovement();
 
             MainProcess.ClearControls();
             MainProcess.Process = new SelectingLampProcess(MainProcess);
         }
 
         #region Sync ...
-        /// <summary>Тестовая синхронизация</summary>
+        /// <summary>Синхронизация объекта</summary>
         /// <param name="wayOfSync">Способ синхронизации</param>
         public void SyncObjects<T>(WaysOfSync wayOfSync) where T : dbObject
         {
             SyncObjects<T>(typeof(T).Name, wayOfSync, FilterSettings.None);
         }
 
-        /// <summary>Тестовая синхронизация</summary>
+        /// <summary>Синхронизация объекта</summary>
         /// <param name="wayOfSync">Способ синхронизации</param>
-        /// /// <param name="filter"></param>
+        /// <param name="filter">Фильтры</param>
         public void SyncObjects<T>(WaysOfSync wayOfSync, FilterSettings filter) where T : dbObject
         {
             SyncObjects<T>(typeof(T).Name, wayOfSync, filter);
         }
 
-        /// <summary>Тестовая синхронизация</summary>
+        /// <summary>Синхронизация объекта</summary>
         /// <param name="tableName">Имя таблицы</param>
         /// <param name="wayOfSync">Способ синхронизации</param>
-        /// <param name="filter"></param>
+        /// <param name="filter">Фильтры</param>
         public void SyncObjects<T>(string tableName, WaysOfSync wayOfSync, FilterSettings filter) where T : dbObject
         {
             //Выбрать (Признак синхронизации, Штрих-код) всех не удаленных элементов с таблицы tableName
@@ -108,6 +109,7 @@ namespace WMS_client
             }
         }
 
+        /// <summary>Синхронизировать "Приемку" с сервером</summary>
         private void SyncAccepmentsDocWithServer()
         {
             DataTable acceptedDoc = AcceptanceOfNewComponents.GetAcceptedDocuments();
@@ -171,6 +173,9 @@ namespace WMS_client
             }
         }
 
+        /// <summary>Синхронизировать изменения по док "Отправить на .." на сервере</summary>
+        /// <typeparam name="T">Документ</typeparam>
+        /// <typeparam name="S">Таблица</typeparam>
         private void SyncOutSending<T, S>()
             where T : Sending
             where S : SubSending
@@ -249,6 +254,9 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
             }
         }
 
+        /// <summary>Синхронизировать изменения по док "Отправить на .." на ТСД</summary>
+        /// <typeparam name="T">Документ</typeparam>
+        /// <typeparam name="S">Таблица</typeparam>
         private void SyncInSending<T, S>() where T:Sending where S:SubSending
         {
             PerformQuery("GetSendingDocs", typeof(T).Name);
@@ -284,6 +292,26 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                         newSubDoc.Sync<S>();
                     }
                 }
+            }
+        }
+
+        /// <summary>Синхронизировать ("Отправить") данные по перемещениям</summary>
+        private void SyncMovement()
+        {
+            string tableName = typeof (Movement).Name;
+
+            //sync
+            string docCommand = string.Format("SELECT {0},Date,Operation FROM {1}", dbObject.BARCODE_NAME, tableName);
+            SqlCeCommand query = dbWorker.NewQuery(docCommand);
+            DataTable table = query.SelectToTable();
+            PerformQuery("SyncMovement", table);
+
+            if (Parameters != null && (bool)Parameters[0])
+            {
+                //Видалення записів
+                string delCommand = string.Concat("DELETE FROM ", tableName);
+                query = dbWorker.NewQuery(delCommand);
+                query.ExecuteNonQuery();
             }
         }
         #endregion
@@ -411,7 +439,6 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                                 }
                                 else
                                 {
-                                    //todo: Отложенное сохранение
                                     if (value != null && !string.IsNullOrEmpty(value.ToString()))
                                     {
                                         DataAboutDeferredProperty data = new DataAboutDeferredProperty(type, attribute.dbObjectType, property.Name, value);
@@ -483,6 +510,7 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
         #endregion
 
         #region Deferred
+        /// <summary>Обновить связанные свойства</summary>
         private void updateDeferredProperties()
         {
             dbObject lastObject = null;

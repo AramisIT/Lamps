@@ -39,7 +39,7 @@ namespace WMS_client.db
         /// <summary>Завершення гарантії</summary>
         [dbAttributes(Description = "Завершення гарантії", ShowInEditForm = true)]
         public DateTime DateOfWarrantyEnd { get; set; }
-        /// <summary>Синхронизовано</summary>
+        /// <summary>Статус синхронизации с сервером</summary>
         [dbAttributes(Description = "Синхронизовано", NotShowInForm = true)]
         public bool IsSynced { get; set; }
         /// <summary>Место нахождения</summary>

@@ -11,6 +11,7 @@ namespace WMS_client
     {
         private readonly string LightBarcode;
 
+        /// <summary>Демонтаж светильника</summary>
         public RemovalLight(WMSClient MainProcess, string lightBarcode)
             : base(MainProcess, 1)
         {
@@ -74,6 +75,8 @@ namespace WMS_client
         #endregion
 
         #region Query
+        /// <summary>Позиция светильника</summary>
+        /// <returns>Карта, Register, Position</returns>
         private object[] getLightPositionInfo()
         {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT m.Description, c.Register, c.Position 
@@ -84,9 +87,14 @@ WHERE RTRIM(c.Barcode)=@Barcode");
             return query.SelectArray();
         }
 
+        /// <summary>Завершение (Сохранение)</summary>
         private void finish()
         {
             Cases.ChangeLighterStatus(LightBarcode, TypesOfLampsStatus.Storage, true);
+
+            //Внесение записи в "Перемещение"
+            Movement movement = new Movement(LightBarcode, OperationsWithLighters.Removing);
+            movement.Save();
         }
         #endregion
     }
