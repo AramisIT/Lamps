@@ -1,0 +1,476 @@
+"DeployProject"
+{
+"VSVersion" = "3:701"
+"ProjectType" = "8:{AB322303-2255-48EF-A496-5904EB18DA55}"
+"IsWebType" = "8:FALSE"
+"ProjectName" = "8:Aramis WMS"
+"LanguageId" = "3:1049"
+"CodePage" = "3:1251"
+"SccProjectName" = "8:"
+"SccLocalPath" = "8:"
+"SccAuxPath" = "8:"
+"SccProvider" = "8:"
+    "Hierarchy"
+    {
+        "Entry"
+        {
+        "MsmKey" = "8:_0C739E08E9780DD4468F3D0DADE3BB68"
+        "OwnerKey" = "8:_C7D5C04B1E6276D84C4E1AC00305A224"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_3DE01AE3840A484EADA08F533981571F"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_4684249260DF3D3545839431E2B2143B"
+        "OwnerKey" = "8:_C97EDDE154B74296A3771E798AD97580"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_63BD20D3AB43536CBDB602C49A88DBC3"
+        "OwnerKey" = "8:_C97EDDE154B74296A3771E798AD97580"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_65889806FDB84F7491000124B2C92A64"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_945BD220F5FCF5F11B047226D70C6B86"
+        "OwnerKey" = "8:_0C739E08E9780DD4468F3D0DADE3BB68"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C7D5C04B1E6276D84C4E1AC00305A224"
+        "OwnerKey" = "8:_C97EDDE154B74296A3771E798AD97580"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_C97EDDE154B74296A3771E798AD97580"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+    }
+    "Configurations"
+    {
+        "Debug"
+        {
+        "DisplayName" = "8:Debug"
+        "IsDebugOnly" = "11:TRUE"
+        "IsReleaseOnly" = "11:FALSE"
+        "OutputFilename" = "8:Debug\\Aramis WMS.cab"
+        "PackageFileSize" = "3:-2147483648"
+        "CabType" = "3:1"
+        "SignOutput" = "11:FALSE"
+        "CertificateHash" = "8:"
+        "TimeStampServer" = "8:"
+        }
+        "Release"
+        {
+        "DisplayName" = "8:Release"
+        "IsDebugOnly" = "11:FALSE"
+        "IsReleaseOnly" = "11:TRUE"
+        "OutputFilename" = "8:Release\\Aramis WMS.cab"
+        "PackageFileSize" = "3:-2147483648"
+        "CabType" = "3:1"
+        "SignOutput" = "11:FALSE"
+        "CertificateHash" = "8:"
+        "TimeStampServer" = "8:"
+        }
+    }
+    "Deployable"
+    {
+        "File"
+        {
+            "{E4F2F62A-3940-4BF5-A031-F7FA98CAAFFA}:_0C739E08E9780DD4468F3D0DADE3BB68"
+            {
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+                "ScatterAssemblies"
+                {
+                    "_0C739E08E9780DD4468F3D0DADE3BB68"
+                    {
+                    "Name" = "8:mscorlib.DLL"
+                    "Attributes" = "3:512"
+                    }
+                    "_11E562F2678397210AC8B973CA8AAF2A"
+                    {
+                    "Name" = "8:normnfd.nlp"
+                    "Attributes" = "3:1"
+                    }
+                    "_27D1FFDCA4DCA2C656A0BC1CE58DD762"
+                    {
+                    "Name" = "8:sortkey.nlp"
+                    "Attributes" = "3:1"
+                    }
+                    "_3569C16941E5BD3788110BE91AFF2887"
+                    {
+                    "Name" = "8:normnfkd.nlp"
+                    "Attributes" = "3:1"
+                    }
+                    "_4579874480145128CCC41BDE5FAEEEC0"
+                    {
+                    "Name" = "8:prcp.nlp"
+                    "Attributes" = "3:1"
+                    }
+                    "_6F1EAE449020E85E8D1DB5917AA7AB52"
+                    {
+                    "Name" = "8:normnfc.nlp"
+                    "Attributes" = "3:1"
+                    }
+                    "_70E5F3C2BF2422E3FCC57B95CF1C1E2E"
+                    {
+                    "Name" = "8:sorttbls.nlp"
+                    "Attributes" = "3:1"
+                    }
+                    "_9F8CB849FE9FF4C3127C3A7B24998C1D"
+                    {
+                    "Name" = "8:ksc.nlp"
+                    "Attributes" = "3:1"
+                    }
+                    "_A3D36E5FCD60546A180D818498C00633"
+                    {
+                    "Name" = "8:prc.nlp"
+                    "Attributes" = "3:1"
+                    }
+                    "_BEA496FBCF2A95BD3B80E7D3E536518E"
+                    {
+                    "Name" = "8:normnfkc.nlp"
+                    "Attributes" = "3:1"
+                    }
+                    "_C0A54AEBFD0B87012990ED8CDB7A13C3"
+                    {
+                    "Name" = "8:bopomofo.nlp"
+                    "Attributes" = "3:1"
+                    }
+                    "_E9CB888C32A211EBC752289C94796AD0"
+                    {
+                    "Name" = "8:big5.nlp"
+                    "Attributes" = "3:1"
+                    }
+                    "_EBFD10B1BFC13AA2A553B2965EDDB336"
+                    {
+                    "Name" = "8:xjis.nlp"
+                    "Attributes" = "3:1"
+                    }
+                    "_EFF126A85CFBE7CBFDE0BCCAB81E7B55"
+                    {
+                    "Name" = "8:normidna.nlp"
+                    "Attributes" = "3:1"
+                    }
+                }
+            "SourcePath" = "8:mscorlib.DLL"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_7F7EA0CABDE8437A9F0EAF5F59759AA4"
+            "Condition" = "8:"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "Register" = "3:0"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{E4F2F62A-3940-4BF5-A031-F7FA98CAAFFA}:_3DE01AE3840A484EADA08F533981571F"
+            {
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:System.Data.SqlServerCe, Version=3.5.0.0, Culture=neutral, PublicKeyToken=3be235df1c8d2ad3"
+                "ScatterAssemblies"
+                {
+                    "_3DE01AE3840A484EADA08F533981571F"
+                    {
+                    "Name" = "8:System.Data.SqlServerCe.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:C:\\Documents and Settings\\D\\Мои документы\\Visual Studio 2008\\Projects\\УТК\\PDT client\\WMS client\\bin\\Release\\System.Data.SqlServerCe.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_7F7EA0CABDE8437A9F0EAF5F59759AA4"
+            "Condition" = "8:"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "Register" = "3:0"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{E4F2F62A-3940-4BF5-A031-F7FA98CAAFFA}:_4684249260DF3D3545839431E2B2143B"
+            {
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:System.Data.SqlServerCe, Version=3.5.0.0, Culture=neutral, PublicKeyToken=3be235df1c8d2ad3"
+                "ScatterAssemblies"
+                {
+                    "_4684249260DF3D3545839431E2B2143B"
+                    {
+                    "Name" = "8:System.Data.SqlServerCe.DLL"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:System.Data.SqlServerCe.DLL"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_7F7EA0CABDE8437A9F0EAF5F59759AA4"
+            "Condition" = "8:"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "Register" = "3:0"
+            "Exclude" = "11:TRUE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{E4F2F62A-3940-4BF5-A031-F7FA98CAAFFA}:_63BD20D3AB43536CBDB602C49A88DBC3"
+            {
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:Intermec.DataCollection.CF2, Version=3.2.0.1323, Culture=neutral, PublicKeyToken=acd169b56b6148ba"
+                "ScatterAssemblies"
+                {
+                    "_63BD20D3AB43536CBDB602C49A88DBC3"
+                    {
+                    "Name" = "8:Intermec.DataCollection.CF2.DLL"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:Intermec.DataCollection.CF2.DLL"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_7F7EA0CABDE8437A9F0EAF5F59759AA4"
+            "Condition" = "8:"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "Register" = "3:0"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{BA458234-9B71-4F46-8107-E91156377184}:_65889806FDB84F7491000124B2C92A64"
+            {
+            "SourcePath" = "8:C:\\Documents and Settings\\D\\Мои документы\\Visual Studio 2008\\Projects\\УТК\\PDT client\\WMS client\\bin\\Release\\serverip.txt"
+            "TargetName" = "8:serverip.txt"
+            "Tag" = "8:"
+            "Folder" = "8:_7F7EA0CABDE8437A9F0EAF5F59759AA4"
+            "Condition" = "8:"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "Register" = "3:0"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{BA458234-9B71-4F46-8107-E91156377184}:_945BD220F5FCF5F11B047226D70C6B86"
+            {
+            "SourcePath" = "8:mscorlib.tlb"
+            "TargetName" = "8:mscorlib.tlb"
+            "Tag" = "8:"
+            "Folder" = "8:_7F7EA0CABDE8437A9F0EAF5F59759AA4"
+            "Condition" = "8:"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "Register" = "3:0"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{E4F2F62A-3940-4BF5-A031-F7FA98CAAFFA}:_C7D5C04B1E6276D84C4E1AC00305A224"
+            {
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:PackageViaWireless, Version=0.0.0.0, Culture=neutral"
+                "ScatterAssemblies"
+                {
+                    "_C7D5C04B1E6276D84C4E1AC00305A224"
+                    {
+                    "Name" = "8:PackageViaWireless.DLL"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:PackageViaWireless.DLL"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_7F7EA0CABDE8437A9F0EAF5F59759AA4"
+            "Condition" = "8:"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "Register" = "3:0"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{E4F2F62A-3940-4BF5-A031-F7FA98CAAFFA}:_C97EDDE154B74296A3771E798AD97580"
+            {
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:WMS client, Version=1.0.0.63, Culture=neutral"
+                "ScatterAssemblies"
+                {
+                    "_C97EDDE154B74296A3771E798AD97580"
+                    {
+                    "Name" = "8:WMS client.exe"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:C:\\Documents and Settings\\D\\Мои документы\\Visual Studio 2008\\Projects\\УТК\\PDT client\\WMS client\\bin\\Release\\WMS client.exe"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_7F7EA0CABDE8437A9F0EAF5F59759AA4"
+            "Condition" = "8:"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "Register" = "3:0"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+        }
+        "Folder"
+        {
+            "{F6DFDB62-1DD1-498B-89B7-27BAC542EE5A}:_0C4A6D17F9F84DD1BE19C56F9CAEF8A0"
+            {
+            "Name" = "8:#1916"
+            "Condition" = "8:"
+            "Property" = "8:%CE11%"
+                "Folders"
+                {
+                }
+            }
+            "{D5B00AC1-E6C3-4CC5-90FF-8E0F53D9E5E0}:_7F7EA0CABDE8437A9F0EAF5F59759AA4"
+            {
+            "DefaultLocation" = "8:%InstallDir%"
+            "Name" = "8:#1920"
+            "Condition" = "8:"
+            "Property" = "8:%InstallDir%"
+                "Folders"
+                {
+                }
+            }
+            "{F6DFDB62-1DD1-498B-89B7-27BAC542EE5A}:_A7065E3A407F42148BD607460C5A3F7C"
+            {
+            "Name" = "8:#1911"
+            "Condition" = "8:"
+            "Property" = "8:%CE1%"
+                "Folders"
+                {
+                }
+            }
+            "{F6DFDB62-1DD1-498B-89B7-27BAC542EE5A}:_C73B0C0C0D074FD6B319E5F716E93590"
+            {
+            "Name" = "8:#1913"
+            "Condition" = "8:"
+            "Property" = "8:%CE4%"
+                "Folders"
+                {
+                }
+            }
+        }
+        "Product"
+        {
+        "Name" = "8:Microsoft Visual Studio"
+        "ProductName" = "8:Aramis WMS"
+        "Manufacturer" = "8:Default Company Name"
+        "OSVersionMin" = "8:4.0"
+        "OSVersionMax" = "8:6.99"
+        "NoUninstall" = "11:FALSE"
+        "Compress" = "11:FALSE"
+        "CESetupDLL" = "8:"
+        }
+        "ProjectOutput"
+        {
+        }
+        "Registry"
+        {
+            "HKLM"
+            {
+                "Keys"
+                {
+                }
+            }
+            "HKCU"
+            {
+                "Keys"
+                {
+                }
+            }
+            "HKCR"
+            {
+                "Keys"
+                {
+                }
+            }
+            "HKU"
+            {
+                "Keys"
+                {
+                }
+            }
+            "HKPU"
+            {
+                "Keys"
+                {
+                }
+            }
+        }
+        "Shortcut"
+        {
+            "{971D45E9-E38C-49AC-B36E-4C5BEA533350}:_28FA2277AC284441A47BE41DE1C0DCCF"
+            {
+            "Name" = "8:Aramis WMS"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "Target" = "8:_C97EDDE154B74296A3771E798AD97580"
+            "Folder" = "8:_0C4A6D17F9F84DD1BE19C56F9CAEF8A0"
+            "WorkingFolder" = "8:_7F7EA0CABDE8437A9F0EAF5F59759AA4"
+            }
+            "{971D45E9-E38C-49AC-B36E-4C5BEA533350}:_E1016E0B4B24437399F12654C68A2EB9"
+            {
+            "Name" = "8:Aramis WMS"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "Target" = "8:_C97EDDE154B74296A3771E798AD97580"
+            "Folder" = "8:_C73B0C0C0D074FD6B319E5F716E93590"
+            "WorkingFolder" = "8:_7F7EA0CABDE8437A9F0EAF5F59759AA4"
+            }
+        }
+    }
+}
