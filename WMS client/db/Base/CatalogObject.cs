@@ -243,7 +243,7 @@ namespace WMS_client.db
                                     DateTime dateTimeValue = (DateTime)value;
                                     value = dateTimeValue == SqlDateTime.MinValue.Value
                                                 ? string.Empty
-                                                : String.Format("{0:MM.dd.yyyy}", dateTimeValue);
+                                                : String.Format("{0:dd.MM.yyyy}", dateTimeValue);
                                 }
                                 else if (field.PropertyType.IsEnum)
                                 {

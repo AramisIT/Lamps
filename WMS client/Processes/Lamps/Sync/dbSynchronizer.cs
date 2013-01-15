@@ -26,33 +26,33 @@ namespace WMS_client
         {
             deferredProperty = new List<DataAboutDeferredProperty>();
 
-            infoLabel.Text = "Контрагенты";
-            SyncObjects<Contractors>(WaysOfSync.OneWay, FilterSettings.CanSynced);
-            infoLabel.Text = "Карты";
-            SyncObjects<Maps>(WaysOfSync.OneWay);
-            infoLabel.Text = "Партии";
-            SyncObjects<Party>(WaysOfSync.OneWay);
-            infoLabel.Text = "Модели";
-            SyncObjects<Models>(WaysOfSync.TwoWay);
-            infoLabel.Text = "Лампы";
-            SyncObjects<Lamps>(WaysOfSync.TwoWay);
-            infoLabel.Text = "Ел.блоки";
-            SyncObjects<ElectronicUnits>(WaysOfSync.TwoWay);
+            //infoLabel.Text = "Контрагенты";
+            //SyncObjects<Contractors>(WaysOfSync.OneWay, FilterSettings.CanSynced);
+            //infoLabel.Text = "Карты";
+            //SyncObjects<Maps>(WaysOfSync.OneWay);
+            //infoLabel.Text = "Партии";
+            //SyncObjects<Party>(WaysOfSync.OneWay);
+            //infoLabel.Text = "Модели";
+            //SyncObjects<Models>(WaysOfSync.TwoWay);
+            //infoLabel.Text = "Лампы";
+            //SyncObjects<Lamps>(WaysOfSync.TwoWay);
+            //infoLabel.Text = "Ел.блоки";
+            //SyncObjects<ElectronicUnits>(WaysOfSync.TwoWay);
             infoLabel.Text = "Корпусы";
             SyncObjects<Cases>(WaysOfSync.TwoWay);
             updateDeferredProperties();
             PerformQuery("EndOfSync");
 
-            infoLabel.Text = "Документы приемки новых комплектующих";
-            SyncAccepmentsDocWithServer();
-            infoLabel.Text = "Отправка на списание";
-            SyncOutSending<SendingToCharge, SubSendingToChargeChargeTable>();
-            SyncInSending<SendingToCharge, SubSendingToChargeChargeTable>();
-            infoLabel.Text = "Отправка на ремонт";
-            SyncOutSending<SendingToRepair, SubSendingToRepairRepairTable>();
-            SyncInSending<SendingToRepair, SubSendingToRepairRepairTable>();
-            infoLabel.Text = "Перемещения";
-            SyncMovement();
+            //infoLabel.Text = "Документы приемки новых комплектующих";
+            //SyncAccepmentsDocWithServer();
+            //infoLabel.Text = "Отправка на списание";
+            //SyncOutSending<SendingToCharge, SubSendingToChargeChargeTable>();
+            //SyncInSending<SendingToCharge, SubSendingToChargeChargeTable>();
+            //infoLabel.Text = "Отправка на ремонт";
+            //SyncOutSending<SendingToRepair, SubSendingToRepairRepairTable>();
+            //SyncInSending<SendingToRepair, SubSendingToRepairRepairTable>();
+            //infoLabel.Text = "Перемещения";
+            //SyncMovement();
 
             MainProcess.ClearControls();
             MainProcess.Process = new SelectingLampProcess(MainProcess);
@@ -81,9 +81,10 @@ namespace WMS_client
         public void SyncObjects<T>(string tableName, WaysOfSync wayOfSync, FilterSettings filter) where T : dbObject
         {
             //Выбрать (Признак синхронизации, Штрих-код) всех не удаленных элементов с таблицы tableName
-            string command = string.Format("SELECT RTRIM({0}){0},RTRIM({1}){1} FROM {2} WHERE {3}=0",
+            string command = string.Format("SELECT RTRIM({0}){0},RTRIM({1}){1},RTRIM({2}) {2} FROM {3} WHERE {4}=0",
                                            dbObject.IS_SYNCED,
                                            dbObject.BARCODE_NAME,
+                                           dbObject.SYNCREF_NAME,
                                            tableName,
                                            CatalogObject.MARK_FOR_DELETING);
             SqlCeCommand query = dbWorker.NewQuery(command);

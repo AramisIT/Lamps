@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using WMS_client.Enums;
-using WMS_client.Processes.Lamps;
 using System;
 using System.Windows.Forms;
 using System.Data.SqlServerCe;
@@ -56,6 +55,17 @@ namespace WMS_client
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
                     MainProcess.Process = new RegistrationProcess(MainProcess);
+                    break;
+                case KeyAction.Complate:
+                    if (MessageBox.Show(
+                        "Очистить все данные на ТСД?",
+                        "Очистка",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question,
+                        MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                    {
+                        dbArchitector.ClearAll();
+                    }
                     break;
                 case KeyAction.Proceed:
                     new dbSynchronizer(MainProcess);

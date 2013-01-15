@@ -22,7 +22,7 @@ namespace WMS_client.db
         [dbAttributes(Description = "Відроблено годин")]
         public double HoursOfWork { get; set; }
         /// <summary>Маркування</summary>
-        [dbAttributes(Description = "Маркування", ShowInEditForm = true)]
+        [dbAttributes(Description = "Маркування")]
         public string Marking { get; set; }
         /// <summary>Модель</summary>
         [dbAttributes(Description = "Модель", dbObjectType = typeof(Models), NotShowInForm = true, ShowInEditForm = true)]
@@ -93,6 +93,26 @@ namespace WMS_client.db
             int statusNumber = statusObj == null ? 0 : Convert.ToInt32(statusObj);
 
             return (TypesOfLampsStatus) statusNumber;
+        }
+
+        /// <summary>Получить последний созданный объект комлектующего заданого типа</summary>
+        /// <param name="accessoryType">Тип</param>
+        /// <param name="accessory">Последний созданный объект комлектующего</param>
+        /// <returns>Вернули ли значение?</returns>
+        public static bool GetLastAccesory(Type accessoryType, out Accessory accessory)
+        {
+            accessory = (Accessory)Activator.CreateInstance(accessoryType);
+            string command = string.Format("SELECT ID FROM {0} ORDER BY Date,Id DESC", accessoryType.Name);
+            SqlCeCommand query = dbWorker.NewQuery(command);
+            object idOfLastAccesory = query.ExecuteScalar();
+
+            if(idOfLastAccesory!=null)
+            {
+                accessory.Read(accessoryType, idOfLastAccesory, IDENTIFIER_NAME);
+                return true;
+            }
+
+            return false;
         }
     }
 }

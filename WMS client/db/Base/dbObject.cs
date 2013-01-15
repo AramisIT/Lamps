@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +10,8 @@ namespace WMS_client.db
     /// <summary>Объкт базыданных</summary>
     public abstract class dbObject
     {
+        /// <summary>Колонка идентификатора синхронизации</summary>
+        public const string SYNCREF_NAME = "SyncRef";
         /// <summary>Колонка идентификатора</summary>
         public const string IDENTIFIER_NAME = "Id";
         /// <summary>Колонка штрихкода</summary>
@@ -23,6 +26,9 @@ namespace WMS_client.db
         /// <returns>Id</returns>
         public abstract object Sync();
 
+        /// <summary>Идентификатор для синхронизации</summary>
+        [dbAttributes(Description = "Идентификатор для синхронизации", NotShowInForm = true)]
+        public string SyncRef { get; set; }
         /// <summary>Id</summary>
         [dbAttributes(Description = "Id", NotShowInForm = true)]
         public long Id { get; set; }
@@ -87,6 +93,7 @@ namespace WMS_client.db
 
             if (IsNew)
             {
+                SyncRef = generateSyncRef();
                 idValue = CreateNew<T>();
             }
             else
@@ -95,6 +102,20 @@ namespace WMS_client.db
             }
 
             return idValue;
+        }
+
+        private string generateSyncRef()
+        {
+            StringBuilder refStr = new StringBuilder();
+            Random rand = new Random();
+            const int length = 25;
+
+            for (int i = 0; i < length; i++)
+            {
+                refStr.Append((char) rand.Next(33, 122));
+            }
+
+            return refStr.ToString();
         }
 
         /// <summary>Создание нового объекта</summary>
@@ -292,6 +313,10 @@ namespace WMS_client.db
                         {
                             value = Convert.ToInt32(value);
                         }
+                        if (property.PropertyType == typeof(long))
+                        {
+                            value = Convert.ToInt64(value);
+                        }
                         else if (property.PropertyType == typeof (double))
                         {
                             value = Convert.ToDouble(value);
@@ -444,6 +469,20 @@ namespace WMS_client.db
             obj.IsModified = true;
             return value;
         } 
+        #endregion
+
+        #region GetPropery
+        /// <summary>Получить значение свойства по строковому имени</summary>
+        /// <param name="propertyName">Строковое имя</param>
+        /// <returns>Значение свойства</returns>
+        public object GetPropery(string propertyName)
+        {
+            PropertyInfo[] properties = GetType().GetProperties();
+
+            return (from property in properties 
+                    where property.Name == propertyName 
+                    select property.GetValue(this, null)).FirstOrDefault();
+        }
         #endregion
 
         #region GetProperyType

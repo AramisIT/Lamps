@@ -26,7 +26,10 @@ namespace WMS_client
         private readonly string currentTopic;
         /// <summary>Отсканированный щтрих-код</summary>
         private string barcode;
-        private readonly bool emptyBarcodeEnabled; 
+        private readonly bool emptyBarcodeEnabled;
+        private readonly bool existMode;
+        private const string okBtnText = "Ок";
+        private const string nextBtnText = "Далі";
         #endregion
 
         /// <summary>"Строитель редактирования"</summary>
@@ -51,6 +54,7 @@ namespace WMS_client
             MainProcess.ToDoCommand = currentTopic;
 
             IsLoad = true;
+            existMode = false;
             DrawControls();
         }
 
@@ -78,6 +82,7 @@ namespace WMS_client
             emptyBarcodeEnabled = emptyBarcode;
 
             IsLoad = true;
+            existMode = false;
             DrawControls();
         }
 
@@ -100,6 +105,7 @@ namespace WMS_client
             this.barcode = barcode;
 
             IsLoad = true;
+            existMode = true;
             OnBarcode(barcode);
         }
 
@@ -127,7 +133,7 @@ namespace WMS_client
             bool accesoryIsExist = !string.IsNullOrEmpty(Barcode) && BarcodeWorker.IsBarcodeExist(Barcode);
 
             //Если в системе уже существует штрихкод
-            if (accesoryIsExist)
+            if (!existMode && accesoryIsExist)
             {
                 //Тип комплектующего штрихкода
                 TypeOfAccessories typesOfAccessories = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
@@ -143,11 +149,16 @@ namespace WMS_client
                 }
             }
 
+            showData(accesoryIsExist, Barcode);
+        }
+
+        private void showData(bool accesoryIsExist, string Barcode)
+        {
             readAccessory(accesoryIsExist, Barcode);
 
             //Установить отсканированный штрихкод
             dbObject.SetValue(accessory, dbObject.BARCODE_NAME, Barcode);
-            
+
             //Список кнопок переходов
             Dictionary<string, KeyValuePair<Type, object>> listOfDetail;
             //Список доступных полей для редактирования
@@ -156,13 +167,15 @@ namespace WMS_client
             MainProcess.ToDoCommand = currentTopic;
             //Дополение списка переходов
             listOfDetail.Add(
-                mainType == currentType ? "Далі" : "Ок",
+                mainType == currentType ? nextBtnText : okBtnText,
                 new KeyValuePair<Type, object>(mainType, null));
 
             //Отобразить доступные поля для редактирования
             drawEditableProperties(listOfLabels);
             //Отобразить кнопоки переходов
             drawButtons(listOfDetail);
+            //Кнопка "Заповнити як попередній"
+            MainProcess.CreateButton("Заповнити як попередній", 5, 275, 230, 35, string.Empty, fillFromPrev);
         }
 
         public override void OnHotKey(KeyAction TypeOfAction)
@@ -246,7 +259,7 @@ namespace WMS_client
         {
             if (listOfDetail.Count != 0)
             {
-                const int top = 275;
+                const int top = 235;
                 const int height = 35;
                 int left = 15 / listOfDetail.Count;
                 int width = (240 - left * (listOfDetail.Count + 1)) / listOfDetail.Count;
@@ -254,9 +267,9 @@ namespace WMS_client
 
                 foreach (KeyValuePair<string, KeyValuePair<Type, object>> detail in listOfDetail)
                 {
-                    bool enable = detail.Value.Value== null || detail.Value.Key != typeof(Lamps);
+                    //bool enable = detail.Value.Value== null;// || detail.Value.Key != typeof(Lamps);
                     MainProcess.CreateButton(detail.Key, delta, top, width, height, string.Empty, button_click,
-                                             detail.Value.Key, enable);
+                                             detail.Value.Key, true);
                     delta += left + width;
                 }
             }
@@ -269,45 +282,86 @@ namespace WMS_client
             Button button = ((Button) sender);
             Type type = button.Tag as Type;
 
-            MainProcess.ClearControls();
-            accessory.Save();
-
-            //Если выбранный тип совпадает с основным типом - "Сохранение перекрестных ссылок"
-            if (mainType == type)
+            if (type != null)
             {
-                if (mainType != null && linkId != -1)
+                MainProcess.ClearControls();
+
+                //Если выбранный тип совпадает с основным типом - "Сохранение перекрестных ссылок"
+                if (mainType == type && linkId != -1)
                 {
-                    if (string.IsNullOrEmpty(accessory.BarCode))
-                    {
-                        accessory.SetIsNew();
-                    }
+                    //if (string.IsNullOrEmpty(accessory.BarCode)){accessory.SetIsNew();}
                     accessory.SetValue(mainType.Name.Substring(0, mainType.Name.Length - 1), linkId);
+                    //Сохраняем для того что бы получить accessory.Id
                     accessory.Save();
-                    
-                    dbObject mainObj = (Accessory) Activator.CreateInstance(mainType);
-                    mainObj = (Accessory) mainObj.Read(mainType, linkId, dbObject.IDENTIFIER_NAME);
+
+                    dbObject mainObj = (Accessory)Activator.CreateInstance(mainType);
+                    mainObj = (Accessory)mainObj.Read(mainType, linkId, dbObject.IDENTIFIER_NAME);
                     mainObj.SetValue(currentType.Name.Substring(0, currentType.Name.Length - 1), accessory.Id);
                     mainObj.Save();
-
-                    MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
                 }
+
+                //Запись
+                accessory.Save();
+
+                //Отображение 
+                string propertyName = type.Name.Substring(0, type.Name.Length - 1);
+                object newAccessory = accessory.GetPropery(propertyName);
+                long newAccessoryId = newAccessory == null ? 0 : Convert.ToInt64(newAccessory);
+
+                //Переход на связанное комплектующее
+                if ((newAccessoryId != 0 || (newAccessoryId == 0 && linkId != -1 && mainType == type))
+                    && button.Text != okBtnText && button.Text != nextBtnText)
+                {
+                    Accessory newObj = (Accessory) Activator.CreateInstance(type);
+                    newObj.Read(type, newAccessoryId, dbObject.IDENTIFIER_NAME);
+                    MainProcess.Process = new EditBuilder(MainProcess, mainType, mainTopic, type,
+                                                          button.Text, newObj, newObj.BarCode);
+                    accessory = newObj;
+                }
+                    //Переход на НОВЫЙ выбранный тип комплектующего 
                 else
                 {
-                    accessory = (Accessory) accessory.Copy();
-                    MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
+                    //Если выбранный тип совпадает с основным типом
+                    if (mainType == type)
+                    {
+                        if (mainType == null || linkId == -1)
+                        {
+                            accessory = (Accessory) accessory.Copy();
+                            MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
+                        }
+
+                        MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
+                    }
+                        //Не совпадает - "Передача ИД комплектующего с которого переходим"
+                    else
+                    {
+                        MainProcess.Process = new EditBuilder(MainProcess, type, mainType, button.Text,
+                                                              accessory.Id, type == typeof(ElectronicUnits));
+                    }
+
+
+                    //Если не было произведено копирование полей для следующего комплектующего, то очистить все поля
+                    if (!accessory.IsNew)
+                    {
+                        accessory = null;
+                    }
                 }
             }
-            //Не совпадает - "Передача ИД комплектующего с которого переходим"
-            else
-            {
-                MainProcess.Process = new EditBuilder(MainProcess, type, mainType, button.Text, accessory.Id,
-                                                      type == typeof (ElectronicUnits));
-            }
+        }
 
-            //Если не было произведено копирование полей для следующего комплектующего, то очистить все поля
-            if (!accessory.IsNew)
+        /// <summary>Заповнити як попередній</summary>
+        private void fillFromPrev()
+        {
+            //Сохраняем штрихкод, а то он затрется
+            string currBarcode = accessory.BarCode;
+            Accessory lastObj;
+
+            //Получаем объект последнего комплектующего
+            if (Accessory.GetLastAccesory(currentType, out lastObj))
             {
-                accessory = null;
+                accessory = (Accessory)lastObj.Copy();
+                MainProcess.ClearControls();
+                showData(false, currBarcode);
             }
         }
         #endregion
