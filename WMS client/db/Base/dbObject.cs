@@ -18,6 +18,8 @@ namespace WMS_client.db
         public const string BARCODE_NAME = "BarCode";
         /// <summary>Колонка флага состояния синхронизации</summary>
         public const string IS_SYNCED = "issynced";
+        /// <summary>Длинна идентификатора синхронизации</summary>
+        private const int REF_LENGTH = 25;
 
         /// <summary>Сохранить</summary>
         /// <returns>Id</returns>
@@ -93,7 +95,11 @@ namespace WMS_client.db
 
             if (IsNew)
             {
-                SyncRef = generateSyncRef();
+                if (string.IsNullOrEmpty(SyncRef))
+                {
+                    SyncRef = generateSyncRef();
+                }
+
                 idValue = CreateNew<T>();
             }
             else
@@ -108,9 +114,8 @@ namespace WMS_client.db
         {
             StringBuilder refStr = new StringBuilder();
             Random rand = new Random();
-            const int length = 25;
 
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < REF_LENGTH; i++)
             {
                 refStr.Append((char) rand.Next(33, 122));
             }

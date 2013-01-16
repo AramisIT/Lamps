@@ -26,33 +26,33 @@ namespace WMS_client
         {
             deferredProperty = new List<DataAboutDeferredProperty>();
 
-            //infoLabel.Text = "Контрагенты";
-            //SyncObjects<Contractors>(WaysOfSync.OneWay, FilterSettings.CanSynced);
-            //infoLabel.Text = "Карты";
-            //SyncObjects<Maps>(WaysOfSync.OneWay);
-            //infoLabel.Text = "Партии";
-            //SyncObjects<Party>(WaysOfSync.OneWay);
-            //infoLabel.Text = "Модели";
-            //SyncObjects<Models>(WaysOfSync.TwoWay);
-            //infoLabel.Text = "Лампы";
-            //SyncObjects<Lamps>(WaysOfSync.TwoWay);
-            //infoLabel.Text = "Ел.блоки";
-            //SyncObjects<ElectronicUnits>(WaysOfSync.TwoWay);
+            infoLabel.Text = "Контрагенты";
+            SyncObjects<Contractors>(WaysOfSync.OneWay, FilterSettings.CanSynced);
+            infoLabel.Text = "Карты";
+            SyncObjects<Maps>(WaysOfSync.OneWay);
+            infoLabel.Text = "Партии";
+            SyncObjects<Party>(WaysOfSync.OneWay);
+            infoLabel.Text = "Модели";
+            SyncObjects<Models>(WaysOfSync.TwoWay);
+            infoLabel.Text = "Лампы";
+            SyncObjects<Lamps>(WaysOfSync.TwoWay);
+            infoLabel.Text = "Ел.блоки";
+            SyncObjects<ElectronicUnits>(WaysOfSync.TwoWay);
             infoLabel.Text = "Корпусы";
             SyncObjects<Cases>(WaysOfSync.TwoWay);
             updateDeferredProperties();
             PerformQuery("EndOfSync");
 
-            //infoLabel.Text = "Документы приемки новых комплектующих";
-            //SyncAccepmentsDocWithServer();
-            //infoLabel.Text = "Отправка на списание";
-            //SyncOutSending<SendingToCharge, SubSendingToChargeChargeTable>();
-            //SyncInSending<SendingToCharge, SubSendingToChargeChargeTable>();
-            //infoLabel.Text = "Отправка на ремонт";
-            //SyncOutSending<SendingToRepair, SubSendingToRepairRepairTable>();
-            //SyncInSending<SendingToRepair, SubSendingToRepairRepairTable>();
-            //infoLabel.Text = "Перемещения";
-            //SyncMovement();
+            infoLabel.Text = "Документы приемки новых комплектующих";
+            SyncAccepmentsDocWithServer();
+            infoLabel.Text = "Отправка на списание";
+            SyncOutSending<SendingToCharge, SubSendingToChargeChargeTable>();
+            SyncInSending<SendingToCharge, SubSendingToChargeChargeTable>();
+            infoLabel.Text = "Отправка на ремонт";
+            SyncOutSending<SendingToRepair, SubSendingToRepairRepairTable>();
+            SyncInSending<SendingToRepair, SubSendingToRepairRepairTable>();
+            infoLabel.Text = "Перемещения";
+            SyncMovement();
 
             MainProcess.ClearControls();
             MainProcess.Process = new SelectingLampProcess(MainProcess);
@@ -63,7 +63,15 @@ namespace WMS_client
         /// <param name="wayOfSync">Способ синхронизации</param>
         public void SyncObjects<T>(WaysOfSync wayOfSync) where T : dbObject
         {
-            SyncObjects<T>(typeof(T).Name, wayOfSync, FilterSettings.None);
+            SyncObjects<T>(typeof(T).Name, wayOfSync, FilterSettings.None, false);
+        }
+
+        /// <summary>Синхронизация объекта</summary>
+        /// <param name="wayOfSync">Способ синхронизации</param>
+        /// <param name="skipExists">Пропустить существующие</param>
+        public void SyncObjects<T>(WaysOfSync wayOfSync, bool skipExists) where T : dbObject
+        {
+            SyncObjects<T>(typeof(T).Name, wayOfSync, FilterSettings.None, skipExists);
         }
 
         /// <summary>Синхронизация объекта</summary>
@@ -71,14 +79,24 @@ namespace WMS_client
         /// <param name="filter">Фильтры</param>
         public void SyncObjects<T>(WaysOfSync wayOfSync, FilterSettings filter) where T : dbObject
         {
-            SyncObjects<T>(typeof(T).Name, wayOfSync, filter);
+            SyncObjects<T>(typeof(T).Name, wayOfSync, filter, false);
+        }
+
+        /// <summary>Синхронизация объекта</summary>
+        /// <param name="wayOfSync">Способ синхронизации</param>
+        /// <param name="filter">Фильтры</param>
+        /// <param name="skipExists">Пропустить существующие</param>
+        public void SyncObjects<T>(WaysOfSync wayOfSync, FilterSettings filter, bool skipExists) where T : dbObject
+        {
+            SyncObjects<T>(typeof(T).Name, wayOfSync, filter, skipExists);
         }
 
         /// <summary>Синхронизация объекта</summary>
         /// <param name="tableName">Имя таблицы</param>
         /// <param name="wayOfSync">Способ синхронизации</param>
         /// <param name="filter">Фильтры</param>
-        public void SyncObjects<T>(string tableName, WaysOfSync wayOfSync, FilterSettings filter) where T : dbObject
+        /// <param name="skipExists">Пропустить существующие</param>
+        public void SyncObjects<T>(string tableName, WaysOfSync wayOfSync, FilterSettings filter, bool skipExists) where T : dbObject
         {
             //Выбрать (Признак синхронизации, Штрих-код) всех не удаленных элементов с таблицы tableName
             string command = string.Format("SELECT RTRIM({0}){0},RTRIM({1}){1},RTRIM({2}) {2} FROM {3} WHERE {4}=0",
@@ -101,7 +119,7 @@ namespace WMS_client
 
             if (IsAnswerIsTrue)
             {
-                updateObjOnLocalDb<T>();
+                updateObjOnLocalDb<T>(skipExists);
 
                 if (wayOfSync == WaysOfSync.TwoWay)
                 {
@@ -226,7 +244,7 @@ namespace WMS_client
 
                 //3. Удаление полностью принятого документа
                 command = string.Format(@"SELECT s.Id
-FROM SendingToCharge s 
+FROM {0} s 
 LEFT JOIN (
     SELECT t1.Id, Count(1) Count
     FROM {0} t1
@@ -319,12 +337,14 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
 
         #region Update on ...
         /// <summary>Обновление локальной базы после синхронизации</summary>
-        private void updateObjOnLocalDb<T>() where T : dbObject
+        /// <typeparam name="T"></typeparam>
+        /// <param name="skipExists">Пропустить существующие</param>
+        private void updateObjOnLocalDb<T>(bool skipExists) where T : dbObject
         {
             //Данные только по измененным элементам с "сервера"
             DataTable changesForTsd = Parameters[1] as DataTable;
             //Обновление элементов на локальной базе
-            CreateSyncObject<T>(changesForTsd, false, ref deferredProperty);
+            CreateSyncObject<T>(changesForTsd, skipExists, ref deferredProperty);
         }
 
         /// <summary>Выборка данных для обновления сервера после синхронизации</summary>
@@ -345,9 +365,9 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                 foreach (DataRow row in changesForServ.Rows)
                 {
                     //Добавление параметров
-                    query.AddParameter(string.Concat(PARAMETER, index), row[dbObject.BARCODE_NAME]);
+                    query.AddParameter(string.Concat(PARAMETER, index), row[dbObject.SYNCREF_NAME]);
                     where.AppendFormat(" RTRIM([{0}].[{1}])=RTRIM(@{2}{3}) OR",
-                                       tableName, dbObject.BARCODE_NAME, PARAMETER, index);
+                                       tableName, dbObject.SYNCREF_NAME, PARAMETER, index);
                     index++;
                 }
 
@@ -383,8 +403,8 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
             {
                 Type type = typeof(T);
                 PropertyInfo[] properties = type.GetProperties();
-                string barcode = string.Empty;
-                string barcodeName = dbObject.BARCODE_NAME.ToLower();
+                string syncRef = string.Empty;
+                string syncRefName = dbObject.SYNCREF_NAME.ToLower();
                 int lastDeferredIndex = 0;
 
                 foreach (DataRow row in table.Rows)
@@ -401,10 +421,10 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                         {
                             object value = row[property.Name];
 
-                            //Не существует ли елемент с таким штрих кодом?
-                            if (property.Name.ToLower().Equals(barcodeName))
+                            //Не существует ли елемент с такой ссылкой?
+                            if (property.Name.ToLower().Equals(syncRefName))
                             {
-                                if (BarcodeWorker.IsBarcodeExist(value.ToString()))
+                                if (BarcodeWorker.IsRefExist(type, value.ToString()))
                                 {
                                     if (skipExists)
                                     {
@@ -412,12 +432,13 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                                     }
 
                                     newObject.SetNotNew();
-                                    barcode = value.ToString();
                                 }
-                                else
-                                {
-                                    barcode = string.Empty;
-                                }
+                                
+                                syncRef = value.ToString();
+                                //else
+                                //{
+                                //    syncRef = string.Empty;
+                                //}
                             }
                             else if (property.Name.ToLower().Equals(dbObject.IDENTIFIER_NAME))
                             {
@@ -489,9 +510,9 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                         syncObject.IsSynced = true;
                     }
 
-                    if (!skipExists && !string.IsNullOrEmpty(barcode))
+                    if (!skipExists && !string.IsNullOrEmpty(syncRef))
                     {
-                        newObject.Id = Convert.ToInt64(BarcodeWorker.GetIdByBarcode(barcode));
+                        newObject.Id = Convert.ToInt64(BarcodeWorker.GetIdByRef(type, syncRef));
                     }
 
                     newObject.Sync<T>();

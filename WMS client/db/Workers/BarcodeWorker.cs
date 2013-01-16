@@ -48,6 +48,19 @@ FROM(
             return result != null;
         }
 
+        public static bool IsRefExist(Type type, string syncRef)
+        {
+            string command = string.Format(@"SELECT 1 FROM {0} WHERE RTRIM({1})=RTRIM(@{2})",
+                                           type.Name,
+                                           dbObject.SYNCREF_NAME,
+                                           dbSynchronizer.PARAMETER);
+            SqlCeCommand query = dbWorker.NewQuery(command);
+            query.AddParameter(dbSynchronizer.PARAMETER, syncRef);
+            object result = query.ExecuteScalar();
+
+            return result != null;
+        }
+
         /// <summary>Чи вже існує штрихкод?</summary>
         /// <param name="barcode">Штрихкод</param>
         public static object GetIdByBarcode(object barcode)
@@ -61,6 +74,23 @@ FROM(
         {
             SqlCeCommand query = dbWorker.NewQuery(string.Format(ACCESSORY_QUERY_COMMAND, "Id"));
             query.AddParameter("Barcode", barcode);
+            object result = query.ExecuteScalar();
+
+            return result ?? 0;
+        }
+
+        /// <summary>Чи вже існує штрихкод?</summary>
+        /// <param name="type"> </param>
+        /// <param name="syncRef">Штрихкод</param>
+        public static object GetIdByRef(Type type, string syncRef)
+        {
+            string command = string.Format(@"SELECT {0} FROM {1} WHERE RTRIM({2})=RTRIM(@{3})",
+                                           dbObject.IDENTIFIER_NAME,
+                                           type.Name,
+                                           dbObject.SYNCREF_NAME,
+                                           dbSynchronizer.PARAMETER);
+            SqlCeCommand query = dbWorker.NewQuery(command);
+            query.AddParameter(dbSynchronizer.PARAMETER, syncRef);
             object result = query.ExecuteScalar();
 
             return result ?? 0;
