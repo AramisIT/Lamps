@@ -384,7 +384,10 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                 {
                     //Выборка данных
                     query.CommandText = getUnsyncLinkedData(typeof(T), whereStr);
-                    DataTable changes = query.SelectToTable();
+                    DataTable changes = query.SelectToTable(new Dictionary<string, Enum>
+                                                {
+                                                    {BaseFormatName.DateTime, DateTimeFormat.OnlyDate}
+                                                });
 
                     PerformQuery("SyncChangesForServer", tableName, changes);
                 }

@@ -62,6 +62,38 @@ namespace WMS_client.db
             return Read<T>(barcode, BARCODE_NAME);
         }
 
+        public Accessory CopyWithoutLinks()
+        {
+            dbObject copyObj = base.Copy();
+            Cases caseObj = copyObj as Cases;
+
+            if(caseObj!=null)
+            {
+                caseObj.Lamp = 0;
+                caseObj.ElectronicUnit = 0;
+
+                return caseObj;
+            }
+
+            ElectronicUnits unitObj = copyObj as ElectronicUnits;
+
+            if(unitObj!=null)
+            {
+                unitObj.Case = 0;
+                return unitObj;
+            }
+
+            Lamps lampObj = copyObj as Lamps;
+
+            if(lampObj!=null)
+            {
+                lampObj.Case = 0;
+                return lampObj;
+            }
+
+            return (Accessory)copyObj;
+        }
+
         /// <summary>Получить статус комплектующего</summary>
         /// <param name="accessory">Тип комплектующего</param>
         /// <param name="barcode">Штихкод</param>

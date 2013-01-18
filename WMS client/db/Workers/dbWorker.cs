@@ -143,7 +143,14 @@ namespace WMS_client.db
             {
                 foreach (DataRow row in schemaTable.Rows)
                 {
-                    DataColumn column = new DataColumn(row["ColumnName"].ToString(), reader.GetFieldType(index++));
+                    Type type = reader.GetFieldType(index++);
+
+                    if (type == typeof(DateTime))
+                    {
+                        type = typeof(string);
+                    }
+
+                    DataColumn column = new DataColumn(row["ColumnName"].ToString(), type);
                     table.Columns.Add(column);
                 }
 
@@ -155,7 +162,6 @@ namespace WMS_client.db
                     {
                         Type type = reader[i].GetType();
 
-                        //todo: хз зачем именно так...
                         switch (type.FullName)
                         {
                             case BaseFormatName.DBNull:
@@ -182,7 +188,7 @@ namespace WMS_client.db
         /// <returns>Список</returns>
         public static List<object> SelectToList(this SqlCeCommand command)
         {
-            return SelectToList(command, new Dictionary<string, Enum>());
+            return SelectToList(command, new Dictionary<string, Enum> {{BaseFormatName.DateTime, DateTimeFormat.None}});
         }
 
         /// <summary>Выбрать в список</summary>
@@ -242,7 +248,7 @@ namespace WMS_client.db
         /// <returns></returns>
         public static string GetDateTimeInFormat(DateTime dateTime, Dictionary<string, Enum> formatDic)
         {
-            DateTimeFormat format = DateTimeFormat.All;
+            DateTimeFormat format = DateTimeFormat.None;
 
             if (formatDic.ContainsKey(BaseFormatName.DateTime))
             {
@@ -260,6 +266,10 @@ namespace WMS_client.db
                     return string.Format("{0:00}.{1:00}.{2}", dateTime.Day, dateTime.Month, dateTime.Year);
                 case DateTimeFormat.OnlyTime:
                     return dateTime.ToShortTimeString();
+                case DateTimeFormat.All:
+                    return string.Format("{0:00}.{1:00}.{2} {3:00}:{4:00}:{5:00}",
+                        dateTime.Day, dateTime.Month, dateTime.Year,
+                        dateTime.Hour, dateTime.Minute, dateTime.Second);
                 default:
                     return dateTime.ToString();
             }

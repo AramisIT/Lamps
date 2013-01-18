@@ -359,7 +359,7 @@ namespace WMS_client
             //Получаем объект последнего комплектующего
             if (Accessory.GetLastAccesory(currentType, out lastObj))
             {
-                accessory = (Accessory)lastObj.Copy();
+                accessory = lastObj.CopyWithoutLinks();
                 MainProcess.ClearControls();
                 showData(false, currBarcode);
             }

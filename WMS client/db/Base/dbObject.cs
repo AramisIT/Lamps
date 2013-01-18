@@ -115,10 +115,21 @@ namespace WMS_client.db
             StringBuilder refStr = new StringBuilder();
             Random rand = new Random();
 
-            for (int i = 0; i < REF_LENGTH; i++)
+            refStr.AppendFormat("{0:000}-", rand.Next(100,999));
+
+            for (int i = 0; i < 5;i++ )
             {
-                refStr.Append((char) rand.Next(60, 122));
+                refStr.Append((char) rand.Next(65,90));
             }
+
+            refStr.AppendFormat("-{0:00000}-", rand.Next(10000, 99999));
+
+            for (int i = 0; i < 5; i++)
+            {
+                refStr.Append((char)rand.Next(65, 90));
+            }
+
+            refStr.AppendFormat("-{0:000}", rand.Next(100, 999));
 
             return refStr.ToString();
         }
@@ -342,7 +353,7 @@ namespace WMS_client.db
         #region Copy
         /// <summary>Копировать объект</summary>
         /// <returns>Скопированный объект</returns>
-        public dbObject Copy()
+        public virtual dbObject Copy()
         {
             return Copy(this);
         }
@@ -372,7 +383,7 @@ namespace WMS_client.db
                 ISynced synced = copy as ISynced;
                 if (synced != null)
                 {
-                    synced.IsSynced = false; 
+                    synced.IsSynced = false;
                 }
 
                 IBarcodeOwner barcode = copy as IBarcodeOwner;
@@ -381,6 +392,7 @@ namespace WMS_client.db
                     barcode.BarCode = string.Empty;
                 }
 
+                copy.SyncRef = string.Empty;
                 copy.Id = 0;
 
                 return copy;
