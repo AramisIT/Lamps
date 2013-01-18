@@ -8,19 +8,19 @@ namespace WMS_client.db
     public class Cases : Accessory
     {
         /// <summary>Ел. блок</summary>
-        [dbAttributes(Description = "Ел. блок", dbObjectType = typeof(ElectronicUnits), NeedDetailInfo = true)]
+        [dbFieldAtt(Description = "Ел. блок", dbObjectType = typeof(ElectronicUnits), NeedDetailInfo = true)]
         public long ElectronicUnit { get; set; }
         /// <summary>Лампа</summary>
-        [dbAttributes(Description = "Лампа", dbObjectType = typeof(Lamps), NeedDetailInfo = true)]
+        [dbFieldAtt(Description = "Лампа", dbObjectType = typeof(Lamps), NeedDetailInfo = true)]
         public long Lamp { get; set; }
         /// <summary>Карта</summary>
-        [dbAttributes(Description = "Карта", dbObjectType = typeof(Maps))]
+        [dbFieldAtt(Description = "Карта", dbObjectType = typeof(Maps))]
         public long Map { get; set; }
         /// <summary>Позиція</summary>
-        [dbAttributes(Description = "Позиція")]
+        [dbFieldAtt(Description = "Позиція")]
         public int Position { get; set; }
         /// <summary>Регістр</summary>
-        [dbAttributes(Description = "Регістр")]
+        [dbFieldAtt(Description = "Регістр")]
         public int Register { get; set; }
 
         public override object Save()

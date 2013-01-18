@@ -6,28 +6,28 @@ namespace WMS_client.Enums
     public enum TypesOfLampsStatus
     {
         /// <summary>Зберігання</summary>
-        [dbAttributes(Description = "Зберігання")]
+        [dbFieldAtt(Description = "Зберігання")]
         Storage,
         /// <summary>Ремонт</summary>
-        [dbAttributes(Description = "Ремонт")]
+        [dbFieldAtt(Description = "Ремонт")]
         Repair,
         /// <summary>В роботі</summary>
-        [dbAttributes(Description = "В роботі")]
+        [dbFieldAtt(Description = "В роботі")]
         IsWorking,
         /// <summary>Списано</summary>
-        [dbAttributes(Description = "Списано")]
+        [dbFieldAtt(Description = "Списано")]
         WrittenOff,
         /// <summary>На обмін</summary>
-        [dbAttributes(Description = "На обмін")]
+        [dbFieldAtt(Description = "На обмін")]
         ForExchange,
         /// <summary>Обміняно</summary>
-        [dbAttributes(Description = "Обміняно")]
+        [dbFieldAtt(Description = "Обміняно")]
         Exchanged,
         /// <summary>На списання</summary>
-        [dbAttributes(Description = "На списання")]
+        [dbFieldAtt(Description = "На списання")]
         ToCharge,
         /// <summary>На ремонт</summary>
-        [dbAttributes(Description = "На ремонт")]
+        [dbFieldAtt(Description = "На ремонт")]
         ToRepair
     }
 }

@@ -10,40 +10,40 @@ namespace WMS_client.db
     {
         #region Properties
         /// <summary>Штрихкод</summary>
-        [dbAttributes(Description = "Штрихкод", NotShowInForm = true)]
+        [dbFieldAtt(Description = "Штрихкод", NotShowInForm = true)]
         public string BarCode { get; set; }
         /// <summary>Дата актуальності</summary>
-        [dbAttributes(Description = "Дата актуальності")]
+        [dbFieldAtt(Description = "Дата актуальності")]
         public DateTime DateOfActuality { get; set; }
         /// <summary>Знято</summary>
-        [dbAttributes(Description = "Знято")]
+        [dbFieldAtt(Description = "Знято")]
         public DateTime DrawdownDate { get; set; }
         /// <summary>Відроблено годин</summary>
-        [dbAttributes(Description = "Відроблено годин")]
+        [dbFieldAtt(Description = "Відроблено годин")]
         public double HoursOfWork { get; set; }
         /// <summary>Маркування</summary>
-        [dbAttributes(Description = "Маркування")]
+        [dbFieldAtt(Description = "Маркування")]
         public string Marking { get; set; }
         /// <summary>Модель</summary>
-        [dbAttributes(Description = "Модель", dbObjectType = typeof(Models), NotShowInForm = true, ShowInEditForm = true)]
+        [dbFieldAtt(Description = "Модель", dbObjectType = typeof(Models), NotShowInForm = true, ShowInEditForm = true)]
         public long Model { get; set; }
         /// <summary>Партія</summary>
-        [dbAttributes(Description = "Партія", dbObjectType = typeof(Party), ShowInEditForm = true, ShowEmbadedInfo = true)]
+        [dbFieldAtt(Description = "Партія", dbObjectType = typeof(Party), ShowInEditForm = true, ShowEmbadedInfo = true)]
         public long Party { get; set; }
         /// <summary>Статус</summary>
-        [dbAttributes(Description = "Статус")]
+        [dbFieldAtt(Description = "Статус")]
         public TypesOfLampsStatus Status { get; set; }
         /// <summary>Тип гарантії</summary>
-        [dbAttributes(Description = "Тип гарантії", ShowInEditForm = true)]
+        [dbFieldAtt(Description = "Тип гарантії", ShowInEditForm = true)]
         public TypesOfLampsWarrantly TypeOfWarrantly { get; set; }
         /// <summary>Завершення гарантії</summary>
-        [dbAttributes(Description = "Завершення гарантії", ShowInEditForm = true)]
+        [dbFieldAtt(Description = "Завершення гарантії", ShowInEditForm = true)]
         public DateTime DateOfWarrantyEnd { get; set; }
         /// <summary>Статус синхронизации с сервером</summary>
-        [dbAttributes(Description = "Синхронизовано", NotShowInForm = true)]
+        [dbFieldAtt(Description = "Синхронизовано", NotShowInForm = true)]
         public bool IsSynced { get; set; }
         /// <summary>Место нахождения</summary>
-        [dbAttributes(Description = "Место нахождения", dbObjectType = typeof(Contractors), NotShowInForm = true)]
+        [dbFieldAtt(Description = "Место нахождения", dbObjectType = typeof(Contractors), NotShowInForm = true)]
         public long Location { get; set; }
         #endregion
 

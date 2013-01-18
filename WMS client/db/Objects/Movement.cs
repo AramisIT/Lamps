@@ -8,16 +8,16 @@ namespace WMS_client.db
     {
         #region Properties
         /// <summary>Штрихкод</summary>
-        [dbAttributes(Description = "Штрихкод", NotShowInForm = true)]
+        [dbFieldAtt(Description = "Штрихкод", NotShowInForm = true)]
         public string BarCode { get; set; }
         /// <summary>Дата</summary>
-        [dbAttributes(Description = "Дата", NotShowInForm = true)]
+        [dbFieldAtt(Description = "Дата", NotShowInForm = true)]
         public DateTime Date { get; set; }
         /// <summary>Операція</summary>
-        [dbAttributes(Description = "Операція", ShowInEditForm = true, NotShowInForm = true)]
+        [dbFieldAtt(Description = "Операція", ShowInEditForm = true, NotShowInForm = true)]
         public OperationsWithLighters Operation { get; set; }
         /// <summary>Статус синхронизации с сервером</summary>
-        [dbAttributes(Description = "IsSynced", NotShowInForm = true)]
+        [dbFieldAtt(Description = "IsSynced", NotShowInForm = true)]
         public bool IsSynced { get; set; } 
         #endregion
 

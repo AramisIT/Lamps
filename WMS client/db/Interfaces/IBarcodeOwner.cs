@@ -4,7 +4,7 @@ namespace WMS_client.db
     public interface IBarcodeOwner : ISynced
     {
         /// <summary>Штихкод</summary>
-        [dbAttributes(Description = "Штрихкод")]
+        [dbFieldAtt(Description = "Штрихкод")]
         string BarCode { get; set; }
     }
 }

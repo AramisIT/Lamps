@@ -4,7 +4,7 @@ namespace WMS_client.db
     public class Lamps : Accessory
     {
         /// <summary>Корпус</summary>
-        [dbAttributes(Description = "Корпус", dbObjectType = typeof(Cases), NeedDetailInfo = true)]
+        [dbFieldAtt(Description = "Корпус", dbObjectType = typeof(Cases), NeedDetailInfo = true)]
         public long Case { get; set; }
 
         public override object Save()

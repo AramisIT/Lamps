@@ -6,16 +6,16 @@ namespace WMS_client.Enums
     public enum TypesOfLampsWarrantly
     {
         /// <summary>Не обрано</summary>
-        [dbAttributes(Description = "Не обрано")]
+        [dbFieldAtt(Description = "Не обрано")]
         None,
         /// <summary>Заводська гарантія</summary>
-        [dbAttributes(Description = "Заводська гарантія")]
+        [dbFieldAtt(Description = "Заводська гарантія")]
         Factory,
         /// <summary>Ремонтна гарантія</summary>
-        [dbAttributes(Description = "Ремонтна гарантія")]
+        [dbFieldAtt(Description = "Ремонтна гарантія")]
         Repair,
         /// <summary>Без гарантії</summary>
-        [dbAttributes(Description = "Без гарантії")]
+        [dbFieldAtt(Description = "Без гарантії")]
         Without
     }
 }

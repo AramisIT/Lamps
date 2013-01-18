@@ -2,11 +2,16 @@ using System;
 
 namespace WMS_client.db
 {
-    /// <summary>Аттребути</summary>
+    /// <summary>Аттребуты свойств</summary>
     [Serializable]
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class dbAttributes : Attribute
+    public class dbFieldAtt : Attribute
     {
+        /// <summary>Длина строки по умолчанию</summary>
+        public const int DEFAULT_STR_LENGTH = 25;
+
+        /// <summary>Длина текстового поля</summary>
+        public int StrLength { get; set; }
         /// <summary>Представлення поля</summary>
         public string Description { get; set; }
         /// <summary>Не відображати на формі</summary>

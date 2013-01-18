@@ -405,7 +405,7 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                 PropertyInfo[] properties = type.GetProperties();
                 string syncRef = string.Empty;
                 string syncRefName = dbObject.SYNCREF_NAME.ToLower();
-                int lastDeferredIndex = 0;
+                int lastDeferredIndex = deferredProperty.Count;
 
                 foreach (DataRow row in table.Rows)
                 {
@@ -415,7 +415,7 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
 
                     foreach (PropertyInfo property in properties)
                     {
-                        dbAttributes attribute = Attribute.GetCustomAttribute(property, typeof(dbAttributes)) as dbAttributes;
+                        dbFieldAtt attribute = Attribute.GetCustomAttribute(property, typeof(dbFieldAtt)) as dbFieldAtt;
 
                         if (attribute != null && table.Columns.Contains(property.Name))
                         {
@@ -433,12 +433,8 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
 
                                     newObject.SetNotNew();
                                 }
-                                
+
                                 syncRef = value.ToString();
-                                //else
-                                //{
-                                //    syncRef = string.Empty;
-                                //}
                             }
                             else if (property.Name.ToLower().Equals(dbObject.IDENTIFIER_NAME))
                             {
@@ -498,6 +494,23 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                             {
                                 value = Enum.Parse(property.PropertyType, value.ToString(), false);
                             }
+                            else if(property.PropertyType == typeof(string))
+                            {
+                                string fullValue = value.ToString();
+                                value = value.ToString();
+
+                                if (property.Name != CatalogObject.DESCRIPTION)
+                                {
+                                    int length = attribute.StrLength == 0
+                                                     ? dbFieldAtt.DEFAULT_STR_LENGTH
+                                                     : attribute.StrLength;
+
+                                    if (fullValue.Length > length)
+                                    {
+                                        value = fullValue.Substring(0, length);
+                                    }
+                                }
+                            }
 
                             property.SetValue(newObject, value, null);
                         }
@@ -513,6 +526,21 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                     if (!skipExists && !string.IsNullOrEmpty(syncRef))
                     {
                         newObject.Id = Convert.ToInt64(BarcodeWorker.GetIdByRef(type, syncRef));
+                    }
+
+                    CatalogObject catalog = newObject as CatalogObject;
+
+                    if(catalog!=null)
+                    {
+                        dbElementAtt attribute = Attribute.GetCustomAttribute(newObject.GetType(), typeof(dbElementAtt)) as dbElementAtt;
+                        int length = attribute==null || attribute.DescriptionLength == 0
+                                         ? dbElementAtt.DEFAULT_DES_LENGTH
+                                         : attribute.DescriptionLength;
+
+                        if (catalog.Description.Length > length)
+                        {
+                            catalog.Description = catalog.Description.Substring(0, length);
+                        }
                     }
 
                     newObject.Sync<T>();
@@ -549,7 +577,7 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
 
                 if(lastObject.Id!=0)
                 {
-                    object idValue = BarcodeWorker.GetIdByBarcode(
+                    object idValue = BarcodeWorker.GetIdByRef(
                         propertyData.PropertyType,
                         propertyData.Value.ToString());
                     long id = Convert.ToInt64(idValue);
@@ -573,7 +601,7 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
 
             foreach (PropertyInfo field in fields)
             {
-                dbAttributes attribute = Attribute.GetCustomAttribute(field, typeof(dbAttributes)) as dbAttributes;
+                dbFieldAtt attribute = Attribute.GetCustomAttribute(field, typeof(dbFieldAtt)) as dbFieldAtt;
 
                 if (attribute != null)
                 {
@@ -583,7 +611,7 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                     }
                     else
                     {
-                        selectClause.AppendFormat("    [{0}].[{1}] [{2}],\r\n", attribute.dbObjectType.Name, dbObject.BARCODE_NAME, field.Name);
+                        selectClause.AppendFormat("    [{0}].[{1}] [{2}],\r\n", attribute.dbObjectType.Name, dbObject.SYNCREF_NAME, field.Name);
                         fromClause.AppendFormat("LEFT JOIN [{0}] ON [{0}].[{1}]=[{2}].[{3}]\r\n",
                                                 attribute.dbObjectType.Name,
                                                 dbObject.IDENTIFIER_NAME,

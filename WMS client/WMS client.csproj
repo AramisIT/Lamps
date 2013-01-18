@@ -81,6 +81,7 @@
     <Compile Include="Base\Visual\Constructor\LabelForConstructor.cs" />
     <Compile Include="Base\Visual\Constructor\ListOfLableConstructor.cs" />
     <Compile Include="Base\Visual\Controls\MobileButton.cs" />
+    <Compile Include="db\Attributes\dbElementAtt.cs" />
     <Compile Include="db\Interfaces\IBarcodeOwner.cs" />
     <Compile Include="db\Objects\Contractors.cs" />
     <Compile Include="db\Base\Sending.cs" />
@@ -93,7 +94,7 @@
     <Compile Include="db\Workers\BarcodeWorker.cs" />
     <Compile Include="db\Workers\BaseFormatName.cs" />
     <Compile Include="db\Base\CatalogObject.cs" />
-    <Compile Include="db\Attributes\dbAttributes.cs" />
+    <Compile Include="db\Attributes\dbFieldAtt.cs" />
     <Compile Include="db\Base\DocumentObject.cs" />
     <Compile Include="db\Interfaces\ISynced.cs" />
     <Compile Include="db\Workers\dbArchitector.cs" />

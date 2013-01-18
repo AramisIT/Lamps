@@ -29,15 +29,15 @@ namespace WMS_client.db
         public abstract object Sync();
 
         /// <summary>Идентификатор для синхронизации</summary>
-        [dbAttributes(Description = "Идентификатор для синхронизации", NotShowInForm = true)]
+        [dbFieldAtt(Description = "Идентификатор для синхронизации", NotShowInForm = true)]
         public string SyncRef { get; set; }
         /// <summary>Id</summary>
-        [dbAttributes(Description = "Id", NotShowInForm = true)]
+        [dbFieldAtt(Description = "Id", NotShowInForm = true)]
         public long Id { get; set; }
         /// <summary>Обьект изменен</summary>
         public bool IsModified { get; protected set; }
         /// <summary>ДатаВремя последнего изменения</summary>
-        [dbAttributes(Description = "LastModified", NotShowInForm = true)]
+        [dbFieldAtt(Description = "LastModified", NotShowInForm = true)]
         public DateTime LastModified { get; set; }
 
         /// <summary>Объкт базыданных</summary>
@@ -117,7 +117,7 @@ namespace WMS_client.db
 
             for (int i = 0; i < REF_LENGTH; i++)
             {
-                refStr.Append((char) rand.Next(33, 122));
+                refStr.Append((char) rand.Next(60, 122));
             }
 
             return refStr.ToString();
@@ -137,7 +137,7 @@ namespace WMS_client.db
 
             foreach (PropertyInfo property in properties)
             {
-                Attribute attribute = Attribute.GetCustomAttribute(property, typeof (dbAttributes));
+                Attribute attribute = Attribute.GetCustomAttribute(property, typeof (dbFieldAtt));
 
                 if (attribute != null)
                 {
@@ -195,7 +195,7 @@ namespace WMS_client.db
 
             foreach (PropertyInfo property in properties)
             {
-                Attribute attribute = Attribute.GetCustomAttribute(property, typeof (dbAttributes));
+                Attribute attribute = Attribute.GetCustomAttribute(property, typeof (dbFieldAtt));
 
                 if (attribute != null)
                 {
@@ -290,7 +290,7 @@ namespace WMS_client.db
 
             foreach (PropertyInfo field in properties)
             {
-                dbAttributes attributes = Attribute.GetCustomAttribute(field, typeof (dbAttributes)) as dbAttributes;
+                dbFieldAtt attributes = Attribute.GetCustomAttribute(field, typeof (dbFieldAtt)) as dbFieldAtt;
 
                 if (attributes != null)
                 {
@@ -308,7 +308,7 @@ namespace WMS_client.db
             {
                 foreach (PropertyInfo property in properties)
                 {
-                    dbAttributes attributes = Attribute.GetCustomAttribute(property, typeof (dbAttributes)) as dbAttributes;
+                    dbFieldAtt attributes = Attribute.GetCustomAttribute(property, typeof (dbFieldAtt)) as dbFieldAtt;
 
                     if (attributes != null)
                     {
@@ -360,7 +360,7 @@ namespace WMS_client.db
 
                 foreach (PropertyInfo property in propertyInfos)
                 {
-                    dbAttributes attributes = Attribute.GetCustomAttribute(property, typeof (dbAttributes)) as dbAttributes;
+                    dbFieldAtt attributes = Attribute.GetCustomAttribute(property, typeof (dbFieldAtt)) as dbFieldAtt;
 
                     if (attributes != null)
                     {

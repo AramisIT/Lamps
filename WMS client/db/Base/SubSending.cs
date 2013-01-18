@@ -4,13 +4,13 @@ namespace WMS_client.db
 {
     public abstract class SubSending : dbObject, ISynced
     {
-        [dbAttributes(Description = "IsSynced", NotShowInForm = true)]
+        [dbFieldAtt(Description = "IsSynced", NotShowInForm = true)]
         public bool IsSynced { get; set; }
         /// <summary>Штрихкод документа</summary>
-        [dbAttributes(Description = "Штрихкод документа", NotShowInForm = true)]
+        [dbFieldAtt(Description = "Штрихкод документа", NotShowInForm = true)]
         public string Document { get; set; }
         /// <summary>Тип комплектующего</summary>
-        [dbAttributes(Description = "Тип комплектующего")]
+        [dbFieldAtt(Description = "Тип комплектующего")]
         public TypeOfAccessories TypeOfAccessory { get; set; }
     }
 }

@@ -11,28 +11,28 @@ namespace WMS_client.db
     public class AcceptanceOfNewComponents : DocumentObject
     {
         /// <summary>Контрагент</summary>
-        [dbAttributes(Description = "Contractor", dbObjectType = typeof(Contractors))]
+        [dbFieldAtt(Description = "Contractor", dbObjectType = typeof(Contractors))]
         public long Contractor { get; set; }
         /// <summary>Дата накладной</summary>
-        [dbAttributes(Description = "InvoiceDate")]
+        [dbFieldAtt(Description = "InvoiceDate")]
         public DateTime InvoiceDate { get; set; }
         /// <summary>Номер накладной</summary>
-        [dbAttributes(Description = "InvoiceNumber")]
+        [dbFieldAtt(Description = "InvoiceNumber")]
         public long InvoiceNumber { get; set; }
         /// <summary>Модель</summary>
-        [dbAttributes(Description = "Model")]
+        [dbFieldAtt(Description = "Model")]
         public long Model { get; set; }
         /// <summary>Тип приемки</summary>
-        [dbAttributes(Description = "TypeOfAcceptance")]
+        [dbFieldAtt(Description = "TypeOfAcceptance")]
         public TypesOfLampsWarrantly TypesOfWarrantly { get; set; }
         /// <summary>Тип комплектующего</summary>
-        [dbAttributes(Description = "TypeOfAccessories")]
+        [dbFieldAtt(Description = "TypeOfAccessories")]
         public TypeOfAccessories TypeOfAccessories { get; set; }
         /// <summary>Гарантия часов</summary>
-        [dbAttributes(Description = "WarrantlyHours")]
+        [dbFieldAtt(Description = "WarrantlyHours")]
         public int WarrantlyHours { get; set; }
         /// <summary>Гарантия лет</summary>
-        [dbAttributes(Description = "WarrantlyYears")]
+        [dbFieldAtt(Description = "WarrantlyYears")]
         public int WarrantlyYears { get; set; }
 
         /// <summary>Запрос: ID всех проведенных приймок</summary>

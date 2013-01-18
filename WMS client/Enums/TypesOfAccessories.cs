@@ -5,16 +5,16 @@ namespace WMS_client.Enums
     public enum TypeOfAccessories
     {
         /// <summary>Не выбрано</summary>
-        [dbAttributes(Description = "Не обрано")]
+        [dbFieldAtt(Description = "Не обрано")]
         None,
         /// <summary>Лампа</summary>
-        [dbAttributes(Description = "Лампа")]
+        [dbFieldAtt(Description = "Лампа")]
         Lamp,
         /// <summary>Корпус</summary>
-        [dbAttributes(Description = "Корпус")]
+        [dbFieldAtt(Description = "Корпус")]
         Case,
         /// <summary>Эл.блок</summary>
-        [dbAttributes(Description = "Електроний блок")]
+        [dbFieldAtt(Description = "Електроний блок")]
         ElectronicUnit
     }
 }

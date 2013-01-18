@@ -12,6 +12,7 @@ namespace WMS_client
     /// <summary>Демонстратор (Инфо)</summary>
     public class VisualPresenter : BusinessProcess
     {
+        /// <summary>Демонстратор (Инфо)</summary>
         public VisualPresenter(WMSClient MainProcess)
             : base(MainProcess, 1)
         {
@@ -89,12 +90,18 @@ namespace WMS_client
                 else
                 {
                     long id = values[1] != null ? Convert.ToInt64(values[1]) : 0;
-                    showInfoById(id);
+                    TypeOfAccessories typeOfAccessories = button.Name == typeof(Lamps).Name
+                                                              ? TypeOfAccessories.Lamp
+                                                              : TypeOfAccessories.ElectronicUnit;
+                    showInfoById(id, typeOfAccessories);
                 }
             }
         }
         #endregion
 
+        #region Show
+        /// <summary>Отображение</summary>
+        /// <param name="barcode">Штрихкод</param>
         private void showInfoByBarcode(string barcode)
         {
             MainProcess.ClearControls();
@@ -110,7 +117,10 @@ namespace WMS_client
             drawButtons(listOfDetail);
         }
 
-        private void showInfoById(long id)
+        /// <summary>Отображение</summary>
+        /// <param name="id">Id</param>
+        /// <param name="typeOfAccessories">Тип комплектующего</param>
+        private void showInfoById(long id, TypeOfAccessories typeOfAccessories)
         {
             MainProcess.ClearControls();
 
@@ -119,10 +129,11 @@ namespace WMS_client
             Dictionary<string, KeyValuePair<Type, object>> listOfDetail;
 
             //Отображаем текстовое инфо о элементе
-            list.ListOfLabels = CatalogObject.GetVisualPresenter(id, TypeOfAccessories.ElectronicUnit, out topic, out listOfDetail);
+            list.ListOfLabels = CatalogObject.GetVisualPresenter(id, typeOfAccessories, out topic, out listOfDetail);
             MainProcess.ToDoCommand = topic;
             //Отображаем кнопки для перехода на связанные элементы
             drawButtons(listOfDetail);
-        }
+        } 
+        #endregion
     }
 }

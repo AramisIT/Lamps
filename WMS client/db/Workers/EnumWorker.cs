@@ -18,7 +18,7 @@ namespace WMS_client.db
 
             foreach (Attribute attribute in attributes)
             {
-                dbAttributes enumAttributes = attribute as dbAttributes;
+                dbFieldAtt enumAttributes = attribute as dbFieldAtt;
 
                 if (enumAttributes != null)
                 {
@@ -49,7 +49,7 @@ namespace WMS_client.db
                 }
 
                 MemberInfo inf = enumType.GetMembers()[10 + index];
-                dbAttributes attribute = Attribute.GetCustomAttribute(inf, typeof(dbAttributes)) as dbAttributes;
+                dbFieldAtt attribute = Attribute.GetCustomAttribute(inf, typeof(dbFieldAtt)) as dbFieldAtt;
 
                 if (attribute != null)
                 {

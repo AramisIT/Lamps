@@ -7,7 +7,7 @@ namespace WMS_client.db
     public class ElectronicUnits : Accessory
     {
         /// <summary>Корпус</summary>
-        [dbAttributes(Description = "Корпус", dbObjectType = typeof(Cases), NeedDetailInfo = true)]
+        [dbFieldAtt(Description = "Корпус", dbObjectType = typeof(Cases), NeedDetailInfo = true)]
         public long Case { get; set; }
 
         /// <summary>Получить ID блока (без BC) по корпусу</summary>

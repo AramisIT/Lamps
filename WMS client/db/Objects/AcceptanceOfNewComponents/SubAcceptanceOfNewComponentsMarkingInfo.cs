@@ -4,13 +4,13 @@ namespace WMS_client.db
     public class SubAcceptanceOfNewComponentsMarkingInfo : dbObject
     {
         /// <summary>Маркировка</summary>
-        [dbAttributes(Description = "Marking", dbObjectType = typeof(Models))]
+        [dbFieldAtt(Description = "Marking", dbObjectType = typeof(Models))]
         public long Marking { get; set; }
         /// <summary>План</summary>
-        [dbAttributes(Description = "Plan")]
+        [dbFieldAtt(Description = "Plan")]
         public int Plan { get; set; }
         /// <summary>Факт</summary>
-        [dbAttributes(Description = "Fact")]
+        [dbFieldAtt(Description = "Fact")]
         public int Fact { get; set; }
 
         public override object Save()

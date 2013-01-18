@@ -4,7 +4,7 @@ namespace WMS_client.db
     public interface ISynced
     {
         /// <summary>Статус синхронизации с сервером</summary>
-        [dbAttributes(Description = "IsSynced", NotShowInForm = true)]
+        [dbFieldAtt(Description = "IsSynced", NotShowInForm = true)]
         bool IsSynced { get; set; }
     }
 }

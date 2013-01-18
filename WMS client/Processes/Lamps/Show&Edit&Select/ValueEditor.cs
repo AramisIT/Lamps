@@ -242,9 +242,9 @@ namespace WMS_client
 
         private void createLongControls()
         {
-            dbAttributes attribute = Attribute.GetCustomAttribute(
+            dbFieldAtt attribute = Attribute.GetCustomAttribute(
                            accessory.GetType().GetProperty(propertyName),
-                           typeof(dbAttributes)) as dbAttributes;
+                           typeof(dbFieldAtt)) as dbFieldAtt;
 
             if (attribute != null && attribute.dbObjectType != null)
             {

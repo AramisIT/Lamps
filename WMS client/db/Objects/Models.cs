@@ -4,10 +4,10 @@ namespace WMS_client.db
     public class Models : CatalogObject, IBarcodeOwner
     {
         /// <summary>Штрихкод</summary>
-        [dbAttributes(Description = "Штрихкод")]
+        [dbFieldAtt(Description = "Штрихкод")]
         public string BarCode { get; set; }
         /// <summary>Статус синхронизации с сервером</summary>
-        [dbAttributes(Description = "IsSynced", NotShowInForm = true)]
+        [dbFieldAtt(Description = "IsSynced", NotShowInForm = true)]
         public bool IsSynced { get; set; }
 
         /// <summary>Удалить все документы</summary>

@@ -13,12 +13,14 @@ namespace WMS_client.db
     {
         /// <summary>Имя колонки "Пометка на удаление"</summary>
         public const string MARK_FOR_DELETING = "markfordeleting";
+        /// <summary>Имя колонки "Опис"</summary>
+        public const string DESCRIPTION = "Description";
 
         /// <summary>Помічений на видалення</summary>
-        [dbAttributes(Description = "Помічений на видалення", NotShowInForm = true)]
+        [dbFieldAtt(Description = "Помічений на видалення", NotShowInForm = true)]
         public bool MarkForDeleting { get; set; }
         /// <summary>Опис</summary>
-        [dbAttributes(Description = "Опис", NotShowInForm = true)]
+        [dbFieldAtt(Description = "Опис", NotShowInForm = true)]
         public string Description { get; set; }
 
         /// <summary>Объект справочника</summary>
@@ -128,7 +130,7 @@ namespace WMS_client.db
 
                     foreach (Attribute a in attributes)
                     {
-                        dbAttributes attribute = a as dbAttributes;
+                        dbFieldAtt attribute = a as dbFieldAtt;
 
                         if (attribute != null)
                         {
@@ -221,7 +223,7 @@ namespace WMS_client.db
 
                 foreach (Attribute a in attributes)
                 {
-                    dbAttributes attribute = a as dbAttributes;
+                    dbFieldAtt attribute = a as dbFieldAtt;
 
                     if (attribute != null)
                     {
@@ -293,7 +295,7 @@ namespace WMS_client.db
 
                 foreach (Attribute a in attributes)
                 {
-                    dbAttributes attribute = a as dbAttributes;
+                    dbFieldAtt attribute = a as dbFieldAtt;
 
                     if (attribute != null)
                     {

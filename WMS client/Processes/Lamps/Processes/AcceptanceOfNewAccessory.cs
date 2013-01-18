@@ -11,15 +11,24 @@ namespace WMS_client.Processes.Lamps
     /// <summary>Приемка нового коплектующего</summary>
     public class AcceptanceOfNewAccessory : BusinessProcess
     {
+        #region Variables
         private MobileLabel marking;
         private DataRow selectedRow;
-        private string selectedMarking;
-        private int selectedMarkingId; //пока не закрыто to-do "Сохранять маркировку или ссылку на "Модель"?" не удалять
+        private string selectedModelName;
+        private int selectedModelId;
         private object documentId;
         private AcceptanceOfNewComponents acceptanceDoc;
         private readonly TypeOfAccessories typeOfAccessory;
-        private int TypeOfAccessory { get { return (int) typeOfAccessory; } }
-        private readonly Dictionary<string, string> newElements = new Dictionary<string, string>();
+        private int TypeOfAccessory { get { return (int)typeOfAccessory; } }
+        private readonly Dictionary<string, long> newElements = new Dictionary<string, long>(); 
+        #endregion
+
+        #region Names of Columns
+        private const string MODEL_NAME_COLUMN = "ModelName";
+        private const string MODEL_ID_COLUMN = "ModelId";
+        private const string PLAN_COLUMN = "Plan";
+        private const string FACT_COLUMN = "Fact";
+        #endregion
 
         /// <summary>Приемка нового коплектующего</summary>
         /// <param name="MainProcess"></param>
@@ -46,7 +55,7 @@ namespace WMS_client.Processes.Lamps
 
                 if (idObj != null)
                 {
-                    marking = MainProcess.CreateLabel("Маркування не обрано", 5, 60, 230, 45,
+                    marking = MainProcess.CreateLabel("Модель не обрано", 5, 60, 230, 45,
                                                       MobileFontSize.Multiline, MobileFontPosition.Center,
                                                       MobileFontColors.Info, FontStyle.Bold);
                     documentId = idObj;
@@ -55,22 +64,26 @@ namespace WMS_client.Processes.Lamps
                     DataTable sourceTable = new DataTable();
                     sourceTable.Columns.AddRange(new[]
                                                      {
-                                                         new DataColumn("Marking", typeof (string)),
-                                                         new DataColumn("MarkingId", typeof (int)),
-                                                         new DataColumn("Plan", typeof (int)),
-                                                         new DataColumn("Fact", typeof (int))
+                                                         new DataColumn(MODEL_NAME_COLUMN, typeof (string)),
+                                                         new DataColumn(MODEL_ID_COLUMN, typeof (int)),
+                                                         new DataColumn(PLAN_COLUMN, typeof (int)),
+                                                         new DataColumn(FACT_COLUMN, typeof (int))
                                                      });
 
-                    MobileTable visualTable = MainProcess.CreateTable("Markings", 160, 105);
+                    MobileTable visualTable = MainProcess.CreateTable("Models", 160, 105);
                     visualTable.OnChangeSelectedRow += visualTable_OnChangeSelectedRow;
                     visualTable.DT = sourceTable;
-                    visualTable.AddColumn("Маркування", "Marking", 144);
-                    visualTable.AddColumn("План", "Plan", 35);
-                    visualTable.AddColumn("Факт", "Fact", 35);
+                    visualTable.AddColumn("Модель", MODEL_NAME_COLUMN, 144);
+                    visualTable.AddColumn("План", PLAN_COLUMN, 35);
+                    visualTable.AddColumn("Факт", FACT_COLUMN, 35);
 
                     while (reader.Read())
                     {
-                        visualTable.AddRow(reader["Marking"], reader["MarkingId"], reader["Plan"], 0);
+                        object name = reader[MODEL_NAME_COLUMN];
+                        object id = reader[MODEL_ID_COLUMN];
+                        object count = reader[PLAN_COLUMN];
+
+                        visualTable.AddRow(name, id, count, 0);
                     }
 
                     visualTable.Focus();
@@ -86,37 +99,27 @@ namespace WMS_client.Processes.Lamps
             }
         }
 
-        /// <summary>Маркировка изменена</summary>
-        void visualTable_OnChangeSelectedRow(object sender, OnChangeSelectedRowEventArgs e)
-        {
-            selectedRow = e.SelectedRow;
-            selectedMarking = selectedRow["Marking"].ToString();
-            selectedMarkingId = Convert.ToInt32(selectedRow["MarkingId"]);
-            marking.Text = string.Format("Обране маркування:\r\n{0}", selectedMarking.TrimEnd());
-        }
-
         /// <summary>Отсканировано комплектующее для приемки</summary>
         public override void OnBarcode(string Barcode)
         {
-            int planCount = Convert.ToInt32(selectedRow["Plan"]);
-            int factValue = Convert.ToInt32(selectedRow["Fact"]);
+            int planCount = Convert.ToInt32(selectedRow[PLAN_COLUMN]);
+            int factValue = Convert.ToInt32(selectedRow[FACT_COLUMN]);
 
             if (planCount > factValue)
             {
                 if (newElements.ContainsKey(Barcode) || BarcodeWorker.IsBarcodeExist(Barcode))
                 {
-                    ShowMessage("Данный штрих-код уже существует в системе!");
+                    ShowMessage("Данный штрих-код вже існує у системі!");
                 }
                 else
                 {
-                    //todo: Сохранять маркировку или ссылку на "Модель"?
-                    newElements.Add(Barcode, selectedMarking);
-                    selectedRow["Fact"] = factValue + 1;
+                    newElements.Add(Barcode, selectedModelId);
+                    selectedRow[FACT_COLUMN] = factValue + 1;
                 }
             }
             else
             {
-                ShowMessage("Змініть маркування!");
+                ShowMessage("Змініть модель!");
             }
         }
 
@@ -132,7 +135,18 @@ namespace WMS_client.Processes.Lamps
         }
         #endregion
 
-        #region Button
+        #region Changes
+        /// <summary>Маркировка изменена</summary>
+        void visualTable_OnChangeSelectedRow(object sender, OnChangeSelectedRowEventArgs e)
+        {
+            selectedRow = e.SelectedRow;
+            selectedModelName = selectedRow[MODEL_NAME_COLUMN].ToString();
+            selectedModelId = Convert.ToInt32(selectedRow[MODEL_ID_COLUMN]);
+            marking.Text = string.Format("Обрана модель:\r\n{0}", selectedModelName.TrimEnd());
+        }
+        #endregion
+
+        #region Button+Create
         /// <summary>Закрытие приемки</summary>
         private void ok_Click()
         {
@@ -141,7 +155,7 @@ namespace WMS_client.Processes.Lamps
                 acceptanceDoc = new AcceptanceOfNewComponents();
                 acceptanceDoc.Read<AcceptanceOfNewComponents>(documentId);
 
-                foreach (KeyValuePair<string, string> element in newElements)
+                foreach (KeyValuePair<string, long> element in newElements)
                 {
                     createAccessory(element.Key, element.Value);
                 }
@@ -155,27 +169,28 @@ namespace WMS_client.Processes.Lamps
 
         /// <summary>Создание комплектующего</summary>
         /// <param name="barcode">Штрихкод</param>
-        /// <param name="docMarking">Маркировка</param>
-        private void createAccessory(string barcode, string docMarking)
+        /// <param name="modelId">Маркировка</param>
+        private void createAccessory(string barcode, long modelId)
         {
-            createAccessory(typeOfAccessory, barcode, docMarking);
+            createAccessory(typeOfAccessory, barcode, modelId);
         }
 
         /// <summary>Создание комплектующего</summary>
         /// <param name="type">Тип комплектующего</param>
         /// <param name="barcode">Штрихкод</param>
-        /// <param name="docMarking">Маркировка</param>
-        private void createAccessory(TypeOfAccessories type, string barcode, string docMarking)
+        /// <param name="modelId">Маркировка</param>
+        private void createAccessory(TypeOfAccessories type, string barcode, long modelId)
         {
-            createAccessory(type, barcode, docMarking, 0);
+            createAccessory(type, barcode, modelId, 0);
         }
 
         /// <summary>Создание комплектующего</summary>
         /// <param name="type">Тип комплектующего</param>
         /// <param name="barcode">Штрихкод</param>
-        /// <param name="docMarking">Маркировка</param>
+        /// <param name="modelId">Маркировка</param>
         /// <param name="caseId">Id корпуса</param>
-        private long createAccessory(TypeOfAccessories type, string barcode, string docMarking, long caseId)
+        /// <returns>Id созданного комплектующего</returns>
+        private long createAccessory(TypeOfAccessories type, string barcode, long modelId, long caseId)
         {
             Accessory accessory = null;
 
@@ -196,8 +211,10 @@ namespace WMS_client.Processes.Lamps
 
             if (accessory != null)
             {
+                bool mainAccessory = type == TypeOfAccessories.Case;
+
                 accessory.BarCode = caseId == 0 ? barcode : string.Empty;
-                accessory.Marking = docMarking;
+                accessory.Model = mainAccessory ? acceptanceDoc.Model : modelId;
                 accessory.DateOfWarrantyEnd = acceptanceDoc.InvoiceDate.AddYears(acceptanceDoc.WarrantlyYears);
                 accessory.Model = acceptanceDoc.Model;
                 accessory.Party = acceptanceDoc.InvoiceNumber;
@@ -205,13 +222,20 @@ namespace WMS_client.Processes.Lamps
 
                 accessory.Save();
 
-                if (type == TypeOfAccessories.Case)
+                if (mainAccessory)
                 {
-                    long id = Convert.ToInt64(BarcodeWorker.GetIdByBarcode(barcode));
-                    accessory.Id = id;
-                    id = createAccessory(TypeOfAccessories.ElectronicUnit, string.Empty, docMarking, id);
-                    ((Cases) accessory).ElectronicUnit = id;
-                    accessory.Save();
+                    Cases newCase = accessory as Cases;
+
+                    if(newCase!=null)
+                    {
+                        long id = createAccessory(TypeOfAccessories.ElectronicUnit, string.Empty, acceptanceDoc.Model,accessory.Id);
+                        newCase.ElectronicUnit = id;
+
+                        id=createAccessory(TypeOfAccessories.Lamp, string.Empty, acceptanceDoc.Model, accessory.Id);
+                        newCase.Lamp = id;
+
+                        accessory.Save();
+                    }
                 }
             }
 
@@ -219,7 +243,7 @@ namespace WMS_client.Processes.Lamps
             Movement movement = new Movement(barcode, OperationsWithLighters.Acceptance);
             movement.Save();
 
-            return Convert.ToInt64(BarcodeWorker.GetIdByBarcode(barcode));
+            return accessory == null ? 0 : accessory.Id;
         }
         #endregion
 
@@ -238,10 +262,10 @@ namespace WMS_client.Processes.Lamps
         /// <param name="id">ID приемки</param>
         private SqlCeDataReader getAcceptanceInfo(object id)
         {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT m.Description Marking, m.Id MarkingId, s.[Plan]
+            SqlCeCommand query = dbWorker.NewQuery(@"SELECT m.Description ModelName, m.Id ModelId, s.[Plan]
 FROM SubAcceptanceOfNewComponentsMarkingInfo s 
 LEFT JOIN Models m ON m.Id=s.Marking
-WHERE s.Id=@Id");
+WHERE s.Id=@Id AND m.Id IS NOT NULL");
             query.AddParameter("Id", id);
 
             return query.ExecuteReader();
