@@ -145,15 +145,22 @@ namespace WMS_client
                 {
                     foreach (DataRow row in table.Rows)
                     {
+                        string contractorBarcode = row["Contractor"].ToString();
+                        string partyRef = row["InvoiceNumber"].ToString();
+                        string modelRef = row["Model"].ToString();
+                        object contractorObj = BarcodeWorker.GetIdByBarcode(typeof (Contractors), contractorBarcode);
+                        object partyObj = BarcodeWorker.GetIdByRef(typeof(Party), partyRef);
+                        object modelObj = BarcodeWorker.GetIdByRef(typeof(Models), modelRef);
+
                         AcceptanceOfNewComponents doc = new AcceptanceOfNewComponents
                                                             {
                                                                 Id = Convert.ToInt64(row["Id"]),
-                                                                Contractor = Convert.ToInt64(row["Contractor"]),
+                                                                Contractor = Convert.ToInt64(contractorObj),
                                                                 Date = Convert.ToDateTime(row["Date"]),
                                                                 InvoiceDate = Convert.ToDateTime(row["InvoiceDate"]),
-                                                                InvoiceNumber = Convert.ToInt64(row["InvoiceNumber"]),
+                                                                InvoiceNumber = Convert.ToInt64(partyObj),
                                                                 MarkForDeleting = false,
-                                                                Model = Convert.ToInt64(row["Model"]),
+                                                                Model = Convert.ToInt64(modelObj),
                                                                 TypesOfWarrantly= (TypesOfLampsWarrantly)
                                                                     Convert.ToInt32(row["TypesOfWarrantly"]),
                                                                 TypeOfAccessories =(TypeOfAccessories)
@@ -175,8 +182,8 @@ namespace WMS_client
                     {
                         foreach (DataRow row in table.Rows)
                         {
-                            string markingBarcode = row["Marking"].ToString();
-                            object idObj = BarcodeWorker.GetIdByBarcode(typeof (Models), markingBarcode);
+                            string markingRef = row["Marking"].ToString();
+                            object idObj = BarcodeWorker.GetIdByRef(typeof (Models), markingRef);
 
                             SubAcceptanceOfNewComponentsMarkingInfo subDoc = new SubAcceptanceOfNewComponentsMarkingInfo
                                                                                  {
