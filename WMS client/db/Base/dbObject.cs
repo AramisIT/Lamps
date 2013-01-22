@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Text;
 using System.Data.SqlServerCe;
+using System.Data.SqlTypes;
 
 namespace WMS_client.db
 {
@@ -98,6 +99,13 @@ namespace WMS_client.db
                 if (string.IsNullOrEmpty(SyncRef))
                 {
                     SyncRef = generateSyncRef();
+                }
+
+                DocumentObject document = this as DocumentObject;
+
+                if (document != null && document.Date == SqlDateTime.MinValue.Value)
+                {
+                    document.Date = DateTime.Now;
                 }
 
                 idValue = CreateNew<T>();

@@ -87,7 +87,7 @@ namespace WMS_client.Processes.Lamps
 
         private void no_Click()
         {
-            changeUnitStatus(TypesOfLampsStatus.Repair);
+            changeUnitStatus(TypesOfLampsStatus.ToRepair);
             OnHotKey(KeyAction.Esc);
         }
         #endregion

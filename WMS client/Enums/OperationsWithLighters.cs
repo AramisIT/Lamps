@@ -16,6 +16,8 @@ namespace WMS_client.Enums
         /// <summary>Отправка на обмен</summary>
         SendingToExchange,
         /// <summary>Отправка на списание</summary>
-        SendingToCharge
+        SendingToCharge,
+        /// <summary>Регистрация</summary>
+        Registration
     }
 }

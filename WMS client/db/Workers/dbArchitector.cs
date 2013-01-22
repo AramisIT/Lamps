@@ -43,6 +43,7 @@ RegisterTo int not null)");
             ClearAllDataFromTable("Party");
             ClearAllDataFromTable("AcceptanceOfNewComponents");
             ClearAllDataFromTable("SubAcceptanceOfNewComponentsMarkingInfo");
+            ClearAllDataFromTable("Movement");
         }
     }
 }

@@ -103,8 +103,13 @@ namespace WMS_client
             query.AddParameter("Barcode", LightBarcode);
             query.ExecuteNonQuery();
 
+            query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
+            query.AddParameter("Barcode", LightBarcode);
+            object syncRefObj = query.ExecuteScalar();
+            string syncRef = syncRefObj == null ? string.Empty : syncRefObj.ToString();
+
             //Внесение записи в "Перемещение"
-            Movement movement = new Movement(LightBarcode, OperationsWithLighters.Installing);
+            Movement movement = new Movement(LightBarcode,syncRef, OperationsWithLighters.Installing);
             movement.Save();
         }
         #endregion

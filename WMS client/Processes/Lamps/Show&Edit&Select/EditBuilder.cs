@@ -285,6 +285,7 @@ namespace WMS_client
             if (type != null)
             {
                 MainProcess.ClearControls();
+                bool isNewObject = accessory.IsNew;
 
                 //Если выбранный тип совпадает с основным типом - "Сохранение перекрестных ссылок"
                 if (mainType == type && linkId != -1)
@@ -302,6 +303,14 @@ namespace WMS_client
 
                 //Запись
                 accessory.Save();
+
+                //Если документ новый - значит был процесс "Регистрация"
+                if (isNewObject)
+                {
+                    //Внесение записи в "Перемещение"
+                    Movement movement = new Movement(accessory.BarCode, accessory.SyncRef, OperationsWithLighters.Registration);
+                    movement.Save();
+                }
 
                 //Отображение 
                 string propertyName = type.Name.Substring(0, type.Name.Length - 1);
@@ -375,6 +384,11 @@ namespace WMS_client
             if (accessory == null || (accesoryIsExist && !accessory.IsModified))
             {
                 accessory = (Accessory)Activator.CreateInstance(currentType);
+
+                if (string.IsNullOrEmpty(barcodeValue) && !accesoryIsExist)
+                {
+                    return;
+                }
 
                 if (string.IsNullOrEmpty(barcodeValue) && emptyBarcodeEnabled)
                 {

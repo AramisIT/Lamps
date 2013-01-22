@@ -239,8 +239,13 @@ namespace WMS_client.Processes.Lamps
                 }
             }
 
+            SqlCeCommand query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
+            query.AddParameter("Barcode", barcode);
+            object syncRefObj = query.ExecuteScalar();
+            string syncRef = syncRefObj == null ? string.Empty : syncRefObj.ToString();
+
             //Внесение записи в "Перемещение"
-            Movement movement = new Movement(barcode, OperationsWithLighters.Acceptance);
+            Movement movement = new Movement(barcode, syncRef, OperationsWithLighters.Acceptance);
             movement.Save();
 
             return accessory == null ? 0 : accessory.Id;

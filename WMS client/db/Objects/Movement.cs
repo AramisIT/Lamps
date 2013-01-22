@@ -4,7 +4,7 @@ using System;
 namespace WMS_client.db
 {
     /// <summary>Переміщення</summary>
-    public class Movement : dbObject, IBarcodeOwner
+    public class Movement : dbObject, ISynced
     {
         #region Properties
         /// <summary>Штрихкод</summary>
@@ -25,6 +25,16 @@ namespace WMS_client.db
         public Movement(string barcode, OperationsWithLighters operation)
         {
             BarCode = barcode;
+            //SyncRef = syncRef;
+            Operation = operation;
+            Date = DateTime.Now;
+        }
+
+        /// <summary>Переміщення</summary>
+        public Movement(string barcode, string syncRef, OperationsWithLighters operation)
+        {
+            BarCode = barcode;
+            SyncRef = syncRef;
             Operation = operation;
             Date = DateTime.Now;
         }

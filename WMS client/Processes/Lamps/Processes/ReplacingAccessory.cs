@@ -211,7 +211,7 @@ WHERE RTRIM(c.BarCode)=@BarCode", accessoryTable));
             query = dbWorker.NewQuery(string.Concat(
                 string.Format(partOfCommand, ",DrawdownDate=@DrawdownDate"),
                 " RTRIM(BarCode)=RTRIM(@LampBarcode)"));
-            query.AddParameter("Status", isForExchange ? TypesOfLampsStatus.Repair : TypesOfLampsStatus.Storage);
+            query.AddParameter("Status", isForExchange ? TypesOfLampsStatus.ToRepair : TypesOfLampsStatus.Storage);
             query.AddParameter("Case", 0);
             query.AddParameter("LampBarcode", oldLampBarcode);
             query.AddParameter("NewBarcode", NewAccessoryBarcode);

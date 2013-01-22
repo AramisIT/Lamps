@@ -84,8 +84,8 @@ namespace WMS_client.Processes.Lamps
                                        Stages.Begin);
                         break;
                     case Stages.FromOutOfWarrantly:
-                        newCaseStatus = TypesOfLampsStatus.Repair;
-                        newUnitStatus = TypesOfLampsStatus.Repair;
+                        newCaseStatus = TypesOfLampsStatus.ToRepair;
+                        newUnitStatus = TypesOfLampsStatus.ToRepair;
 
                         messageWin(REPAIR_TOPIC,
                                    "Світильник буде поставлено на ремонт",
@@ -110,7 +110,7 @@ namespace WMS_client.Processes.Lamps
                         }
                         break;
                     case Stages.ExtractionElectricUnit:
-                        newCaseStatus = TypesOfLampsStatus.Repair;
+                        newCaseStatus = TypesOfLampsStatus.ToRepair;
                         newUnitStatus = TypesOfLampsStatus.Storage;
                         messageWin(REPAIR_TOPIC,
                                    "Світильник буде поставлено на ремонт",

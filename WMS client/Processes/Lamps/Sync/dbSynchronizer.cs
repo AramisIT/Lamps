@@ -327,9 +327,13 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
             string tableName = typeof (Movement).Name;
 
             //sync
-            string docCommand = string.Format("SELECT {0},Date,Operation FROM {1}", dbObject.BARCODE_NAME, tableName);
+            string docCommand = string.Format("SELECT {0},{1},Date,Operation FROM {2}",
+                                              dbObject.BARCODE_NAME, dbObject.SYNCREF_NAME, tableName);
             SqlCeCommand query = dbWorker.NewQuery(docCommand);
-            DataTable table = query.SelectToTable();
+            DataTable table = query.SelectToTable(new Dictionary<string, Enum>
+                                                      {
+                                                          {BaseFormatName.DateTime, DateTimeFormat.OnlyDate}
+                                                      });
             PerformQuery("SyncMovement", table);
 
             if (Parameters != null && (bool)Parameters[0])

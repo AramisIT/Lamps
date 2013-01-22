@@ -92,8 +92,13 @@ WHERE RTRIM(c.Barcode)=@Barcode");
         {
             Cases.ChangeLighterStatus(LightBarcode, TypesOfLampsStatus.Storage, true);
 
+            SqlCeCommand query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
+            query.AddParameter("Barcode", LightBarcode);
+            object syncRefObj = query.ExecuteScalar();
+            string syncRef = syncRefObj == null ? string.Empty : syncRefObj.ToString();
+
             //Внесение записи в "Перемещение"
-            Movement movement = new Movement(LightBarcode, OperationsWithLighters.Removing);
+            Movement movement = new Movement(LightBarcode, syncRef, OperationsWithLighters.Removing);
             movement.Save();
         }
         #endregion
