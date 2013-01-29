@@ -216,7 +216,6 @@ namespace WMS_client.Processes.Lamps
                 accessory.BarCode = caseId == 0 ? barcode : string.Empty;
                 accessory.Model = mainAccessory ? acceptanceDoc.Model : modelId;
                 accessory.DateOfWarrantyEnd = acceptanceDoc.InvoiceDate.AddYears(acceptanceDoc.WarrantlyYears);
-                accessory.Model = acceptanceDoc.Model;
                 accessory.Party = acceptanceDoc.InvoiceNumber;
                 accessory.TypeOfWarrantly = acceptanceDoc.TypesOfWarrantly;
 
@@ -226,27 +225,27 @@ namespace WMS_client.Processes.Lamps
                 {
                     Cases newCase = accessory as Cases;
 
-                    if(newCase!=null)
+                    if (newCase != null)
                     {
-                        long id = createAccessory(TypeOfAccessories.ElectronicUnit, string.Empty, acceptanceDoc.Model,accessory.Id);
+                        long id = createAccessory(TypeOfAccessories.ElectronicUnit, string.Empty, modelId, accessory.Id);
                         newCase.ElectronicUnit = id;
 
-                        id=createAccessory(TypeOfAccessories.Lamp, string.Empty, acceptanceDoc.Model, accessory.Id);
+                        id = createAccessory(TypeOfAccessories.Lamp, string.Empty, modelId, accessory.Id);
                         newCase.Lamp = id;
 
                         accessory.Save();
                     }
                 }
+
+                //Внесение записи в "Перемещение"
+                Movement movement = new Movement(accessory.BarCode, accessory.SyncRef, OperationsWithLighters.Acceptance);
+                movement.Save();
             }
 
-            SqlCeCommand query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
-            query.AddParameter("Barcode", barcode);
-            object syncRefObj = query.ExecuteScalar();
-            string syncRef = syncRefObj == null ? string.Empty : syncRefObj.ToString();
-
-            //Внесение записи в "Перемещение"
-            Movement movement = new Movement(barcode, syncRef, OperationsWithLighters.Acceptance);
-            movement.Save();
+            //SqlCeCommand query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
+            //query.AddParameter("Barcode", barcode);
+            //object syncRefObj = query.ExecuteScalar();
+            //string syncRef = syncRefObj == null ? string.Empty : syncRefObj.ToString();
 
             return accessory == null ? 0 : accessory.Id;
         }

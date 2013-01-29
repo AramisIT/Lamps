@@ -1,6 +1,7 @@
 using System.Data.SqlServerCe;
 using System;
 using WMS_client.Enums;
+using System.Collections.Generic;
 
 namespace WMS_client.db
 {
@@ -151,6 +152,73 @@ namespace WMS_client.db
             query.AddParameter("Date", DateTime.Now);
             query.AddParameter("DrawdownDate", DateTime.Now);
             query.ExecuteNonQuery();
+        }
+
+        #region Try get accessoryId without barcode from case
+        public static bool TryGetLampIdWithoutBarcode(string lightBarcode, out long lampId)
+        {
+            return tryGetAccessoryWithoutBarcodeFromCase(lightBarcode, "Lamp", out lampId);
+        }
+
+        public static bool TryGetUnitIdWithoutBarcode(string lightBarcode, out long unitId)
+        {
+            return tryGetAccessoryWithoutBarcodeFromCase(lightBarcode, "ElectronicUnit", out unitId);
+        }
+
+        private static bool tryGetAccessoryWithoutBarcodeFromCase(string lightBarcode, string accessory, out long lampId)
+        {
+            string command = string.Format(
+                @"SELECT {0} FROM {1} m JOIN {0}s s ON m.{0}=s.{2} WHERE m.{3}=@{3} AND RTRIM(s.{3})=@{4}",
+                accessory, typeof(Cases).Name, IDENTIFIER_NAME, BARCODE_NAME, dbSynchronizer.PARAMETER);
+            SqlCeCommand query = dbWorker.NewQuery(command);
+            query.AddParameter(BARCODE_NAME, lightBarcode);
+            query.AddParameter(dbSynchronizer.PARAMETER, string.Empty);
+            object idObj = query.ExecuteScalar();
+
+            if (idObj != null)
+            {
+                lampId = Convert.ToInt64(idObj);
+                return true;
+            }
+
+            lampId = 0;
+            return false;
+        } 
+        #endregion
+
+        /// <summary>Находится ли светильник на гарантии</summary>
+        public static bool UnderWarranty(string lightBarcode)
+        {
+            SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
+	CASE WHEN c.DateOfWarrantyEnd>=@EndOfDay THEN 1 ELSE 0 END UnderWarranty
+FROM Cases c 
+LEFT JOIN Models t ON t.Id=c.Model
+LEFT JOIN Party p ON p.Id=c.Party
+WHERE RTRIM(c.BarCode)=RTRIM(@BarCode)");
+            query.AddParameter("BarCode", lightBarcode);
+            query.AddParameter("EndOfDay", DateTime.Now.Date.AddDays(1));
+            object result = query.ExecuteScalar();
+
+            return result != null && Convert.ToBoolean(result);
+        }
+
+        /// <summary>Информация по светильнику</summary>
+        /// <returns>Model, Party, DateOfWarrantyEnd, Contractor</returns>
+        public static object[] GetLightInfo(string lightBarcode)
+        {
+            SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
+	m.Description Model
+	, p.Description Party
+	, c.DateOfWarrantyEnd
+	, cc.Description Contractor
+FROM Cases c
+LEFT JOIN Models m ON m.Id=c.Model
+LEFT JOIN Party p ON p.Id=c.Party
+LEFT JOIN Contractors cc ON cc.Id=p.Contractor
+WHERE RTRIM(c.Barcode)=RTRIM(@BarCode)");
+            query.AddParameter("Barcode", lightBarcode);
+
+            return query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
         }
         #endregion
     }

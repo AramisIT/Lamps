@@ -123,6 +123,7 @@
     <Compile Include="Processes\Lamps\Processes\ChooseLamp.cs" />
     <Compile Include="Processes\Lamps\Processes\ChooseLighterPerHectare.cs" />
     <Compile Include="Processes\Lamps\Processes\ChooseUnit.cs" />
+    <Compile Include="Processes\Lamps\Processes\CollateLight.cs" />
     <Compile Include="Processes\Lamps\Processes\Writeoff.cs" />
     <Compile Include="Processes\Lamps\Processes\Processes.cs" />
     <Compile Include="Processes\Lamps\Processes\RepairUnit.cs" />

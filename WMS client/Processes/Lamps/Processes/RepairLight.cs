@@ -52,7 +52,7 @@ namespace WMS_client.Processes.Lamps
                 {
                     case Stages.Begin:
                         unitBarcode = string.Empty;
-                        stage = UnderWarranty() ? Stages.UnderWarrantly : Stages.OutOfWarrantly;
+                        stage = Cases.UnderWarranty(LightBarcode) ? Stages.UnderWarrantly : Stages.OutOfWarrantly;
                         DrawControls();
                         break;
                     case Stages.UnderWarrantly: 
@@ -166,7 +166,8 @@ namespace WMS_client.Processes.Lamps
         /// <summary>Окно с шага "UnderWarrantly"</summary>
         private void warrantlyWin()
         {
-            ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, REPAIR_TOPIC, getLightInfo());
+            object[] lightData = Cases.GetLightInfo(LightBarcode);
+            ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, REPAIR_TOPIC, lightData);
             list.ListOfLabels = new List<LabelForConstructor>
                                     {
                                         new LabelForConstructor("УВАГА! Світильник", ControlsStyle.LabelH2Red),
@@ -218,41 +219,6 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Query
-        /// <summary>Находится ли светильник на гарантии</summary>
-        private bool UnderWarranty()
-        {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
-	CASE WHEN c.DateOfWarrantyEnd>=@EndOfDay THEN 1 ELSE 0 END UnderWarranty
-FROM Cases c 
-LEFT JOIN Models t ON t.Id=c.Model
-LEFT JOIN Party p ON p.Id=c.Party
-WHERE RTRIM(c.BarCode)=RTRIM(@BarCode)");
-            query.AddParameter("BarCode", LightBarcode);
-            query.AddParameter("EndOfDay", DateTime.Now.Date.AddDays(1));
-            object result = query.ExecuteScalar();
-
-            return result != null && Convert.ToBoolean(result);
-        }
-
-        /// <summary>Информация по светильнику</summary>
-        /// <returns>Model, Party, DateOfWarrantyEnd, Contractor</returns>
-        private object[] getLightInfo()
-        {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
-	m.Description Model
-	, p.Description Party
-	, c.DateOfWarrantyEnd
-	, cc.Description Contractor
-FROM Cases c
-LEFT JOIN Models m ON m.Id=c.Model
-LEFT JOIN Party p ON p.Id=c.Party
-LEFT JOIN Contractors cc ON cc.Id=p.Contractor
-WHERE RTRIM(c.Barcode)=RTRIM(@BarCode)");
-            query.AddParameter("Barcode", LightBarcode);
-
-            return query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
-        }
-
         /// <summary>Есть ли у эл.блока штрихкод</summary>
         private bool IsUnitHaveBarcode()
         {

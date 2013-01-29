@@ -14,19 +14,24 @@ namespace WMS_client.db
         public static string GetDescription(Type enumType, int value)
         {
             FieldInfo[] fields = enumType.GetFields();
-            Attribute[] attributes = Attribute.GetCustomAttributes(fields[value + 1]);
+            value++;
 
-            foreach (Attribute attribute in attributes)
+            if (fields.Length > value)
             {
-                dbFieldAtt enumAttributes = attribute as dbFieldAtt;
+                Attribute[] attributes = Attribute.GetCustomAttributes(fields[value]);
 
-                if (enumAttributes != null)
+                foreach (Attribute attribute in attributes)
                 {
-                    return enumAttributes.Description;
+                    dbFieldAtt enumAttributes = attribute as dbFieldAtt;
+
+                    if (enumAttributes != null)
+                    {
+                        return enumAttributes.Description;
+                    }
                 }
             }
 
-            throw new Exception("Тип не знайдно!");
+            return "Помилка: Тип не знайдно!";
         }
 
         /// <summary>Получить список (значение; наименование)</summary>

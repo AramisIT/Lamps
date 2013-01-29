@@ -46,10 +46,10 @@ namespace WMS_client
                                             new LabelForConstructor("Гарантія до {0}"),
                                         };
 
-                MainProcess.CreateButton("Уснановка", 15, 225, 210, 35, "installNew", InstallNew);
-                //MainProcess.CreateButton("Хранение", 125, 225, 100, 35, "storage", Storage);
+                MainProcess.CreateButton("Уснановка", 15, 225, 100, 35, "installNew", InstallNew);
+                MainProcess.CreateButton("Розібрати", 125, 225, 100, 35, "collate", Collate);
                 MainProcess.CreateButton("Ремонт", 15, 275, 100, 35, "repair", Repair);
-                MainProcess.CreateButton("Списание", 125, 275, 100, 35, "writeoff", WriteOff);
+                MainProcess.CreateButton("Спиння", 125, 275, 100, 35, "writeoff", WriteOff);
             }
         }
 
@@ -99,6 +99,13 @@ namespace WMS_client
             MainProcess.Process = new InstallingNewLighter(MainProcess, CaseBarcode);
         }
 
+        /// <summary>Розібрати</summary>
+        private void Collate()
+        {
+            MainProcess.ClearControls();
+            MainProcess.Process = new CollateLight(MainProcess, CaseBarcode);
+        }
+
         /// <summary>Ремонт</summary>
         private void Repair()
         {
@@ -106,7 +113,7 @@ namespace WMS_client
             MainProcess.Process = new RepairLight(MainProcess, CaseBarcode);
         }
 
-        /// <summary>Списание</summary>
+        /// <summary>Списання</summary>
         private void WriteOff()
         {
         }
