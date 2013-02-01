@@ -57,17 +57,24 @@ namespace WMS_client.db
             DateOfWarrantyEnd = SqlDateTime.MinValue.Value;
         }
 
+        /// <summary>Прочитати дані по комплектуючому за штрихкодом</summary>
+        /// <typeparam name="T">Тип комплектуючого</typeparam>
+        /// <param name="barcode">Штрихкод</param>
+        /// <returns>Комплектуюче</returns>
         public virtual T Read<T>(string barcode) where T : dbObject
         {
             return Read<T>(barcode, BARCODE_NAME);
         }
 
+        #region Static
+        /// <summary>Копіювати без посилань на комплектуюче</summary>
+        /// <returns>Нове комплектуюче (ще без ІД)</returns>
         public Accessory CopyWithoutLinks()
         {
             dbObject copyObj = base.Copy();
             Cases caseObj = copyObj as Cases;
 
-            if(caseObj!=null)
+            if (caseObj != null)
             {
                 caseObj.Lamp = 0;
                 caseObj.ElectronicUnit = 0;
@@ -77,7 +84,7 @@ namespace WMS_client.db
 
             ElectronicUnits unitObj = copyObj as ElectronicUnits;
 
-            if(unitObj!=null)
+            if (unitObj != null)
             {
                 unitObj.Case = 0;
                 return unitObj;
@@ -85,7 +92,7 @@ namespace WMS_client.db
 
             Lamps lampObj = copyObj as Lamps;
 
-            if(lampObj!=null)
+            if (lampObj != null)
             {
                 lampObj.Case = 0;
                 return lampObj;
@@ -104,13 +111,13 @@ namespace WMS_client.db
 
             switch (accessory)
             {
-                    case TypeOfAccessories.Lamp:
+                case TypeOfAccessories.Lamp:
                     tableName = "Lamps";
                     break;
-                    case TypeOfAccessories.ElectronicUnit:
+                case TypeOfAccessories.ElectronicUnit:
                     tableName = "ElectronicUnits";
                     break;
-                    case TypeOfAccessories.Case:
+                case TypeOfAccessories.Case:
                     tableName = "Cases";
                     break;
                 default:
@@ -124,7 +131,7 @@ namespace WMS_client.db
             object statusObj = query.ExecuteScalar();
             int statusNumber = statusObj == null ? 0 : Convert.ToInt32(statusObj);
 
-            return (TypesOfLampsStatus) statusNumber;
+            return (TypesOfLampsStatus)statusNumber;
         }
 
         /// <summary>Получить последний созданный объект комлектующего заданого типа</summary>
@@ -138,13 +145,14 @@ namespace WMS_client.db
             SqlCeCommand query = dbWorker.NewQuery(command);
             object idOfLastAccesory = query.ExecuteScalar();
 
-            if(idOfLastAccesory!=null)
+            if (idOfLastAccesory != null)
             {
                 accessory.Read(accessoryType, idOfLastAccesory, IDENTIFIER_NAME);
                 return true;
             }
 
             return false;
-        }
+        } 
+        #endregion
     }
 }

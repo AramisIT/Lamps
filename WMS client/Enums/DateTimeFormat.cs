@@ -4,11 +4,11 @@ namespace WMS_client.Enums
     public enum DateTimeFormat
     {
         None,
-        /// <summary>Только дата</summary>
+        /// <summary>Лише дата</summary>
         OnlyDate,
-        /// <summary>Только время</summary>
+        /// <summary>Лише час</summary>
         OnlyTime,
-        /// <summary>Дата+время</summary>
+        /// <summary>Дата+час</summary>
         All
     }
 }

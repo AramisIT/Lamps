@@ -2,23 +2,23 @@ using System.Drawing;
 
 namespace WMS_client
 {
-    /// <summary>Информация по карте</summary>
+    /// <summary>Інформація про карту</summary>
     public struct MapInfo
     {
-        /// <summary>Карта выбрана</summary>
+        /// <summary>Карта обрана</summary>
         public bool IsSelected { get; private set; }
-        /// <summary>Название карты</summary>
+        /// <summary>Назва</summary>
         public string Description { get; private set; }
-        /// <summary>Id карты</summary>
+        /// <summary>Id карти</summary>
         public object Id { get; private set; }
-        /// <summary>Диапазон регистров</summary>
+        /// <summary>Іапазон регістрів</summary>
         public Point Range { get; private set; }
 
-        /// <summary>Информация по карте</summary>
-        /// <param name="id">Id карты</param>
-        /// <param name="description">Название карты</param>
-        /// <param name="start">Начало диапазона</param>
-        /// <param name="finish">Окончание диапазона</param>
+        /// <summary>Інформація про карту</summary>
+        /// <param name="id">Id карти</param>
+        /// <param name="description">Назва</param>
+        /// <param name="start">Начало діапазону</param>
+        /// <param name="finish">Завершення діапазону</param>
         public MapInfo(object id, string description, int start, int finish)
             : this()
         {

@@ -5,11 +5,11 @@ namespace WMS_client.Enums
     /// <summary>Тип приймки</summary>
     public enum TypesOfAcceptance
     {
-        /// <summary>Новые комплектующие</summary>
-        [dbFieldAtt(Description = "Новые комплектующие")]
+        /// <summary>Нове комплектуюче</summary>
+        [dbFieldAtt(Description = "Нове комплектуюче")]
         IsNew,
-        /// <summary>С ремонта</summary>
-        [dbFieldAtt(Description = "С ремонта")]
+        /// <summary>З ремонту</summary>
+        [dbFieldAtt(Description = "З ремонту")]
         FromRepair
     }
 }

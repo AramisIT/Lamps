@@ -3,6 +3,7 @@ using WMS_client.Enums;
 
 namespace WMS_client.db
 {
+    /// <summary>Поля для документів "Відправка на.."/"Приймання з .."</summary>
     public abstract class Sending : CatalogObject, IBarcodeOwner
     {
         /// <summary>Дата</summary>

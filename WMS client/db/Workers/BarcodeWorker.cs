@@ -48,6 +48,9 @@ FROM(
             return result != null;
         }
 
+        /// <summary>Чи існує посилання</summary>
+        /// <param name="type">Тип об'єкту</param>
+        /// <param name="syncRef">Посилання</param>
         public static bool IsRefExist(Type type, string syncRef)
         {
             string command = string.Format(@"SELECT 1 FROM {0} WHERE RTRIM({1})=RTRIM(@{2})",

@@ -1,6 +1,6 @@
 namespace WMS_client.db
 {
-    /// <summary>Отправка на списание</summary>
+    /// <summary>Відправка на списання</summary>
     public class SendingToExchange : Sending
     {
         public override object Save()

@@ -1,5 +1,6 @@
 namespace WMS_client.db
 {
+    /// <summary>Тимчасова таблиця для синхронізації необхідних даних процесу "Приймання з обміну"</summary>
     public class AcceptanceAccessoriesFromExchangeDetails:dbObject, IBarcodeOwner
     {
         /// <summary>IsSynced</summary>
@@ -13,6 +14,9 @@ namespace WMS_client.db
         public string BarCode { get; set; }
 
         #region Overrides of dbObject
+        /// <summary>Зберегти дані</summary>
+        /// <param name="updId">Оновити Id для нового об'єкту?</param>
+        /// <returns>Збережений об'єкт</returns>
         public object Save(bool updId)
         {
             return SaveChanges<AcceptanceAccessoriesFromExchangeDetails>(false, updId);

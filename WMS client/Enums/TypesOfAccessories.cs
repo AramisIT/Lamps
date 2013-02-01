@@ -2,6 +2,7 @@
 
 namespace WMS_client.Enums
 {
+    /// <summary>Тип комплектуючого</summary>
     public enum TypeOfAccessories
     {
         /// <summary>Не выбрано</summary>

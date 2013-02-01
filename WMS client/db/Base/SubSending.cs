@@ -2,6 +2,7 @@ using WMS_client.Enums;
 
 namespace WMS_client.db
 {
+    /// <summary>Поля для такбличної частини документів "Відправка на.."/"Приймання з .."</summary>
     public abstract class SubSending : dbObject, ISynced
     {
         [dbFieldAtt(Description = "IsSynced", NotShowInForm = true)]

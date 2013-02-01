@@ -1,18 +1,19 @@
 namespace WMS_client.Enums
 {
+    /// <summary>Фільтри</summary>
     public enum FilterSettings
     {
-        /// <summary>Фильтр отсутствует</summary>
+        /// <summary>Відсутній</summary>
         None,
-        /// <summary>Не удаленные</summary>
+        /// <summary>Не помічені на видалення</summary>
         NotMarkForDelete,
-        /// <summary>Не проведенные</summary>
+        /// <summary>Не проведені</summary>
         NotPosted,
-        /// <summary>Удаленные</summary>
+        /// <summary>Помічені на видалення</summary>
         MarkForDelete,
-        /// <summary>Проведенные</summary>
+        /// <summary>Проведені</summary>
         Posted,
-        /// <summary>Пригодные для синхронизации</summary>
+        /// <summary>Пригодні для синхронізації</summary>
         CanSynced
     }
 }

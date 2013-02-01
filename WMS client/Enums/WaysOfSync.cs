@@ -1,11 +1,11 @@
 namespace WMS_client.Enums
 {
-    /// <summary>Способы синхронизации</summary>
+    /// <summary>Способи синхронізації</summary>
     public enum WaysOfSync
     {
-        /// <summary>Двухстороняя</summary>
+        /// <summary>Двустороння</summary>
         TwoWay,
-        /// <summary>Одностороняя</summary>
+        /// <summary>Одностороння</summary>
         OneWay
     }
 }

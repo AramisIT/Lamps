@@ -59,12 +59,11 @@ namespace WMS_client.db
                     new StringBuilder("DELETE FROM SubAcceptanceOfNewComponentsMarkingInfo WHERE ");
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 int index = 0;
-                const string parameter = "Parameter";
 
                 foreach (object acceptedDocument in acceptedDocuments)
                 {
-                    subDocCommand.AppendFormat("{0}=@{1}{2} OR ", IDENTIFIER_NAME, parameter, index);
-                    parameters.Add(parameter + index.ToString(), acceptedDocument);
+                    subDocCommand.AppendFormat("{0}=@{1}{2} OR ", IDENTIFIER_NAME, dbSynchronizer.PARAMETER, index);
+                    parameters.Add(dbSynchronizer.PARAMETER + index.ToString(), acceptedDocument);
                     index++;
                 }
 

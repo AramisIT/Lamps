@@ -74,12 +74,18 @@ namespace WMS_client.db
 
             if (accessory == null)
             {
-                throw new Exception("Не знайдно тип комплектуючого!");
+                throw new Exception("Не знайдено тип комплектуючого!");
             }
 
             return accessory.GetType().Name;
         }
 
+        /// <summary>Інформація для реєстрації запису в "Переміщення"</summary>
+        /// <param name="accessory">Тип комплектуючого</param>
+        /// <param name="caseBarcode">Штрихкод корпусу</param>
+        /// <param name="barcode">Штрихкод комплектуючого</param>
+        /// <param name="syncRef">SyncRef комплектуючого</param>
+        /// <returns>Чи наявний такий тип комплектуючого в даному корпусі</returns>
         public static bool GetMovementInfo(TypeOfAccessories accessory, string caseBarcode, out string barcode, out string syncRef)
         {
             string command = string.Format(@"
@@ -128,16 +134,20 @@ WHERE RTRIM(c.{0})=RTRIM(@{0})",
         #endregion
 
         #region Lamp
-
+        /// <summary>Чи містить корпус лампу?</summary>
+        /// <param name="caseBarcode">Штрихкод корпусу</param>
         public static bool IsHaveLamp(string caseBarcode)
         {
             return GetLampInCase(caseBarcode) != 0;
         }
 
-        public static long GetLampInCase(string barcode)
+        /// <summary>Отримати Id лампи з корпусу</summary>
+        /// <param name="caseBarcode">Штрихкод корпусу</param>
+        /// <returns>Id лампи</returns>
+        public static long GetLampInCase(string caseBarcode)
         {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT c.Lamp FROM Cases c WHERE RTRIM(c.Barcode)=@Barcode");
-            query.AddParameter("Barcode", barcode);
+            query.AddParameter("Barcode", caseBarcode);
             object idObj = query.ExecuteScalar();
 
             return idObj == null ? 0 : Convert.ToInt64(idObj);

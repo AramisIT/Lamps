@@ -1,15 +1,15 @@
 namespace WMS_client.Enums
 {
-    /// <summary>Набор кнопок</summary>
+    /// <summary>Набір кнопок</summary>
     public enum ButtonsSet
     {
         /// <summary></summary>
         None,
-        /// <summary>Да/Нет</summary>
+        /// <summary>Так/Ні</summary>
         YesNo,
-        /// <summary>Хорошо/"Плохо" :)</summary>
+        /// <summary>Добре/"Погано" :)</summary>
         OkCancel,
-        /// <summary>Хорошо</summary>
+        /// <summary>Ок</summary>
         Ok
     }
 }

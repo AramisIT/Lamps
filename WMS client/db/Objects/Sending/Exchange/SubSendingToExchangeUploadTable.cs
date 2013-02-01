@@ -1,6 +1,6 @@
 namespace WMS_client.db
 {
-    /// <summary>Таблица обмена. Отправка на списание</summary>
+    /// <summary>Таблица обміну. Відправка на списання</summary>
     public class SubSendingToExchangeUploadTable : SubSending
     {
         public override object Save()

@@ -43,12 +43,6 @@ namespace WMS_client.db
             DateOfActSet = SqlDateTime.MinValue.Value;
         }
 
-        /// <summary>Очистить все документы</summary>
-        public static void ClearOldDocuments()
-        {
-            dbArchitector.ClearAllDataFromTable("Party");
-        }
-
         #region Implemention of dbObject
         public override object Save()
         {
