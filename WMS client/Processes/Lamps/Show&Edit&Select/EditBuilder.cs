@@ -308,8 +308,7 @@ namespace WMS_client
                 if (isNewObject)
                 {
                     //Внесение записи в "Перемещение"
-                    Movement movement = new Movement(accessory.BarCode, accessory.SyncRef, OperationsWithLighters.Registration);
-                    movement.Save();
+                    Movement.RegisterLighter(accessory.BarCode, accessory.SyncRef, OperationsWithLighters.Registration);
                 }
 
                 //Отображение 

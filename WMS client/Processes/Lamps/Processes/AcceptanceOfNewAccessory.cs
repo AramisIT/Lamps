@@ -238,8 +238,7 @@ namespace WMS_client.Processes.Lamps
                 }
 
                 //Внесение записи в "Перемещение"
-                Movement movement = new Movement(accessory.BarCode, accessory.SyncRef, OperationsWithLighters.Acceptance);
-                movement.Save();
+                Movement.RegisterLighter(accessory.BarCode, accessory.SyncRef, OperationsWithLighters.Acceptance);
             }
 
             //SqlCeCommand query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)");

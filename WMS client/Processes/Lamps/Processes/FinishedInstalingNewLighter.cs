@@ -109,8 +109,7 @@ namespace WMS_client
             string syncRef = syncRefObj == null ? string.Empty : syncRefObj.ToString();
 
             //Внесение записи в "Перемещение"
-            Movement movement = new Movement(LightBarcode,syncRef, OperationsWithLighters.Installing);
-            movement.Save();
+            Movement.RegisterLighter(LightBarcode, syncRef, OperationsWithLighters.Installing);
         }
         #endregion
     }

@@ -127,9 +127,12 @@ WHERE RTRIM(e.Barcode)=RTRIM(@Barcode)");
 
         private void changeUnitStatus(TypesOfLampsStatus status)
         {
-            SqlCeCommand query = dbWorker.NewQuery("UPDATE ElectronicUnits SET Status=@Status WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
+            string command = string.Format("UPDATE ElectronicUnits SET Status=@Status,{0}=@{0} WHERE RTRIM({1})=RTRIM(@{1})",
+                dbObject.IS_SYNCED, dbObject.BARCODE_NAME);
+            SqlCeCommand query = dbWorker.NewQuery(command);
             query.AddParameter("Status", (int)status);
-            query.AddParameter("Barcode", UnitBarcode);
+            query.AddParameter(dbObject.IS_SYNCED, false);
+            query.AddParameter(dbObject.BARCODE_NAME, UnitBarcode);
             query.ExecuteNonQuery();
         }
         #endregion

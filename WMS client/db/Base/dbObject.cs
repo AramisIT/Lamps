@@ -70,20 +70,28 @@ namespace WMS_client.db
         /// <returns>Id</returns>
         public virtual object Save<T>() where T : dbObject
         {
-            return SaveChanges<T>(false);
+            return SaveChanges<T>(false, true);
         }
 
         /// <summary>Синхронизировать объект</summary>
         /// <returns>Id</returns>
         public virtual object Sync<T>() where T : dbObject
         {
-            return SaveChanges<T>(true);
+            return SaveChanges<T>(true, true);
+        }
+
+        /// <summary>Синхронизировать объект</summary>
+        /// <returns>Id</returns>
+        public virtual object Sync<T>(bool updId) where T : dbObject
+        {
+            return SaveChanges<T>(true, updId);
         }
 
         /// <summary>Сохранить изменения в объекте</summary>
         /// <param name="sync">Синхронизация?</param>
+        /// <param name="updId">Нужно обновить ID</param>
         /// <returns>Id</returns>
-        protected object SaveChanges<T>(bool sync) where T : dbObject
+        protected object SaveChanges<T>(bool sync, bool updId) where T : dbObject
         {
             object idValue;
             LastModified = DateTime.Now;
@@ -108,7 +116,7 @@ namespace WMS_client.db
                     document.Date = DateTime.Now;
                 }
 
-                idValue = CreateNew<T>();
+                idValue = CreateNew<T>(updId);
             }
             else
             {
@@ -143,8 +151,10 @@ namespace WMS_client.db
         }
 
         /// <summary>Создание нового объекта</summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="updId">Нужно обновить ID</param>
         /// <returns>Id</returns>
-        private object CreateNew<T>() where T : dbObject
+        private object CreateNew<T>(bool updId) where T : dbObject
         {
             Type type = typeof (T);
             PropertyInfo[] properties = type.GetProperties();
@@ -164,7 +174,7 @@ namespace WMS_client.db
 
                     if (property.Name.ToLower().Equals(idName))
                     {
-                        if (Convert.ToInt64(value) == 0)
+                        if (updId && Convert.ToInt64(value) == 0)
                         {
                             newId = getNewId();
                             value = newId;

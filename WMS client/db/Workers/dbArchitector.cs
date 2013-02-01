@@ -36,14 +36,31 @@ RegisterTo int not null)");
         /// <summary>Очистить все документы</summary>
         public static void ClearAll()
         {
-            ClearAllDataFromTable("Cases");
-            ClearAllDataFromTable("ElectronicUnits");
-            ClearAllDataFromTable("Lamps");
-            ClearAllDataFromTable("Models");
-            ClearAllDataFromTable("Party");
-            ClearAllDataFromTable("AcceptanceOfNewComponents");
-            ClearAllDataFromTable("SubAcceptanceOfNewComponentsMarkingInfo");
-            ClearAllDataFromTable("Movement");
+            //Документы
+            ClearAllDataFromTable(typeof(Maps).Name);
+            ClearAllDataFromTable(typeof(Cases).Name);
+            ClearAllDataFromTable(typeof(ElectronicUnits).Name);
+            ClearAllDataFromTable(typeof(Lamps).Name);
+            ClearAllDataFromTable(typeof(Models).Name);
+            ClearAllDataFromTable(typeof(Party).Name);
+            //Прийомка
+            ClearAllDataFromTable(typeof(AcceptanceOfNewComponents).Name);
+            ClearAllDataFromTable(typeof(SubAcceptanceOfNewComponentsMarkingInfo).Name);
+            //Відправка на ...
+            ClearAllDataFromTable(typeof(SendingToCharge).Name);
+            ClearAllDataFromTable(typeof(SubSendingToChargeChargeTable).Name);
+            ClearAllDataFromTable(typeof(SendingToExchange).Name);
+            ClearAllDataFromTable(typeof(SubSendingToExchangeUploadTable).Name);
+            ClearAllDataFromTable(typeof(SendingToRepair).Name);
+            ClearAllDataFromTable(typeof(SubSendingToRepairRepairTable).Name);
+            //Прийомка з ...
+            ClearAllDataFromTable(typeof(AcceptanceAccessoriesFromRepair).Name);
+            ClearAllDataFromTable(typeof(SubAcceptanceAccessoriesFromRepairRepairTable).Name);
+            ClearAllDataFromTable(typeof(AcceptanceAccessoriesFromExchange).Name);
+            ClearAllDataFromTable(typeof(AcceptanceAccessoriesFromExchangeDetails).Name);
+            ClearAllDataFromTable(typeof(SubAcceptanceAccessoriesFromExchangeExchange).Name);
+            //Переміщення
+            ClearAllDataFromTable(typeof(Movement).Name);
         }
     }
 }

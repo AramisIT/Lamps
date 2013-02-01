@@ -35,19 +35,7 @@ namespace WMS_client.db
         }
 
         #region Static
-        /// <summary>Чи містить корпус вказаний тип комплектуючого</summary>
-        /// <param name="caseBarcode">Штрихкод корпусу</param>
-        /// <param name="type">Тип комплектуючого</param>
-        public static bool IsCaseHaveAccessory(string caseBarcode, TypeOfAccessories type)
-        {
-            string column = GetColumnOfAccessory(type);
-            SqlCeCommand query = dbWorker.NewQuery(string.Format("SELECT {0} FROM Cases WHERE BarCode=@BarCode", column));
-            query.AddParameter("BarCode", caseBarcode);
-            object result = query.ExecuteScalar();
-
-            return result != null && Convert.ToInt64(result) != 0;
-        }
-
+        #region Accessory
         /// <summary>Отримати назву колонки по типу</summary>
         /// <param name="type">Тип комплектуючого</param>
         /// <returns>Назва колонки комплектуючого</returns>
@@ -61,7 +49,7 @@ namespace WMS_client.db
         /// <returns>Опис комплектуючого</returns>
         public static string GetDescriptionOfAccessory(TypeOfAccessories type)
         {
-            return EnumWorker.GetDescription(typeof(TypeOfAccessories), (int) type);
+            return EnumWorker.GetDescription(typeof(TypeOfAccessories), (int)type);
         }
 
         /// <summary>Отримати назву таблиці комплектуючого за типом</summary>
@@ -92,6 +80,34 @@ namespace WMS_client.db
             return accessory.GetType().Name;
         }
 
+        public static bool GetMovementInfo(TypeOfAccessories accessory, string caseBarcode, out string barcode, out string syncRef)
+        {
+            string command = string.Format(@"
+SELECT s.{0}, s.{1}
+FROM Cases c 
+JOIN {2}s s ON s.Id=c.{2}
+WHERE RTRIM(c.{0})=RTRIM(@{0})",
+                 BARCODE_NAME,
+                 SYNCREF_NAME,
+                 accessory.ToString());
+            SqlCeCommand query = dbWorker.NewQuery(command);
+            query.AddParameter(BARCODE_NAME, caseBarcode);
+            SqlCeDataReader reader = query.ExecuteReader();
+
+            if (reader != null && reader.Read())
+            {
+                barcode = reader[BARCODE_NAME].ToString();
+                syncRef = reader[SYNCREF_NAME].ToString();
+                return true;
+            }
+
+            barcode = string.Empty;
+            syncRef = string.Empty;
+            return false;
+        }
+        #endregion
+
+        #region Unit
         /// <summary>Содержит ли корпус электроблок</summary>
         /// <param name="caseBarcode">Штрихкод корпуса</param>
         public static bool IsHaveUnit(string caseBarcode)
@@ -107,7 +123,45 @@ namespace WMS_client.db
             query.AddParameter("Barcode", barcode);
             object idObj = query.ExecuteScalar();
 
-            return idObj==null? 0: Convert.ToInt64(idObj);
+            return idObj == null ? 0 : Convert.ToInt64(idObj);
+        } 
+        #endregion
+
+        #region Lamp
+
+        public static bool IsHaveLamp(string caseBarcode)
+        {
+            return GetLampInCase(caseBarcode) != 0;
+        }
+
+        public static long GetLampInCase(string barcode)
+        {
+            SqlCeCommand query = dbWorker.NewQuery(@"SELECT c.Lamp FROM Cases c WHERE RTRIM(c.Barcode)=@Barcode");
+            query.AddParameter("Barcode", barcode);
+            object idObj = query.ExecuteScalar();
+
+            return idObj == null ? 0 : Convert.ToInt64(idObj);
+        } 
+        #endregion
+
+        #region Lighter
+        /// <summary>Информация по светильнику</summary>
+        /// <returns>Model, Party, DateOfWarrantyEnd, Contractor</returns>
+        public static object[] GetLightInfo(string lightBarcode)
+        {
+            SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
+	m.Description Model
+	, p.Description Party
+	, c.DateOfWarrantyEnd
+	, cc.Description Contractor
+FROM Cases c
+LEFT JOIN Models m ON m.Id=c.Model
+LEFT JOIN Party p ON p.Id=c.Party
+LEFT JOIN Contractors cc ON cc.Id=p.Contractor
+WHERE RTRIM(c.Barcode)=RTRIM(@BarCode)");
+            query.AddParameter("Barcode", lightBarcode);
+
+            return query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
         }
 
         /// <summary>Изменить статус корпуса</summary>
@@ -154,6 +208,36 @@ namespace WMS_client.db
             query.ExecuteNonQuery();
         }
 
+        /// <summary>Находится ли светильник на гарантии</summary>
+        public static bool UnderWarranty(string lightBarcode)
+        {
+            SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
+	CASE WHEN c.DateOfWarrantyEnd>=@EndOfDay THEN 1 ELSE 0 END UnderWarranty
+FROM Cases c 
+LEFT JOIN Models t ON t.Id=c.Model
+LEFT JOIN Party p ON p.Id=c.Party
+WHERE RTRIM(c.BarCode)=RTRIM(@BarCode)");
+            query.AddParameter("BarCode", lightBarcode);
+            query.AddParameter("EndOfDay", DateTime.Now.Date.AddDays(1));
+            object result = query.ExecuteScalar();
+
+            return result != null && Convert.ToBoolean(result);
+        }
+
+        /// <summary>Чи містить корпус вказаний тип комплектуючого</summary>
+        /// <param name="caseBarcode">Штрихкод корпусу</param>
+        /// <param name="type">Тип комплектуючого</param>
+        public static bool IsCaseHaveAccessory(string caseBarcode, TypeOfAccessories type)
+        {
+            string column = GetColumnOfAccessory(type);
+            SqlCeCommand query = dbWorker.NewQuery(string.Format("SELECT {0} FROM Cases WHERE BarCode=@BarCode", column));
+            query.AddParameter("BarCode", caseBarcode);
+            object result = query.ExecuteScalar();
+
+            return result != null && Convert.ToInt64(result) != 0;
+        }
+        #endregion
+
         #region Try get accessoryId without barcode from case
         public static bool TryGetLampIdWithoutBarcode(string lightBarcode, out long lampId)
         {
@@ -185,41 +269,6 @@ namespace WMS_client.db
             return false;
         } 
         #endregion
-
-        /// <summary>Находится ли светильник на гарантии</summary>
-        public static bool UnderWarranty(string lightBarcode)
-        {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
-	CASE WHEN c.DateOfWarrantyEnd>=@EndOfDay THEN 1 ELSE 0 END UnderWarranty
-FROM Cases c 
-LEFT JOIN Models t ON t.Id=c.Model
-LEFT JOIN Party p ON p.Id=c.Party
-WHERE RTRIM(c.BarCode)=RTRIM(@BarCode)");
-            query.AddParameter("BarCode", lightBarcode);
-            query.AddParameter("EndOfDay", DateTime.Now.Date.AddDays(1));
-            object result = query.ExecuteScalar();
-
-            return result != null && Convert.ToBoolean(result);
-        }
-
-        /// <summary>Информация по светильнику</summary>
-        /// <returns>Model, Party, DateOfWarrantyEnd, Contractor</returns>
-        public static object[] GetLightInfo(string lightBarcode)
-        {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
-	m.Description Model
-	, p.Description Party
-	, c.DateOfWarrantyEnd
-	, cc.Description Contractor
-FROM Cases c
-LEFT JOIN Models m ON m.Id=c.Model
-LEFT JOIN Party p ON p.Id=c.Party
-LEFT JOIN Contractors cc ON cc.Id=p.Contractor
-WHERE RTRIM(c.Barcode)=RTRIM(@BarCode)");
-            query.AddParameter("Barcode", lightBarcode);
-
-            return query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
-        }
         #endregion
     }
 }

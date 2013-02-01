@@ -13,6 +13,17 @@ namespace WMS_client
     /// <summary>Синхронизация данных между ТСД и сервером</summary>
     public class dbSynchronizer : BusinessProcess
     {
+        /// <summary>Режими синхронізації</summary>
+        private enum SyncModes
+        {
+            ///// <summary>Стандартний</summary>
+            //Standart,
+            /// <summary>Стандартна синхронізація "Відправка/Прийомка на ..."</summary>
+            StandartToX,
+            /// <summary>Синхронізація "Отправка на обмен"</summary>
+            SendingToExchange
+        }
+
         /// <summary>Информационная метка для уведомления текущего процессе синхронизации</summary>
         private MobileLabel infoLabel;
         /// <summary>Список отложенных свойств</summary>
@@ -26,32 +37,47 @@ namespace WMS_client
         {
             deferredProperty = new List<DataAboutDeferredProperty>();
 
-            infoLabel.Text = "Контрагенты";
+            //Документи
+            infoLabel.Text = "Контрагенти";
             SyncObjects<Contractors>(WaysOfSync.OneWay, FilterSettings.CanSynced);
-            infoLabel.Text = "Карты";
-            SyncObjects<Maps>(WaysOfSync.OneWay);
-            infoLabel.Text = "Партии";
+            infoLabel.Text = "Карти";
+            SyncObjects<Maps>(false);
+            infoLabel.Text = "Партії";
             SyncObjects<Party>(WaysOfSync.OneWay);
-            infoLabel.Text = "Модели";
+            infoLabel.Text = "Моделі";
             SyncObjects<Models>(WaysOfSync.TwoWay);
-            infoLabel.Text = "Лампы";
+            infoLabel.Text = "Лампи";
             SyncObjects<Lamps>(WaysOfSync.TwoWay);
             infoLabel.Text = "Ел.блоки";
             SyncObjects<ElectronicUnits>(WaysOfSync.TwoWay);
-            infoLabel.Text = "Корпусы";
+            infoLabel.Text = "Корпуси";
             SyncObjects<Cases>(WaysOfSync.TwoWay);
+            //Оновлення посилань
+            infoLabel.Text = "Оновлення посилань";
             updateDeferredProperties();
             PerformQuery("EndOfSync");
-
-            infoLabel.Text = "Документы приемки новых комплектующих";
+            //Прийомка
+            infoLabel.Text = "Документи прийомки нового комплектучого";
             SyncAccepmentsDocWithServer();
-            infoLabel.Text = "Отправка на списание";
+            //Відправка на ...
+            infoLabel.Text = "Відправка на списання";
             SyncOutSending<SendingToCharge, SubSendingToChargeChargeTable>();
-            SyncInSending<SendingToCharge, SubSendingToChargeChargeTable>();
-            infoLabel.Text = "Отправка на ремонт";
+            SyncInSending<SendingToCharge, SubSendingToChargeChargeTable>(); 
+            infoLabel.Text = "Відправка на обмін";
+            SyncOutSending<SendingToExchange, SubSendingToExchangeUploadTable>();
+            SyncInSending<SendingToExchange, SubSendingToExchangeUploadTable>();
+            infoLabel.Text = "Відправка на ремонт";
             SyncOutSending<SendingToRepair, SubSendingToRepairRepairTable>();
             SyncInSending<SendingToRepair, SubSendingToRepairRepairTable>();
-            infoLabel.Text = "Перемещения";
+            //Приймання комплектуючого з ...
+            infoLabel.Text = "Приймання з ремонту";
+            SyncOutSending<AcceptanceAccessoriesFromRepair, SubAcceptanceAccessoriesFromRepairRepairTable>();
+            SyncInSending<AcceptanceAccessoriesFromRepair, SubAcceptanceAccessoriesFromRepairRepairTable>();
+            infoLabel.Text = "Приймання з обміну";
+            SyncOutAcceptanceFromExchange();
+            SyncInSending<AcceptanceAccessoriesFromExchange, SubAcceptanceAccessoriesFromExchangeExchange>(SyncModes.SendingToExchange);
+            //Переміщення
+            infoLabel.Text = "Переміщення";
             SyncMovement();
 
             MainProcess.ClearControls();
@@ -60,10 +86,17 @@ namespace WMS_client
 
         #region Sync ...
         /// <summary>Синхронизация объекта</summary>
+        /// <param name="updId">Нужно обновить ID</param>
+        public void SyncObjects<T>(bool updId) where T : dbObject
+        {
+            SyncObjects<T>(typeof(T).Name, WaysOfSync.OneWay, FilterSettings.None, false, false);
+        }
+
+        /// <summary>Синхронизация объекта</summary>
         /// <param name="wayOfSync">Способ синхронизации</param>
         public void SyncObjects<T>(WaysOfSync wayOfSync) where T : dbObject
         {
-            SyncObjects<T>(typeof(T).Name, wayOfSync, FilterSettings.None, false);
+            SyncObjects<T>(typeof(T).Name, wayOfSync, FilterSettings.None, false, true);
         }
 
         /// <summary>Синхронизация объекта</summary>
@@ -71,7 +104,7 @@ namespace WMS_client
         /// <param name="skipExists">Пропустить существующие</param>
         public void SyncObjects<T>(WaysOfSync wayOfSync, bool skipExists) where T : dbObject
         {
-            SyncObjects<T>(typeof(T).Name, wayOfSync, FilterSettings.None, skipExists);
+            SyncObjects<T>(typeof(T).Name, wayOfSync, FilterSettings.None, skipExists, true);
         }
 
         /// <summary>Синхронизация объекта</summary>
@@ -79,7 +112,7 @@ namespace WMS_client
         /// <param name="filter">Фильтры</param>
         public void SyncObjects<T>(WaysOfSync wayOfSync, FilterSettings filter) where T : dbObject
         {
-            SyncObjects<T>(typeof(T).Name, wayOfSync, filter, false);
+            SyncObjects<T>(typeof(T).Name, wayOfSync, filter, false, true);
         }
 
         /// <summary>Синхронизация объекта</summary>
@@ -88,7 +121,7 @@ namespace WMS_client
         /// <param name="skipExists">Пропустить существующие</param>
         public void SyncObjects<T>(WaysOfSync wayOfSync, FilterSettings filter, bool skipExists) where T : dbObject
         {
-            SyncObjects<T>(typeof(T).Name, wayOfSync, filter, skipExists);
+            SyncObjects<T>(typeof(T).Name, wayOfSync, filter, skipExists, true);
         }
 
         /// <summary>Синхронизация объекта</summary>
@@ -96,7 +129,8 @@ namespace WMS_client
         /// <param name="wayOfSync">Способ синхронизации</param>
         /// <param name="filter">Фильтры</param>
         /// <param name="skipExists">Пропустить существующие</param>
-        public void SyncObjects<T>(string tableName, WaysOfSync wayOfSync, FilterSettings filter, bool skipExists) where T : dbObject
+        /// <param name="updId">Нужно обновить ID</param>
+        public void SyncObjects<T>(string tableName, WaysOfSync wayOfSync, FilterSettings filter, bool skipExists, bool updId) where T : dbObject
         {
             //Выбрать (Признак синхронизации, Штрих-код) всех не удаленных элементов с таблицы tableName
             string command = string.Format("SELECT RTRIM({0}){0},RTRIM({1}){1},RTRIM({2}) {2} FROM {3} WHERE {4}=0",
@@ -119,7 +153,7 @@ namespace WMS_client
 
             if (IsAnswerIsTrue)
             {
-                updateObjOnLocalDb<T>(skipExists);
+                updateObjOnLocalDb<T>(skipExists, updId);
 
                 if (wayOfSync == WaysOfSync.TwoWay)
                 {
@@ -199,6 +233,100 @@ namespace WMS_client
             }
         }
 
+        /// <summary>Синхронизировать ("Отправить") данные по перемещениям</summary>
+        private void SyncMovement()
+        {
+            string tableName = typeof (Movement).Name;
+
+            //sync
+            string docCommand = string.Format("SELECT {0},{1},Date,Operation FROM {2}",
+                                              dbObject.BARCODE_NAME, dbObject.SYNCREF_NAME, tableName);
+            SqlCeCommand query = dbWorker.NewQuery(docCommand);
+            DataTable table = query.SelectToTable(new Dictionary<string, Enum>
+                                                      {
+                                                          {BaseFormatName.DateTime, DateTimeFormat.OnlyDate}
+                                                      });
+            PerformQuery("SyncMovement", table);
+
+            if (Parameters != null && (bool)Parameters[0])
+            {
+                //Видалення записів
+                string delCommand = string.Concat("DELETE FROM ", tableName);
+                query = dbWorker.NewQuery(delCommand);
+                query.ExecuteNonQuery();
+            }
+        }
+
+        #region Sending
+        /// <summary>Синхронизировать изменения по док "Отправить на .." на ТСД</summary>
+        /// <typeparam name="T">Документ</typeparam>
+        /// <typeparam name="S">Таблица</typeparam>
+        private void SyncInSending<T, S>()
+            where T : Sending
+            where S : SubSending
+        {
+            SyncInSending<T, S>(SyncModes.StandartToX);
+        }
+
+        /// <summary>Синхронизировать изменения по док "Отправить на .." на ТСД</summary>
+        /// <typeparam name="T">Документ</typeparam>
+        /// <typeparam name="S">Таблица</typeparam>
+        private void SyncInSending<T, S>(SyncModes mode)
+            where T : Sending
+            where S : SubSending
+        {
+            string docName = typeof(T).Name;
+            string tableName = typeof(S).Name;
+
+            PerformQuery("GetSendingDocs", docName, tableName, (int)mode);
+
+            if (IsExistParameters)
+            {
+                DataTable table = Parameters[0] as DataTable;
+
+                if (table != null)
+                {
+                    T newDoc = null;
+
+                    foreach (DataRow row in table.Rows)
+                    {
+                        int currId = Convert.ToInt32(row["Id"]);
+
+                        if (newDoc == null || newDoc.Id != currId)
+                        {
+                            newDoc = (T)Activator.CreateInstance(typeof(T));
+                            newDoc.Contractor = Convert.ToInt32(row["Contractor"]);
+                            newDoc.Date = Convert.ToDateTime(row["Date"]);
+                            newDoc.TypeOfAccessory = (TypeOfAccessories)Convert.ToInt32(row["TypeOfAccessories"]);
+                            newDoc.BarCode = currId.ToString();
+                            newDoc.IsSynced = true;
+                            newDoc.Sync<T>();
+                        }
+
+                        S newSubDoc = (S)Activator.CreateInstance(typeof(S));
+                        newSubDoc.TypeOfAccessory = newDoc.TypeOfAccessory;
+                        newSubDoc.Id = currId;
+                        newSubDoc.IsSynced = true;
+
+                        switch (mode)
+                        {
+                            case SyncModes.StandartToX:
+                                newSubDoc.Document = row["Document"].ToString();
+                                break;
+                            case SyncModes.SendingToExchange:
+                                string syncRef = row["Nomenclature"].ToString();
+                                object modelId = BarcodeWorker.GetIdByRef(typeof(Models), syncRef);
+
+                                newSubDoc.SetValue("Nomenclature", modelId);
+                                break;
+                        }
+
+                        newSubDoc.Sync<S>();
+                    }
+                }
+            }
+        }
+
         /// <summary>Синхронизировать изменения по док "Отправить на .." на сервере</summary>
         /// <typeparam name="T">Документ</typeparam>
         /// <typeparam name="S">Таблица</typeparam>
@@ -206,16 +334,27 @@ namespace WMS_client
             where T : Sending
             where S : SubSending
         {
-            string docName = typeof (T).Name;
-            string tableName = typeof (S).Name;
+            SyncOutSending<T, S>(SyncModes.StandartToX);
+        }
+
+        /// <summary>Синхронизировать изменения по док "Отправить на .." на сервере</summary>
+        /// <typeparam name="T">Документ</typeparam>
+        /// <typeparam name="S">Таблица</typeparam>
+        /// <param name="mode">Режим синхронізації</param>
+        private void SyncOutSending<T, S>(SyncModes mode)
+            where T : Sending
+            where S : SubSending
+        {
+            string docName = typeof(T).Name;
+            string tableName = typeof(S).Name;
 
             //1. Обновление на сервере
             string command = string.Format("SELECT Id, Document FROM {0} WHERE IsSynced=0", tableName);
             SqlCeCommand query = dbWorker.NewQuery(command);
             DataTable table = query.SelectToTable();
-            PerformQuery("SetSendingDocs", docName, tableName, table);
+            PerformQuery("SetSendingDocs", docName, tableName, table, (int)mode);
 
-            bool fullDeleteAccepted = typeof (T) == typeof (SendingToRepair);
+            bool fullDeleteAccepted = typeof(T) == typeof(SendingToRepair);
 
             if (fullDeleteAccepted)
             {
@@ -244,7 +383,7 @@ namespace WMS_client
             }
             else
             {
-                //2. Удаление обнавленных (? а нужно ли ... может когда весь документ удаляется)
+                //2. Удаление обновленных (? а нужно ли ... может когда весь документ удаляется)
                 command = string.Format("DELETE FROM {0} WHERE IsSynced=0", tableName);
                 query = dbWorker.NewQuery(command);
                 query.ExecuteNonQuery();
@@ -280,82 +419,35 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
             }
         }
 
-        /// <summary>Синхронизировать изменения по док "Отправить на .." на ТСД</summary>
-        /// <typeparam name="T">Документ</typeparam>
-        /// <typeparam name="S">Таблица</typeparam>
-        private void SyncInSending<T, S>() where T:Sending where S:SubSending
+        private void SyncOutAcceptanceFromExchange()
         {
-            PerformQuery("GetSendingDocs", typeof(T).Name);
+            string tableName = typeof (AcceptanceAccessoriesFromExchangeDetails).Name;
+            string command = string.Format(
+                "SELECT d.Id,m.{0} Nomenclature,d.{1} FROM {2} d LEFT JOIN Models m ON m.Id=d.Nomenclature ORDER BY Id,Nomenclature",
+                dbObject.SYNCREF_NAME, dbObject.BARCODE_NAME, tableName);
+            SqlCeCommand query = dbWorker.NewQuery(command);
+            DataTable table = query.SelectToTable();
 
-            if (IsExistParameters)
-            {
-                DataTable table = Parameters[0] as DataTable;
-
-                if(table!=null)
-                {
-                    T newDoc = null;
-
-                    foreach (DataRow row in table.Rows)
-                    {
-                        int currId = Convert.ToInt32(row["Id"]);
-                        
-                        if(newDoc==null || newDoc.Id!=currId)
-                        {
-                            newDoc = (T)Activator.CreateInstance(typeof(T));
-                            newDoc.Contractor = Convert.ToInt32(row["Contractor"]);
-                            newDoc.Date = Convert.ToDateTime(row["Date"]);
-                            newDoc.TypeOfAccessory = (TypeOfAccessories)Convert.ToInt32(row["TypeOfAccessories"]);
-                            newDoc.BarCode = currId.ToString();
-                            newDoc.IsSynced = true;
-                            newDoc.Sync<T>();
-                        }
-
-                        S newSubDoc = (S)Activator.CreateInstance(typeof(S));
-                        newSubDoc.TypeOfAccessory = newDoc.TypeOfAccessory;
-                        newSubDoc.Document = row["Document"].ToString();
-                        newSubDoc.Id = currId;
-                        newSubDoc.IsSynced = true;
-                        newSubDoc.Sync<S>();
-                    }
-                }
-            }
+            //Send
+            PerformQuery("SetSendingExchangeDocs", table);
+            return;
+            //Clear
+            dbArchitector.ClearAllDataFromTable(tableName);
         }
-
-        /// <summary>Синхронизировать ("Отправить") данные по перемещениям</summary>
-        private void SyncMovement()
-        {
-            string tableName = typeof (Movement).Name;
-
-            //sync
-            string docCommand = string.Format("SELECT {0},{1},Date,Operation FROM {2}",
-                                              dbObject.BARCODE_NAME, dbObject.SYNCREF_NAME, tableName);
-            SqlCeCommand query = dbWorker.NewQuery(docCommand);
-            DataTable table = query.SelectToTable(new Dictionary<string, Enum>
-                                                      {
-                                                          {BaseFormatName.DateTime, DateTimeFormat.OnlyDate}
-                                                      });
-            PerformQuery("SyncMovement", table);
-
-            if (Parameters != null && (bool)Parameters[0])
-            {
-                //Видалення записів
-                string delCommand = string.Concat("DELETE FROM ", tableName);
-                query = dbWorker.NewQuery(delCommand);
-                query.ExecuteNonQuery();
-            }
-        }
+        #endregion
         #endregion
 
         #region Update on ...
         /// <summary>Обновление локальной базы после синхронизации</summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="skipExists">Пропустить существующие</param>
-        private void updateObjOnLocalDb<T>(bool skipExists) where T : dbObject
+        /// <param name="updId">Нужно обновить ID</param>
+        private void updateObjOnLocalDb<T>(bool skipExists, bool updId) where T : dbObject
         {
             //Данные только по измененным элементам с "сервера"
             DataTable changesForTsd = Parameters[1] as DataTable;
             //Обновление элементов на локальной базе
-            CreateSyncObject<T>(changesForTsd, skipExists, ref deferredProperty);
+            CreateSyncObject<T>(changesForTsd, skipExists, ref deferredProperty, updId);
         }
 
         /// <summary>Выборка данных для обновления сервера после синхронизации</summary>
@@ -407,11 +499,13 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
         #endregion
 
         #region Create objects
+
         /// <summary>Создание объектов синхронизации</summary>
         /// <param name="table">Данные о объектах</param>
         /// <param name="skipExists">Пропустить существующие</param>
         /// <param name="deferredProperty">Список отложеных свойств</param>
-        public static void CreateSyncObject<T>(DataTable table, bool skipExists, ref List<DataAboutDeferredProperty> deferredProperty) where T : dbObject
+        /// <param name="updId">Нужно обновить ID</param>
+        public static void CreateSyncObject<T>(DataTable table, bool skipExists, ref List<DataAboutDeferredProperty> deferredProperty, bool updId) where T : dbObject
         {
             if (table != null)
             {
@@ -450,7 +544,7 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
 
                                 syncRef = value.ToString();
                             }
-                            else if (property.Name.ToLower().Equals(dbObject.IDENTIFIER_NAME))
+                            else if (updId && property.Name.ToLower().Equals(dbObject.IDENTIFIER_NAME))
                             {
                                 continue;
                             }
@@ -537,7 +631,7 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                         syncObject.IsSynced = true;
                     }
 
-                    if (!skipExists && !string.IsNullOrEmpty(syncRef))
+                    if (updId && !skipExists && !string.IsNullOrEmpty(syncRef))
                     {
                         newObject.Id = Convert.ToInt64(BarcodeWorker.GetIdByRef(type, syncRef));
                     }
@@ -557,7 +651,7 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                         }
                     }
 
-                    newObject.Sync<T>();
+                    newObject.Sync<T>(updId);
 
                     if (needDeferred)
                     {

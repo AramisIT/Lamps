@@ -98,8 +98,7 @@ WHERE RTRIM(c.Barcode)=@Barcode");
             string syncRef = syncRefObj == null ? string.Empty : syncRefObj.ToString();
 
             //Внесение записи в "Перемещение"
-            Movement movement = new Movement(LightBarcode, syncRef, OperationsWithLighters.Removing);
-            movement.Save();
+            Movement.RegisterLighter(LightBarcode, syncRef, OperationsWithLighters.Removing);
         }
         #endregion
     }
