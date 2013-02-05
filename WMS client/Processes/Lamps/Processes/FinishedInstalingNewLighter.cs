@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using WMS_client.Enums;
 using WMS_client.db;
 using System.Data.SqlServerCe;
+using System;
 
 namespace WMS_client
 {
@@ -109,7 +110,8 @@ namespace WMS_client
             string syncRef = syncRefObj == null ? string.Empty : syncRefObj.ToString();
 
             //Внесение записи в "Перемещение"
-            Movement.RegisterLighter(LightBarcode, syncRef, OperationsWithLighters.Installing);
+            Movement.RegisterLighter(LightBarcode, syncRef, OperationsWithLighters.Installing,
+                                     (int)MapId, Convert.ToInt32(Parameters[1]), Convert.ToInt32(Parameters[2]));
         }
         #endregion
     }

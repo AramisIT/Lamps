@@ -11,6 +11,10 @@ namespace WMS_client.Enums
         Acceptance,
         /// <summary>Приемка комплектующих с ремонта</summary>
         AcceptanceFromRepair,
+        /// <summary>Приемка комплектующих с обмена</summary>
+        AcceptanceFromExchange,
+        /// <summary>Приемка комплектующих со списания</summary>
+        AcceptanceFromCharge,
         /// <summary>Отправка на ремонт</summary>
         SendingToRepair,
         /// <summary>Отправка на обмен</summary>

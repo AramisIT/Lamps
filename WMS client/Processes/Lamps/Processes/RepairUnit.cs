@@ -7,10 +7,15 @@ using WMS_client.db;
 
 namespace WMS_client.Processes.Lamps
 {
+    /// <summary>Ремонт ел.блоків</summary>
     public class RepairUnit : BusinessProcess
     {
+        /// <summary>Штрихкод блоку</summary>
         private readonly string UnitBarcode;
-        
+
+        /// <summary>Ремонт ел.блоків</summary>
+        /// <param name="MainProcess"></param>
+        /// <param name="unitBarcode">Штрихкод блоку</param>
         public RepairUnit(WMSClient MainProcess, string unitBarcode)
             : base(MainProcess, 1)
         {
@@ -29,8 +34,9 @@ namespace WMS_client.Processes.Lamps
 
                 ListOfLabelsConstructor listOfLabels = new ListOfLabelsConstructor(MainProcess, "Ремонт", getUnitInfo());
                 List<LabelForConstructor> list = new List<LabelForConstructor>();
+                bool underWarrantly = underWarranty();
 
-                if (underWarranty())
+                if (underWarrantly)
                 {
                     list.Add(new LabelForConstructor(string.Empty, ControlsStyle.LabelH2Red));
                     list.Add(new LabelForConstructor("УВАГА! Ел.блок", ControlsStyle.LabelH2Red));
@@ -52,7 +58,8 @@ namespace WMS_client.Processes.Lamps
                             new LabelForConstructor("Гарантія до {0}"),
                             new LabelForConstructor("Контрагент {0}"),
                             new LabelForConstructor(string.Empty, false),
-                            new LabelForConstructor("Помітити на обмін?", ControlsStyle.LabelH2Red)
+                            new LabelForConstructor(underWarrantly ? "Помітити на обмін?" : string.Empty,
+                                                    ControlsStyle.LabelH2Red)
                         });
 
                 listOfLabels.ListOfLabels = list;
@@ -79,12 +86,14 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Buttons
+        /// <summary>Завершення процесу. Помітити на обмін</summary>
         private void yes_Click()
         {
             changeUnitStatus(TypesOfLampsStatus.ForExchange);
             OnHotKey(KeyAction.Esc);
         }
 
+        /// <summary>Завершення процесу. Помітити на ремонт</summary>
         private void no_Click()
         {
             changeUnitStatus(TypesOfLampsStatus.ToRepair);
@@ -93,6 +102,7 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Query
+        /// <summary>Чи знаходиться блок на гарантії?</summary>
         private bool underWarranty()
         {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
@@ -108,6 +118,7 @@ WHERE RTRIM(e.BarCode)=RTRIM(@BarCode)");
             return result != null && Convert.ToBoolean(result);
         }
 
+        /// <summary>Отримати інформації по блоку</summary>
         private object[] getUnitInfo()
         {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
@@ -125,6 +136,8 @@ WHERE RTRIM(e.Barcode)=RTRIM(@Barcode)");
             return query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
         }
 
+        /// <summary>Змінити статус ел.блоку</summary>
+        /// <param name="status">Новий статус</param>
         private void changeUnitStatus(TypesOfLampsStatus status)
         {
             string command = string.Format("UPDATE ElectronicUnits SET Status=@Status,{0}=@{0} WHERE RTRIM({1})=RTRIM(@{1})",

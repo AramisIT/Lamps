@@ -7,15 +7,27 @@ using System.Text;
 
 namespace WMS_client.Processes.Lamps
 {
+    /// <summary>Прийомка з ...</summary>
     public class AcceptionSendingDocs : BusinessProcess
     {
+        #region Properties
+        /// <summary>Тип комплектуючого</summary>
         private readonly TypeOfAccessories typeOfAccessory;
+        /// <summary>Строки (Штрихкод; Строка в таблиці)</summary>
         private readonly Dictionary<string, DataRow> rows;
+        /// <summary>Список принятих штрихкодів</summary>
         private readonly List<string> accepted;
+        /// <summary>Ім'я табличної частини</summary>
         private readonly string subTableName;
+        /// <summary>Візуальна таблиця</summary>
         private MobileTable visualTable;
-        private DataTable sourceTable;
+        /// <summary>Таблиця з даними</summary>
+        private DataTable sourceTable; 
+        #endregion
 
+        /// <summary>Прийомка з ...</summary>
+        /// <param name="MainProcess"></param>
+        /// <param name="type">Тип комплектуючого</param>
         public AcceptionSendingDocs(WMSClient MainProcess, TypeOfAccessories type)
             : base(MainProcess, 1)
         {
@@ -27,6 +39,11 @@ namespace WMS_client.Processes.Lamps
             DrawControls();
         }
 
+        /// <summary>Прийомка з ...</summary>
+        /// <param name="MainProcess"></param>
+        /// <param name="topic">Заголовок</param>
+        /// <param name="type">Тип комплектуючого</param>
+        /// <param name="subTableName">Ім'я табличної частини</param>
         public AcceptionSendingDocs(WMSClient MainProcess, string topic, TypeOfAccessories type, string subTableName)
             : base(MainProcess, 1)
         {
@@ -64,18 +81,18 @@ namespace WMS_client.Processes.Lamps
                 }
 
                 visualTable.Focus();
-
                 MainProcess.CreateButton("Ок", 15, 275, 210, 35, "ok", ok_Click);
             }
         }
 
-
-
         public override void OnBarcode(string Barcode)
         {
+            //Якщо такий штрихкод наявний у таблиці
             if(rows.ContainsKey(Barcode))
             {
+                //Прийняти
                 accepted.Add(Barcode);
+                //Видалити з візуальної таблиці
                 sourceTable.Rows.Remove(rows[Barcode]);
                 rows.Remove(Barcode);
             }
@@ -94,6 +111,7 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region ButtonClick
+        /// <summary>Завершення процесу</summary>
         private void ok_Click()
         {
             Accept();
@@ -103,6 +121,7 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Query
+        /// <summary>Отримати дані для заповнення в таблиці</summary>
         private SqlCeDataReader GetData()
         {
             string command = string.Format(@"SELECT DISTINCT c.Document Id
@@ -113,6 +132,7 @@ WHERE c.TypeOfAccessory=@Type AND c.{1}=1", subTableName, dbObject.IS_SYNCED);
             return query.ExecuteReader();
         }
 
+        /// <summary>Збереження інформації</summary>
         private void Accept()
         {
             StringBuilder command = new StringBuilder();

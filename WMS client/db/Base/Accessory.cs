@@ -107,27 +107,10 @@ namespace WMS_client.db
         /// <returns>Статус комплектующего</returns>
         public static TypesOfLampsStatus GetStatus(TypeOfAccessories accessory, string barcode)
         {
-            string tableName;
-
-            switch (accessory)
-            {
-                case TypeOfAccessories.Lamp:
-                    tableName = "Lamps";
-                    break;
-                case TypeOfAccessories.ElectronicUnit:
-                    tableName = "ElectronicUnits";
-                    break;
-                case TypeOfAccessories.Case:
-                    tableName = "Cases";
-                    break;
-                default:
-                    throw new Exception("Не предусмотрена реализация!");
-            }
-
-            string command = string.Format("SELECT Status FROM {0} WHERE RTRIM({1})=RTRIM(@Barcode)",
-                                           tableName, BARCODE_NAME);
+            string command = string.Format("SELECT Status FROM {0}s WHERE RTRIM({1})=RTRIM(@{1})",
+                                           accessory, BARCODE_NAME);
             SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter("barcode", barcode);
+            query.AddParameter(BARCODE_NAME, barcode);
             object statusObj = query.ExecuteScalar();
             int statusNumber = statusObj == null ? 0 : Convert.ToInt32(statusObj);
 

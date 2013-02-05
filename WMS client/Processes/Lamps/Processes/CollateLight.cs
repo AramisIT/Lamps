@@ -220,8 +220,10 @@ namespace WMS_client
         private void saveLampData()
         {
             string command = string.Format(
-                "UPDATE {0} SET {1}=@{1}, [Case]=0 WHERE {2}=@{2}",
-                typeof (Lamps).Name, dbObject.BARCODE_NAME, dbObject.IDENTIFIER_NAME);
+                "UPDATE {0} SET {1}[Case]=0 WHERE {2}=@{2}",
+                typeof (Lamps).Name, 
+                string.IsNullOrEmpty(lampBarcode) ? string.Empty : string.Format("{0}=@{0}, ", dbObject.BARCODE_NAME),
+                dbObject.IDENTIFIER_NAME);
             SqlCeCommand query = dbWorker.NewQuery(command);
             query.AddParameter(dbObject.BARCODE_NAME, lampBarcode);
             query.AddParameter(dbSynchronizer.PARAMETER, 0);
@@ -232,8 +234,10 @@ namespace WMS_client
         private void saveUnitData()
         {
             string command = string.Format(
-                "UPDATE {0} SET {1}=@{1}, [Case]=0 WHERE {2}=@{2}",
-                typeof(ElectronicUnits).Name, dbObject.BARCODE_NAME, dbObject.IDENTIFIER_NAME);
+                "UPDATE {0} SET {1}[Case]=0 WHERE {2}=@{2}",
+                typeof(ElectronicUnits).Name,
+                string.IsNullOrEmpty(unitBarcode) ? string.Empty : string.Format("{0}=@{0}, ", dbObject.BARCODE_NAME)
+                , dbObject.IDENTIFIER_NAME);
             SqlCeCommand query = dbWorker.NewQuery(command);
             query.AddParameter(dbObject.BARCODE_NAME, unitBarcode);
             query.AddParameter(dbSynchronizer.PARAMETER, 0);

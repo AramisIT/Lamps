@@ -8,26 +8,38 @@ namespace WMS_client.db
     {
         #region Properties
         /// <summary>Штрихкод</summary>
-        [dbFieldAtt(Description = "Штрихкод", NotShowInForm = true)]
+        [dbFieldAtt(Description = "Штрихкод")]
         public string BarCode { get; set; }
         /// <summary>Дата</summary>
-        [dbFieldAtt(Description = "Дата", NotShowInForm = true)]
+        [dbFieldAtt(Description = "Дата")]
         public DateTime Date { get; set; }
         /// <summary>Операція</summary>
-        [dbFieldAtt(Description = "Операція", ShowInEditForm = true, NotShowInForm = true)]
+        [dbFieldAtt(Description = "Операція")]
         public OperationsWithLighters Operation { get; set; }
         /// <summary>Статус синхронизации с сервером</summary>
-        [dbFieldAtt(Description = "IsSynced", NotShowInForm = true)]
-        public bool IsSynced { get; set; } 
+        [dbFieldAtt(Description = "IsSynced")]
+        public bool IsSynced { get; set; }
+        /// <summary>Карта</summary>
+        [dbFieldAtt(Description = "Карта")]
+        public int Map { get; set; }
+        /// <summary>Регістр</summary>
+        [dbFieldAtt(Description = "Регістр")]
+        public int Register { get; set; }
+        /// <summary>Позиція</summary>
+        [dbFieldAtt(Description = "Позиція")]
+        public int Position { get; set; } 
         #endregion
-        
+
         /// <summary>Переміщення</summary>
-        public Movement(string barcode, string syncRef, OperationsWithLighters operation)
+        public Movement(string barcode, string syncRef, OperationsWithLighters operation, int map, int register, int position)
         {
             BarCode = barcode;
             SyncRef = syncRef;
             Operation = operation;
             Date = DateTime.Now;
+            Map = map;
+            Register = register;
+            Position = position;
         }
 
         #region Implemention of dbObject
@@ -49,26 +61,38 @@ namespace WMS_client.db
         /// <param name="operation">Операция</param>
         public static void RegisterLighter(string barcode, string syncRef, OperationsWithLighters operation)
         {
+            RegisterLighter(barcode, syncRef, operation, 0, 0, 0);
+        }
+
+        /// <summary>Зарегистрировать светильник на перемещение</summary>
+        /// <param name="barcode">Штрихкод светильника</param>
+        /// <param name="syncRef">Ссылка синхронизации</param>
+        /// <param name="operation">Операция</param>
+        /// <param name="map">Карта</param>
+        /// <param name="register">Регістр</param>
+        /// <param name="position">Позиція</param>
+        public static void RegisterLighter(string barcode, string syncRef, OperationsWithLighters operation, int map, int register, int position)
+        {
             string lampBarcode;
             string lampRef;
             string unitBarcode;
             string unitRef;
 
             //Корпус
-            Movement caseMovement = new Movement(barcode, syncRef, operation);
+            Movement caseMovement = new Movement(barcode, syncRef, operation, map, register, position);
             caseMovement.Save();
 
             //Лампа
             if (Cases.GetMovementInfo(TypeOfAccessories.Lamp, barcode, out lampBarcode, out lampRef))
             {
-                Movement lampMovement = new Movement(lampBarcode, lampRef, operation);
+                Movement lampMovement = new Movement(lampBarcode, lampRef, operation, map, register, position);
                 lampMovement.Save();
             }
 
             //Эл.блок
             if (Cases.GetMovementInfo(TypeOfAccessories.ElectronicUnit, barcode, out unitBarcode, out unitRef))
             {
-                Movement unitMovement = new Movement(unitBarcode, unitRef, operation);
+                Movement unitMovement = new Movement(unitBarcode, unitRef, operation, map, register, position);
                 unitMovement.Save();
             }
         }

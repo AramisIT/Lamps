@@ -34,6 +34,7 @@ namespace WMS_client
         {
             if (IsLoad)
             {
+                TypesOfLampsStatus state = Accessory.GetStatus(TypeOfAccessories.Case, CaseBarcode);
                 ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, Parameters);
                 list.ListOfLabels = new List<LabelForConstructor>
                                         {
@@ -48,7 +49,16 @@ namespace WMS_client
 
                 MainProcess.CreateButton("Уснановка", 15, 225, 100, 35, "installNew", InstallNew);
                 MainProcess.CreateButton("Розібрати", 125, 225, 100, 35, "collate", Collate);
-                MainProcess.CreateButton("Ремонт", 15, 275, 100, 35, "repair", Repair);
+
+                if (state == TypesOfLampsStatus.Repair || state == TypesOfLampsStatus.ToRepair)
+                {
+                    MainProcess.CreateButton("Зберігання", 15, 275, 100, 35, "storages", Storages);
+                }
+                else
+                {
+                    MainProcess.CreateButton("Ремонт", 15, 275, 100, 35, "repair", Repair);
+                }
+
                 MainProcess.CreateButton("Спиння", 125, 275, 100, 35, "writeoff", WriteOff);
             }
         }
@@ -111,6 +121,13 @@ namespace WMS_client
         {
             MainProcess.ClearControls();
             MainProcess.Process = new RepairLight(MainProcess, CaseBarcode);
+        }
+
+        /// <summary>Зберігання</summary>
+        private void Storages()
+        {
+            MainProcess.ClearControls();
+            MainProcess.Process = new SetLightForStorage(MainProcess, CaseBarcode);
         }
 
         /// <summary>Списання</summary>

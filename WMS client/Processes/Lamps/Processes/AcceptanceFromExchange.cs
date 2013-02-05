@@ -8,21 +8,41 @@ using System.Text;
 
 namespace WMS_client.Processes.Lamps
 {
+    /// <summary>Приймання з обміну</summary>
     public class AcceptanceFromExchange : BusinessProcess
     {
+        #region Properties, variables, consts
+        /// <summary>Прийнято (Модель; Список(Прийомка; Штрихкод))</summary>
         private readonly Dictionary<long, List<KeyValuePair<long, string>>> accepted;
+        /// <summary>Назва документу</summary>
         private readonly string docName;
+        /// <summary>Назва табличної частини</summary>
         private readonly string tableName;
+        /// <summary>Візуальна таблиця</summary>
         private MobileTable visualTable;
+        /// <summary>Таблиця даних</summary>
         private DataTable sourceTable;
+        /// <summary>Обрана строка</summary>
         private DataRow selectedRow;
+        /// <summary>Id обраної прийомки</summary>
         private long selectedAcceptanceId;
+        /// <summary>Id обраної моделі</summary>
         private long selectedModelId;
+        /// <summary>Колонка "Id"</summary>
         private const string ACC_ID_COLUMN = "Id";
+        /// <summary>Колонка "Description"</summary>
         private const string DESCRIPTION_COLUMN = "Description";
+        /// <summary>Колонка "NomenclatureId"</summary>
         private const string MODEL_ID_COLUMN = "NomenclatureId";
-        private const string AMOUNT_COLUMN = "Amount";
+        /// <summary>Колонка "Amount"</summary>
+        private const string AMOUNT_COLUMN = "Amount"; 
+        #endregion
 
+        /// <summary>Приймання з обміну</summary>
+        /// <param name="MainProcess"></param>
+        /// <param name="topic">Заголовок</param>
+        /// <param name="doc">Назва документу</param>
+        /// <param name="table">Назва табличної частини</param>
         public AcceptanceFromExchange(WMSClient MainProcess, string topic, string doc, string table)
             : base(MainProcess, 1)
         {
@@ -77,6 +97,7 @@ namespace WMS_client.Processes.Lamps
             }
             else
             {
+                //Не можна зберігати записи з однаковим штрихкодом
                 if (accepted[selectedModelId].Any(a => a.Value == Barcode))
                 {
                     ShowMessage("Даний штрихкод вже був відсканований!");
@@ -84,8 +105,10 @@ namespace WMS_client.Processes.Lamps
                 }
             }
 
+            //Збереження запису
             accepted[selectedModelId].Add(new KeyValuePair<long, string>(selectedAcceptanceId, Barcode));
 
+            //Збільшення індексу в таблиці
             int amount = (int) selectedRow[AMOUNT_COLUMN];
             selectedRow[AMOUNT_COLUMN] = ++amount;
         }
@@ -111,6 +134,7 @@ namespace WMS_client.Processes.Lamps
             selectedAcceptanceId = Convert.ToInt64(selectedRow[ACC_ID_COLUMN]);
         }
 
+        /// <summary>Завершення процесу</summary>
         private void ok_Click()
         {
             Accept();
@@ -120,6 +144,7 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Query
+        /// <summary>Отримати дані для заповнення таблиці</summary>
         private SqlCeDataReader GetData()
         {
             string command = string.Format(
@@ -135,6 +160,7 @@ WHERE d.{6}=1",
             return query.ExecuteReader();
         }
 
+        /// <summary>Збереження інформації по завершенню прийомки</summary>
         private void Accept()
         {
             StringBuilder whereClause = new StringBuilder();

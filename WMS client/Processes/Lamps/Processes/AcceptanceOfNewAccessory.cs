@@ -8,7 +8,7 @@ using WMS_client.db;
 
 namespace WMS_client.Processes.Lamps
 {
-    /// <summary>Приемка нового коплектующего</summary>
+    /// <summary>Приймання нового коплектующего</summary>
     public class AcceptanceOfNewAccessory : BusinessProcess
     {
         #region Variables

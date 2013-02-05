@@ -262,17 +262,17 @@ WHERE RTRIM(c.BarCode)=RTRIM(@BarCode)");
         private static bool tryGetAccessoryWithoutBarcodeFromCase(string lightBarcode, string accessory, out long lampId)
         {
             string command = string.Format(
-                @"SELECT {0} FROM {1} m JOIN {0}s s ON m.{0}=s.{2} WHERE m.{3}=@{3} AND RTRIM(s.{3})=@{4}",
+                @"SELECT {0} {2},CASE WHEN RTRIM(s.{3})=@{4} THEN 1 ELSE 0 END IsEmpty FROM {1} m JOIN {0}s s ON m.{0}=s.{2} WHERE m.{3}=@{3}",
                 accessory, typeof(Cases).Name, IDENTIFIER_NAME, BARCODE_NAME, dbSynchronizer.PARAMETER);
             SqlCeCommand query = dbWorker.NewQuery(command);
             query.AddParameter(BARCODE_NAME, lightBarcode);
             query.AddParameter(dbSynchronizer.PARAMETER, string.Empty);
-            object idObj = query.ExecuteScalar();
+            SqlCeDataReader reader = query.ExecuteReader();
 
-            if (idObj != null)
+            if(reader!=null && reader.Read())
             {
-                lampId = Convert.ToInt64(idObj);
-                return true;
+                lampId = Convert.ToInt64(reader[IDENTIFIER_NAME]);
+                return Convert.ToBoolean(reader["IsEmpty"]);
             }
 
             lampId = 0;

@@ -82,7 +82,6 @@
     <Compile Include="Base\Visual\Constructor\ListOfLableConstructor.cs" />
     <Compile Include="Base\Visual\Controls\MobileButton.cs" />
     <Compile Include="db\Attributes\dbElementAtt.cs" />
-    <Compile Include="db\Base\AcceptanceAccessories.cs" />
     <Compile Include="db\Interfaces\IBarcodeOwner.cs" />
     <Compile Include="db\Objects\AcceptanceAccessoriesFrom\Exchange\AcceptanceAccessoriesFromExchange.cs" />
     <Compile Include="db\Objects\AcceptanceAccessoriesFrom\Exchange\AcceptanceAccessoriesFromExchangeDetails.cs" />
@@ -102,7 +101,6 @@
     <Compile Include="db\Workers\BarcodeWorker.cs" />
     <Compile Include="db\Workers\BaseFormatName.cs" />
     <Compile Include="db\Base\CatalogObject.cs" />
-    <Compile Include="db\Attributes\dbFieldAtt.cs" />
     <Compile Include="db\Base\DocumentObject.cs" />
     <Compile Include="db\Interfaces\ISynced.cs" />
     <Compile Include="db\Workers\dbArchitector.cs" />
@@ -118,15 +116,12 @@
     <Compile Include="db\Objects\Maps.cs" />
     <Compile Include="db\Objects\Party.cs" />
     <Compile Include="db\Workers\EnumWorker.cs" />
-    <Compile Include="Enums\ButtonsSet.cs" />
-    <Compile Include="Enums\DateTimeFormat.cs" />
-    <Compile Include="Enums\FilterSettings.cs" />
-    <Compile Include="Enums\OperationsWithLighters.cs" />
-    <Compile Include="Enums\TypesOfAcceptance.cs" />
-    <Compile Include="Enums\TypesOfAccessories.cs" />
-    <Compile Include="Enums\TypesOfLampsStatus.cs" />
-    <Compile Include="Enums\TypesOfLampsWarrantly.cs" />
-    <Compile Include="Enums\WaysOfSync.cs" />
+    <Compile Include="Enums\TypesOfLampsStatus.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Enums\TypesOfLampsWarrantly.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Processes\Lamps\Processes\AcceptanceFrom.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptanceFromExchange.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptanceOfNewAccessory.cs" />
@@ -139,6 +134,7 @@
     <Compile Include="Processes\Lamps\Processes\RepairUnit.cs" />
     <Compile Include="Processes\Lamps\Processes\RepairLight.cs" />
     <Compile Include="Processes\Lamps\Processes\RemovalLight.cs" />
+    <Compile Include="Processes\Lamps\Processes\SetLightForStorage.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\ValueEditor.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\EditBuilder.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\EditSelector.cs" />
@@ -198,6 +194,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="media_player.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\tcdEnums\tcdEnums.csproj">
+      <Project>{A95D2C09-B66D-48E4-B50C-D43B886CB862}</Project>
+      <Name>tcdEnums</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Condition="'$(TargetFrameworkVersion)' == 'v1.0'" Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.v1.targets" />
   <Import Condition="'$(TargetFrameworkVersion)' == 'v2.0'" Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />

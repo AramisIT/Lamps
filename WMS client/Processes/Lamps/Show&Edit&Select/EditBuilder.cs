@@ -282,79 +282,127 @@ namespace WMS_client
             Button button = ((Button) sender);
             Type type = button.Tag as Type;
 
-            if (type != null)
+            if (warrantlyDataIsValid())
             {
-                MainProcess.ClearControls();
-                bool isNewObject = accessory.IsNew;
-
-                //Если выбранный тип совпадает с основным типом - "Сохранение перекрестных ссылок"
-                if (mainType == type && linkId != -1)
+                if (type != null)
                 {
-                    //if (string.IsNullOrEmpty(accessory.BarCode)){accessory.SetIsNew();}
-                    accessory.SetValue(mainType.Name.Substring(0, mainType.Name.Length - 1), linkId);
-                    //Сохраняем для того что бы получить accessory.Id
+                    MainProcess.ClearControls();
+                    bool isNewObject = accessory.IsNew;
+
+                    //Если выбранный тип совпадает с основным типом - "Сохранение перекрестных ссылок"
+                    if (mainType == type && linkId != -1)
+                    {
+                        //if (string.IsNullOrEmpty(accessory.BarCode)){accessory.SetIsNew();}
+                        accessory.SetValue(mainType.Name.Substring(0, mainType.Name.Length - 1), linkId);
+                        //Сохраняем для того что бы получить accessory.Id
+                        accessory.Save();
+
+                        dbObject mainObj = (Accessory) Activator.CreateInstance(mainType);
+                        mainObj = (Accessory) mainObj.Read(mainType, linkId, dbObject.IDENTIFIER_NAME);
+                        mainObj.SetValue(currentType.Name.Substring(0, currentType.Name.Length - 1), accessory.Id);
+                        mainObj.Save();
+                    }
+
+                    //Запись
                     accessory.Save();
 
-                    dbObject mainObj = (Accessory)Activator.CreateInstance(mainType);
-                    mainObj = (Accessory)mainObj.Read(mainType, linkId, dbObject.IDENTIFIER_NAME);
-                    mainObj.SetValue(currentType.Name.Substring(0, currentType.Name.Length - 1), accessory.Id);
-                    mainObj.Save();
-                }
-
-                //Запись
-                accessory.Save();
-
-                //Если документ новый - значит был процесс "Регистрация"
-                if (isNewObject)
-                {
-                    //Внесение записи в "Перемещение"
-                    Movement.RegisterLighter(accessory.BarCode, accessory.SyncRef, OperationsWithLighters.Registration);
-                }
-
-                //Отображение 
-                string propertyName = type.Name.Substring(0, type.Name.Length - 1);
-                object newAccessory = accessory.GetPropery(propertyName);
-                long newAccessoryId = newAccessory == null ? 0 : Convert.ToInt64(newAccessory);
-
-                //Переход на связанное комплектующее
-                if ((newAccessoryId != 0 || (newAccessoryId == 0 && linkId != -1 && mainType == type))
-                    && button.Text != okBtnText && button.Text != nextBtnText)
-                {
-                    Accessory newObj = (Accessory) Activator.CreateInstance(type);
-                    newObj.Read(type, newAccessoryId, dbObject.IDENTIFIER_NAME);
-                    MainProcess.Process = new EditBuilder(MainProcess, mainType, mainTopic, type,
-                                                          button.Text, newObj, newObj.BarCode);
-                    accessory = newObj;
-                }
-                    //Переход на НОВЫЙ выбранный тип комплектующего 
-                else
-                {
-                    //Если выбранный тип совпадает с основным типом
-                    if (mainType == type)
+                    //Если документ новый - значит был процесс "Регистрация"
+                    if (isNewObject)
                     {
-                        if (mainType == null || linkId == -1)
-                        {
-                            accessory = (Accessory) accessory.Copy();
-                            MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
-                        }
-
-                        MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
+                        //Внесение записи в "Перемещение"
+                        Movement.RegisterLighter(accessory.BarCode, accessory.SyncRef,
+                                                 OperationsWithLighters.Registration);
                     }
-                        //Не совпадает - "Передача ИД комплектующего с которого переходим"
+
+                    //Отображение 
+                    string propertyName = type.Name.Substring(0, type.Name.Length - 1);
+                    object newAccessory = accessory.GetPropery(propertyName);
+                    long newAccessoryId = newAccessory == null ? 0 : Convert.ToInt64(newAccessory);
+
+                    //Переход на связанное комплектующее
+                    if ((newAccessoryId != 0 || (newAccessoryId == 0 && linkId != -1 && mainType == type))
+                        && button.Text != okBtnText && button.Text != nextBtnText)
+                    {
+                        Accessory newObj = (Accessory) Activator.CreateInstance(type);
+                        newObj.Read(type, newAccessoryId, dbObject.IDENTIFIER_NAME);
+                        MainProcess.Process = new EditBuilder(MainProcess, mainType, mainTopic, type,
+                                                              button.Text, newObj, newObj.BarCode);
+                        accessory = newObj;
+                    }
+                        //Переход на НОВЫЙ выбранный тип комплектующего 
                     else
                     {
-                        MainProcess.Process = new EditBuilder(MainProcess, type, mainType, button.Text,
-                                                              accessory.Id, type == typeof(ElectronicUnits));
-                    }
+                        //Если выбранный тип совпадает с основным типом
+                        if (mainType == type)
+                        {
+                            if (mainType == null || linkId == -1)
+                            {
+                                accessory = (Accessory) accessory.Copy();
+                                MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
+                            }
+
+                            MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
+                        }
+                            //Не совпадает - "Передача ИД комплектующего с которого переходим"
+                        else
+                        {
+                            MainProcess.Process = new EditBuilder(MainProcess, type, mainType, button.Text,
+                                                                  accessory.Id, type == typeof (ElectronicUnits));
+                        }
 
 
-                    //Если не было произведено копирование полей для следующего комплектующего, то очистить все поля
-                    if (!accessory.IsNew)
-                    {
-                        accessory = null;
+                        //Если не было произведено копирование полей для следующего комплектующего, то очистить все поля
+                        if (!accessory.IsNew)
+                        {
+                            accessory = null;
+                        }
                     }
                 }
             }
+        }
+
+        /// <summary>Чи вірні дані про гарантію?</summary>
+        private bool warrantlyDataIsValid()
+        {
+            //При відсутності гарантії, дата не може бути більше сьогоднішньої!
+            if ((accessory.TypeOfWarrantly == TypesOfLampsWarrantly.Without ||
+                 accessory.TypeOfWarrantly == TypesOfLampsWarrantly.None) &&
+                accessory.DateOfWarrantyEnd > DateTime.Now)
+            {
+                const string message = "При відсутності гарантії, дата не може бути більше сьогоднішньої!\r\n\r\nЗбросити дату?";
+
+                if (MessageBox.Show(message, "Не вірно заповнені дані", MessageBoxButtons.YesNo,
+                                    MessageBoxIcon.Asterisk, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                {
+                    accessory.DateOfWarrantyEnd = DateTime.MinValue;
+                    return true;
+                }
+
+                return false;
+            }
+
+            //При наявності гарантії, дата не може бути менше сьогоднішньої!
+            if (accessory.TypeOfWarrantly != TypesOfLampsWarrantly.Without &&
+                accessory.TypeOfWarrantly != TypesOfLampsWarrantly.None &&
+                accessory.DateOfWarrantyEnd < DateTime.Now)
+            {
+                string warrantly = EnumWorker.GetDescription(typeof (TypesOfLampsWarrantly),
+                                                             (int) accessory.TypeOfWarrantly);
+                string message = string.Format(
+                    "При наявності гарантії '{0}', дата не може бути менше сьогоднішньої!\r\n\r\nЗбросити тип гарантії?",
+                    warrantly);
+
+                if (MessageBox.Show(message, "Не вірно заповнена дата", MessageBoxButtons.YesNo,
+                                    MessageBoxIcon.Asterisk, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                {
+                    accessory.TypeOfWarrantly = TypesOfLampsWarrantly.Without;
+                    return true;
+                }
+
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>Заповнити як попередній</summary>

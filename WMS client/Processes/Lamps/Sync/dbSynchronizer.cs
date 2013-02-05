@@ -13,17 +13,6 @@ namespace WMS_client
     /// <summary>Синхронизация данных между ТСД и сервером</summary>
     public class dbSynchronizer : BusinessProcess
     {
-        /// <summary>Режими синхронізації</summary>
-        private enum SyncModes
-        {
-            ///// <summary>Стандартний</summary>
-            //Standart,
-            /// <summary>Стандартна синхронізація "Відправка/Прийомка на ..."</summary>
-            StandartToX,
-            /// <summary>Синхронізація "Отправка на обмен"</summary>
-            SendingToExchange
-        }
-
         /// <summary>Информационная метка для уведомления текущего процессе синхронизации</summary>
         private MobileLabel infoLabel;
         /// <summary>Список отложенных свойств</summary>
@@ -154,6 +143,7 @@ namespace WMS_client
 
             if (IsAnswerIsTrue)
             {
+                removeMarkedObject(tableName);
                 updateObjOnLocalDb<T>(skipExists, updId);
 
                 if (wayOfSync == WaysOfSync.TwoWay)
@@ -427,6 +417,34 @@ namespace WMS_client
                 }
             }
         }
+
+        private void removeMarkedObject(string tableName)
+        {
+            if (Parameters.Length >= 4 && Parameters[3] != null)
+            {
+                DataTable table = Parameters[3] as DataTable;
+
+                if (table != null && table.Rows.Count > 0)
+                {
+                    StringBuilder command = new StringBuilder();
+                    command.AppendFormat("DELETE FROM {0} WHERE 1=0 ", tableName);
+
+                    int index = 0;
+                    Dictionary<string, object> parameters = new Dictionary<string, object>();
+
+                    foreach (DataRow row in table.Rows)
+                    {
+                        string currParameter = string.Concat(PARAMETER, index++);
+                        command.AppendFormat(" OR RTRIM({0})=RTRIM(@{1})", dbObject.SYNCREF_NAME, currParameter);
+                        parameters.Add(currParameter, row[dbObject.SYNCREF_NAME]);
+                    }
+
+                    SqlCeCommand query = dbWorker.NewQuery(command.ToString());
+                    query.AddParameters(parameters);
+                    query.ExecuteNonQuery();
+                }
+            }
+        }
         #endregion
 
         #region Sync.other
@@ -507,7 +525,7 @@ namespace WMS_client
             string tableName = typeof(Movement).Name;
 
             //sync
-            string docCommand = string.Format("SELECT {0},{1},Date,Operation FROM {2}",
+            string docCommand = string.Format("SELECT {0},{1},Date,Operation,Map,Register,Position FROM {2}",
                                               dbObject.BARCODE_NAME, dbObject.SYNCREF_NAME, tableName);
             SqlCeCommand query = dbWorker.NewQuery(docCommand);
             DataTable table = query.SelectToTable(new Dictionary<string, Enum>
@@ -623,7 +641,7 @@ namespace WMS_client
             DataTable table = query.SelectToTable();
             PerformQuery("SetSendingDocs", docName, tableName, table, (int)mode);
 
-            bool fullDeleteAccepted = typeof(T) == typeof(SendingToRepair);
+            bool fullDeleteAccepted = typeof (T) == typeof (SendingToRepair) || typeof (T) == typeof (SendingToCharge);
 
             if (fullDeleteAccepted)
             {

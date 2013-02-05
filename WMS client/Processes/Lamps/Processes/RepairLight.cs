@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace WMS_client.Processes.Lamps
 {
-    /// <summary>Ремонт ламп</summary>
+    /// <summary>Ремонт світильників</summary>
     public class RepairLight : BusinessProcess
     {
         #region Properties
@@ -53,7 +53,7 @@ namespace WMS_client.Processes.Lamps
         private bool needSaveLampBarcode;
         #endregion
 
-        /// <summary>Ремонт ламп</summary>
+        /// <summary>Ремонт світильників</summary>
         public RepairLight(WMSClient MainProcess, string lightBarcode)
             : base(MainProcess, 1)
         {
@@ -107,7 +107,7 @@ namespace WMS_client.Processes.Lamps
                         }
                         else
                         {
-                            stage = Stages.ExtractionElectricUnit;
+                            stage = Stages.ExtractionLamp;
                             DrawControls();
                         }
                         break;
@@ -199,10 +199,12 @@ namespace WMS_client.Processes.Lamps
         /// <param name="Barcode">Штрихкод</param>
         public override void OnBarcode(string Barcode)
         {
+            //Скан ел.блоків?
             if (stage == Stages.ScanUnitBarcode)
             {
                 TypeOfAccessories accessory = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
 
+                //Чи використовується цей штрихкод?
                 if (accessory == TypeOfAccessories.None)
                 {
                     unitBarcode = Barcode;
@@ -214,10 +216,12 @@ namespace WMS_client.Processes.Lamps
                     MessageBox.Show("Штрихкод уже используеться!");
                 }
             }
+                //Скан ламп?
             else if (stage == Stages.ScanLampBarcode)
             {
                 TypeOfAccessories accessory = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
 
+                //Чи використовується цей штрихкод?
                 if (accessory == TypeOfAccessories.None)
                 {
                     lampBarcode = Barcode;

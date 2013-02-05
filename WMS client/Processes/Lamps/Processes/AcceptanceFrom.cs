@@ -6,14 +6,24 @@ using WMS_client.db;
 
 namespace WMS_client.Processes.Lamps
 {
+    /// <summary>Приймання з ...</summary>
     public class AcceptanceFrom : BusinessProcess
     {
+        /// <summary>Строки (штрихкод; строка в таблиці)</summary>
         private readonly Dictionary<string, DataRow> rows;
+        /// <summary>Список прийнятих штрихкодів</summary>
         private readonly List<string> accepted;
+        /// <summary>Назва табличної частини документу</summary>
         private readonly string tableName;
+        /// <summary>Візуальна таблиця</summary>
         private MobileTable visualTable;
+        /// <summary>Таблиця з даними</summary>
         private DataTable sourceTable;
 
+        /// <summary>Приймання з ...</summary>
+        /// <param name="MainProcess"></param>
+        /// <param name="topic">Заголовок (з чого?)</param>
+        /// <param name="table">Назва табличної частини документу</param>
         public AcceptanceFrom(WMSClient MainProcess, string topic, string table)
             : base(MainProcess, 1)
         {
@@ -50,13 +60,13 @@ namespace WMS_client.Processes.Lamps
                 }
 
                 visualTable.Focus();
-
                 MainProcess.CreateButton("Ок", 15, 275, 210, 35, "ok", ok_Click);
             }
         }
 
         public override void OnBarcode(string Barcode)
         {
+            //Якщо штрихкод наявний в таблиці - прийняти комплектуюче
             if (rows.ContainsKey(Barcode))
             {
                 accepted.Add(Barcode);
@@ -87,6 +97,7 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Query
+        /// <summary>Отримати дані для заповлення таблиці</summary>
         private SqlCeDataReader GetData()
         {
             string command= string.Format(@"SELECT DISTINCT c.Document Id
@@ -97,6 +108,7 @@ WHERE c.{1}=1", tableName, dbObject.IS_SYNCED);
             return query.ExecuteReader();
         }
 
+        /// <summary>Збереження інформації по прийомці</summary>
         private void Accept()
         {
             StringBuilder command = new StringBuilder();

@@ -38,7 +38,7 @@ namespace WMS_client.Processes.Lamps
                     drawAccessoriesBtn("Приймання нових", acceptance_Click);
                     break;
                 case Stages.AcceptanceFrom:
-                    drawTypeOfAcceptance("Прийомка з ...", acceptanceFrom_Click);
+                    drawTypeOfAcceptance("Оберіть тип прийомки", acceptanceFrom_Click);
                     break;
                 case Stages.Writeoff:
                     drawAccessoriesBtn("Списання", writeoff_Click);
@@ -72,13 +72,11 @@ namespace WMS_client.Processes.Lamps
         /// <param name="click">Делегат действия при клике</param>
         private void drawTypeOfAcceptance(string process, MobileSenderClick click)
         {
-            MainProcess.ToDoCommand = "Оберіть тип прийомки";
+            MainProcess.ToDoCommand = process;
             MainProcess.CreateButton("З ремонту", 10, 75, 220, 35, string.Empty, click,
                                      new object[] {typeof (SubAcceptanceAccessoriesFromRepairRepairTable).Name, " ремонту"});
             MainProcess.CreateButton("З обміну", 10, 120, 220, 35, string.Empty, click,
                                      new object[] { typeof(SubAcceptanceAccessoriesFromExchangeExchange).Name, " обміну" });
-            MainProcess.CreateButton("Зі списання", 10, 165, 220, 35, string.Empty, click,
-                                     new object[] { TypeOfAccessories.Case, string.Concat(process, " ...") }, false);
         }
 
         public override void OnBarcode(string Barcode)
@@ -90,6 +88,7 @@ namespace WMS_client.Processes.Lamps
             switch (TypeOfAction)
             {
                 case KeyAction.Esc:
+                    //Якщо знаходимось на першому кроці - Вихід
                     if (Stage == Stages.First)
                     {
                         MainProcess.ClearControls();
@@ -97,6 +96,7 @@ namespace WMS_client.Processes.Lamps
                     }
                     else
                     {
+                        //Інакше - на перший крок
                         Stage = Stages.First;
                         DrawControls();
                     }

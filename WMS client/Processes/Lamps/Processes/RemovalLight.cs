@@ -9,7 +9,14 @@ namespace WMS_client
     /// <summary>Демонтаж светильника</summary>
     public class RemovalLight : BusinessProcess
     {
+        /// <summary>Штрихкод світильника</summary>
         private readonly string LightBarcode;
+        /// <summary>ІД карти з якої знімаємо</summary>
+        private int map;
+        /// <summary>Номер позиції з якої знімаємо</summary>
+        private int position;
+        /// <summary>Номер регістру з якого знімаємо</summary>
+        private int register;
 
         /// <summary>Демонтаж светильника</summary>
         public RemovalLight(WMSClient MainProcess, string lightBarcode)
@@ -26,7 +33,12 @@ namespace WMS_client
         {
             if (IsLoad)
             {
-                ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, "ДЕМОНТАЖ СВІТИЛЬНИКУ", getLightPositionInfo());
+                object[] data = getLightPositionInfo();
+                map = (int) data[1];
+                position = (int) data[2];
+                register = (int) data[3];
+
+                ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, "ДЕМОНТАЖ СВІТИЛЬНИКУ", data);
                 list.ListOfLabels = new List<LabelForConstructor>
                                         {
                                             new LabelForConstructor(string.Empty, ControlsStyle.LabelH2),
@@ -34,7 +46,7 @@ namespace WMS_client
                                             new LabelForConstructor(string.Empty, ControlsStyle.LabelH2),
                                             new LabelForConstructor("Розташування:", ControlsStyle.LabelH2),
                                             new LabelForConstructor("Карта: {0}"),
-                                            new LabelForConstructor("Регістр: {0}"),
+                                            new LabelForConstructor("Регістр: {0}", 1),
                                             new LabelForConstructor("Позиція №{0}")
                                         };
 
@@ -60,6 +72,7 @@ namespace WMS_client
         #endregion
 
         #region ButtonClick
+        /// <summary>Завершення операції. Збереження інформації</summary>
         private void Ok_click()
         {
             finish();
@@ -67,6 +80,7 @@ namespace WMS_client
             MainProcess.Process = new SelectingLampProcess(MainProcess);
         }
 
+        /// <summary>Вихід</summary>
         private void Cancel_click()
         {
             MainProcess.ClearControls();
@@ -79,7 +93,7 @@ namespace WMS_client
         /// <returns>Карта, Register, Position</returns>
         private object[] getLightPositionInfo()
         {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT m.Description, c.Register, c.Position 
+            SqlCeCommand query = dbWorker.NewQuery(@"SELECT m.Description, m.Id, c.Register, c.Position 
 FROM Cases c
 LEFT JOIN Maps m ON m.Id=c.Map
 WHERE RTRIM(c.Barcode)=@Barcode");
@@ -98,7 +112,7 @@ WHERE RTRIM(c.Barcode)=@Barcode");
             string syncRef = syncRefObj == null ? string.Empty : syncRefObj.ToString();
 
             //Внесение записи в "Перемещение"
-            Movement.RegisterLighter(LightBarcode, syncRef, OperationsWithLighters.Removing);
+            Movement.RegisterLighter(LightBarcode, syncRef, OperationsWithLighters.Removing, map, register, position);
         }
         #endregion
     }

@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WMS client", "WMS client\WM
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClisentTest", "ClisentTest\ClisentTest.csproj", "{76274656-9816-41AE-A821-8C1FAC04482E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tcdEnums", "tcdEnums\tcdEnums.csproj", "{A95D2C09-B66D-48E4-B50C-D43B886CB862}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{76274656-9816-41AE-A821-8C1FAC04482E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{76274656-9816-41AE-A821-8C1FAC04482E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{76274656-9816-41AE-A821-8C1FAC04482E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A95D2C09-B66D-48E4-B50C-D43B886CB862}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A95D2C09-B66D-48E4-B50C-D43B886CB862}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A95D2C09-B66D-48E4-B50C-D43B886CB862}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A95D2C09-B66D-48E4-B50C-D43B886CB862}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
