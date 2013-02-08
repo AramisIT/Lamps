@@ -28,7 +28,10 @@ namespace WMS_client
 
         public override void OnBarcode(string Barcode)
         {
-            showInfoByBarcode(Barcode);
+            if (Barcode.IsValidBarcode())
+            {
+                showInfoByBarcode(Barcode);
+            }
         }
 
         public override void OnHotKey(KeyAction TypeOfAction)

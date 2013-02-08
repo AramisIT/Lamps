@@ -29,22 +29,25 @@ namespace WMS_client
 
         public override void OnBarcode(string Barcode)
         {
-            TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
-
-            switch (type)
+            if (Barcode.IsValidBarcode())
             {
-                case TypeOfAccessories.Lamp:
-                    lampProcess(Barcode);
-                    break;
-                case TypeOfAccessories.ElectronicUnit:
-                    unitProcess(Barcode);
-                    break;
-                case TypeOfAccessories.Case:
-                    caseProcess(Barcode);
-                    break;
-                default:
-                    ShowMessage("Не існує комплектуюче з таким штрихкодом!");
-                    break;
+                TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
+
+                switch (type)
+                {
+                    case TypeOfAccessories.Lamp:
+                        lampProcess(Barcode);
+                        break;
+                    case TypeOfAccessories.ElectronicUnit:
+                        unitProcess(Barcode);
+                        break;
+                    case TypeOfAccessories.Case:
+                        caseProcess(Barcode);
+                        break;
+                    default:
+                        ShowMessage("Не існує комплектуюче з таким штрихкодом!");
+                        break;
+                }
             }
         }
 

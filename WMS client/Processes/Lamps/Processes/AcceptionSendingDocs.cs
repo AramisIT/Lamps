@@ -88,7 +88,7 @@ namespace WMS_client.Processes.Lamps
         public override void OnBarcode(string Barcode)
         {
             //Якщо такий штрихкод наявний у таблиці
-            if(rows.ContainsKey(Barcode))
+            if (Barcode.IsValidBarcode() && rows.ContainsKey(Barcode))
             {
                 //Прийняти
                 accepted.Add(Barcode);

@@ -65,24 +65,27 @@ namespace WMS_client
 
         public override void OnBarcode(string Barcode)
         {
-            TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
-
-            switch (type)
+            if (Barcode.IsValidBarcode())
             {
-                case TypeOfAccessories.Lamp:
-                    MainProcess.ClearControls();
-                    MainProcess.Process = new ReplacingAccessory(MainProcess, CaseBarcode, Barcode,
-                                                            Cases.IsCaseHaveAccessory(CaseBarcode, type),
-                                                            TypeOfAccessories.Lamp);
-                    break;
-                case TypeOfAccessories.Case:
-                    break;
-                case TypeOfAccessories.ElectronicUnit:
-                    MainProcess.ClearControls();
-                    MainProcess.Process = new ReplacingAccessory(MainProcess, CaseBarcode, Barcode,
-                                                            Cases.IsCaseHaveAccessory(CaseBarcode, type),
-                                                            TypeOfAccessories.ElectronicUnit);
-                    break;
+                TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
+
+                switch (type)
+                {
+                    case TypeOfAccessories.Lamp:
+                        MainProcess.ClearControls();
+                        MainProcess.Process = new ReplacingAccessory(MainProcess, CaseBarcode, Barcode,
+                                                                     Cases.IsCaseHaveAccessory(CaseBarcode, type),
+                                                                     TypeOfAccessories.Lamp);
+                        break;
+                    case TypeOfAccessories.Case:
+                        break;
+                    case TypeOfAccessories.ElectronicUnit:
+                        MainProcess.ClearControls();
+                        MainProcess.Process = new ReplacingAccessory(MainProcess, CaseBarcode, Barcode,
+                                                                     Cases.IsCaseHaveAccessory(CaseBarcode, type),
+                                                                     TypeOfAccessories.ElectronicUnit);
+                        break;
+                }
             }
         }
 

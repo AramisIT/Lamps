@@ -91,26 +91,29 @@ namespace WMS_client.Processes.Lamps
 
         public override void OnBarcode(string Barcode)
         {
-            if (!accepted.ContainsKey(selectedModelId))
+            if (Barcode.IsValidBarcode())
             {
-                accepted.Add(selectedModelId, new List<KeyValuePair<long, string>>());
-            }
-            else
-            {
-                //Не можна зберігати записи з однаковим штрихкодом
-                if (accepted[selectedModelId].Any(a => a.Value == Barcode))
+                if (!accepted.ContainsKey(selectedModelId))
                 {
-                    ShowMessage("Даний штрихкод вже був відсканований!");
-                    return;
+                    accepted.Add(selectedModelId, new List<KeyValuePair<long, string>>());
                 }
+                else
+                {
+                    //Не можна зберігати записи з однаковим штрихкодом
+                    if (accepted[selectedModelId].Any(a => a.Value == Barcode))
+                    {
+                        ShowMessage("Даний штрихкод вже був відсканований!");
+                        return;
+                    }
+                }
+
+                //Збереження запису
+                accepted[selectedModelId].Add(new KeyValuePair<long, string>(selectedAcceptanceId, Barcode));
+
+                //Збільшення індексу в таблиці
+                int amount = (int) selectedRow[AMOUNT_COLUMN];
+                selectedRow[AMOUNT_COLUMN] = ++amount;
             }
-
-            //Збереження запису
-            accepted[selectedModelId].Add(new KeyValuePair<long, string>(selectedAcceptanceId, Barcode));
-
-            //Збільшення індексу в таблиці
-            int amount = (int) selectedRow[AMOUNT_COLUMN];
-            selectedRow[AMOUNT_COLUMN] = ++amount;
         }
 
         public override void OnHotKey(KeyAction TypeOfAction)

@@ -45,7 +45,7 @@ RegisterTo int not null)");
             ClearAllDataFromTable(typeof(Party).Name);
             //Прийомка
             ClearAllDataFromTable(typeof(AcceptanceOfNewComponents).Name);
-            ClearAllDataFromTable(typeof(SubAcceptanceOfNewComponentsMarkingInfo).Name);
+            //ClearAllDataFromTable(typeof(SubAcceptanceOfNewComponentsMarkingInfo).Name);
             //Відправка на ...
             ClearAllDataFromTable(typeof(SendingToCharge).Name);
             ClearAllDataFromTable(typeof(SubSendingToChargeChargeTable).Name);

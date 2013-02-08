@@ -128,28 +128,31 @@ namespace WMS_client
         /// <param name="Barcode">ШтрихКод</param>
         public override sealed void OnBarcode(string Barcode)
         {
-            MainProcess.ClearControls();
-            barcode = Barcode;
-            bool accesoryIsExist = !string.IsNullOrEmpty(Barcode) && BarcodeWorker.IsBarcodeExist(Barcode);
-
-            //Если в системе уже существует штрихкод
-            if (!existMode && accesoryIsExist)
+            if (Barcode.IsValidBarcode())
             {
-                //Тип комплектующего штрихкода
-                TypeOfAccessories typesOfAccessories = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
-                //Является ли тип комплектующего (существующий) = типу который нужно отредактировать (отсканированный)
-                bool isTypeLikeCurrent = typesOfAccessories.ToString() + 's' != currentType.Name;
-                
-                //Если типы не совпадают - "Выход"
-                if (isTypeLikeCurrent)
-                {
-                    ShowMessage("Штрихкод уже используеться в другом типе комплектующего!");
-                    OnHotKey(KeyAction.Esc);
-                    return;
-                }
-            }
+                MainProcess.ClearControls();
+                barcode = Barcode;
+                bool accesoryIsExist = !string.IsNullOrEmpty(Barcode) && BarcodeWorker.IsBarcodeExist(Barcode);
 
-            showData(accesoryIsExist, Barcode);
+                //Если в системе уже существует штрихкод
+                if (!existMode && accesoryIsExist)
+                {
+                    //Тип комплектующего штрихкода
+                    TypeOfAccessories typesOfAccessories = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
+                    //Является ли тип комплектующего (существующий) = типу который нужно отредактировать (отсканированный)
+                    bool isTypeLikeCurrent = typesOfAccessories.ToString() + 's' != currentType.Name;
+
+                    //Если типы не совпадают - "Выход"
+                    if (isTypeLikeCurrent)
+                    {
+                        ShowMessage("Штрихкод уже используеться в другом типе комплектующего!");
+                        OnHotKey(KeyAction.Esc);
+                        return;
+                    }
+                }
+
+                showData(accesoryIsExist, Barcode);
+            }
         }
 
         private void showData(bool accesoryIsExist, string Barcode)

@@ -112,7 +112,6 @@
     <Compile Include="db\Objects\Models.cs" />
     <Compile Include="db\Objects\ElectronicUnits.cs" />
     <Compile Include="db\Objects\Lamps.cs" />
-    <Compile Include="db\Objects\AcceptanceOfNewComponents\SubAcceptanceOfNewComponentsMarkingInfo.cs" />
     <Compile Include="db\Objects\Maps.cs" />
     <Compile Include="db\Objects\Party.cs" />
     <Compile Include="db\Workers\EnumWorker.cs" />

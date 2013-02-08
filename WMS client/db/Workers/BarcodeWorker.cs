@@ -18,6 +18,20 @@ FROM(
     SELECT 3 Type, Id FROM ElectronicUnits WHERE RTRIM(BarCode)=RTRIM(@BarCode) AND MarkForDeleting=0)t";
         private const string DEFAULT_QUERY_COMMAND = @"SELECT {0} FROM {1} WHERE RTRIM(BarCode)=RTRIM(@BarCode)";
 
+        /// <summary>Чи являється строка валідним штрихкодом</summary>
+        /// <param name="barcode">Строка</param>
+        public static bool IsValidBarcode(this string barcode)
+        {
+            return ValidBarcode(barcode);
+        }
+
+        /// <summary>Чи являється строка валідним штрихкодом</summary>
+        /// <param name="barcode">Строка</param>
+        public static bool ValidBarcode(string barcode)
+        {
+            return barcode.Length > 1 && barcode[0] == 'L';
+        }
+
         /// <summary>Получить тип комплектующего со штрих-кода</summary>
         /// <param name="barcode">Штрих-код</param>
         /// <returns>Тип комплектующего</returns>

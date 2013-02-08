@@ -353,6 +353,16 @@ namespace WMS_client.db
 
             return list;
         } 
+
+        public static string GetDescription(string tableName, object id)
+        {
+            string query = string.Format("SELECT {0} FROM {1} WHERE {2}=@{2}", DESCRIPTION, tableName, IDENTIFIER_NAME);
+            SqlCeCommand command = dbWorker.NewQuery(query);
+            command.AddParameter(IDENTIFIER_NAME, id);
+            object desObj = command.ExecuteScalar();
+
+            return desObj == null ? string.Empty : desObj.ToString();
+        }
         #endregion
     }
 }

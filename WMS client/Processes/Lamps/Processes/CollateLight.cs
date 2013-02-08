@@ -64,21 +64,24 @@ namespace WMS_client
 
         public override void OnBarcode(string Barcode)
         {
-            if (BarcodeWorker.IsBarcodeExist(Barcode))
+            if (Barcode.IsValidBarcode())
             {
-                ShowMessage("Штрихкод уже используется!");
-            }
-            else
-            {
-                if (stage == Stages.Lamp)
+                if (BarcodeWorker.IsBarcodeExist(Barcode))
                 {
-                    lampBarcode = Barcode;
-                    goToNextStage();
+                    ShowMessage("Штрихкод уже используется!");
                 }
-                else if (stage == Stages.Unit)
+                else
                 {
-                    unitBarcode = Barcode;
-                    goToNextStage();
+                    if (stage == Stages.Lamp)
+                    {
+                        lampBarcode = Barcode;
+                        goToNextStage();
+                    }
+                    else if (stage == Stages.Unit)
+                    {
+                        unitBarcode = Barcode;
+                        goToNextStage();
+                    }
                 }
             }
         }

@@ -55,32 +55,35 @@ namespace WMS_client
 
         public override void OnBarcode(string Barcode)
         {
-            //Тип отсканированого комплектующего
-            TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
-
-            switch (type)
+            if (Barcode.IsValidBarcode())
             {
-                    //Лампа - установка/замена лампы
-                case TypeOfAccessories.Lamp:
-                    MainProcess.ClearControls();
-                    MainProcess.Process = new ReplacingAccessory(
-                        MainProcess, CaseBarcode, Barcode,
-                        Cases.IsCaseHaveAccessory(CaseBarcode, TypeOfAccessories.Lamp),
-                        TypeOfAccessories.Lamp);
-                    break;
-                //Корпус - установка/замена корпуса
-                case TypeOfAccessories.Case:
-                    MainProcess.ClearControls();
-                    MainProcess.Process = new ReplaceLights_SelectNew(MainProcess, Barcode, CaseBarcode);
-                    break;
-                //Ел.блок - установка/замена блока
-                case TypeOfAccessories.ElectronicUnit:
-                    MainProcess.ClearControls();
-                    MainProcess.Process = new ReplacingAccessory(
-                        MainProcess, CaseBarcode, Barcode,
-                        Cases.IsCaseHaveAccessory(CaseBarcode, TypeOfAccessories.ElectronicUnit),
-                        TypeOfAccessories.ElectronicUnit);
-                    break;
+                //Тип отсканированого комплектующего
+                TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
+
+                switch (type)
+                {
+                        //Лампа - установка/замена лампы
+                    case TypeOfAccessories.Lamp:
+                        MainProcess.ClearControls();
+                        MainProcess.Process = new ReplacingAccessory(
+                            MainProcess, CaseBarcode, Barcode,
+                            Cases.IsCaseHaveAccessory(CaseBarcode, TypeOfAccessories.Lamp),
+                            TypeOfAccessories.Lamp);
+                        break;
+                        //Корпус - установка/замена корпуса
+                    case TypeOfAccessories.Case:
+                        MainProcess.ClearControls();
+                        MainProcess.Process = new ReplaceLights_SelectNew(MainProcess, Barcode, CaseBarcode);
+                        break;
+                        //Ел.блок - установка/замена блока
+                    case TypeOfAccessories.ElectronicUnit:
+                        MainProcess.ClearControls();
+                        MainProcess.Process = new ReplacingAccessory(
+                            MainProcess, CaseBarcode, Barcode,
+                            Cases.IsCaseHaveAccessory(CaseBarcode, TypeOfAccessories.ElectronicUnit),
+                            TypeOfAccessories.ElectronicUnit);
+                        break;
+                }
             }
         }
 

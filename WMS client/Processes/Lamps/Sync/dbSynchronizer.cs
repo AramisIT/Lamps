@@ -467,10 +467,14 @@ namespace WMS_client
                     {
                         string contractorBarcode = row["Contractor"].ToString();
                         string partyRef = row["InvoiceNumber"].ToString();
-                        string modelRef = row["Model"].ToString();
+                        string caseModelRef = row["CaseModel"].ToString();
+                        string lampModelRef = row["LampModel"].ToString();
+                        string unitModelRef = row["UnitModel"].ToString();
                         object contractorObj = BarcodeWorker.GetIdByBarcode(typeof(Contractors), contractorBarcode);
                         object partyObj = BarcodeWorker.GetIdByRef(typeof(Party), partyRef);
-                        object modelObj = BarcodeWorker.GetIdByRef(typeof(Models), modelRef);
+                        object caseModelObj = BarcodeWorker.GetIdByRef(typeof(Models), caseModelRef);
+                        object lampModelObj = BarcodeWorker.GetIdByRef(typeof(Models), lampModelRef);
+                        object unitModelObj = BarcodeWorker.GetIdByRef(typeof(Models), unitModelRef);
 
                         AcceptanceOfNewComponents doc = new AcceptanceOfNewComponents
                                                             {
@@ -480,7 +484,9 @@ namespace WMS_client
                                                                 InvoiceDate = Convert.ToDateTime(row["InvoiceDate"]),
                                                                 InvoiceNumber = Convert.ToInt64(partyObj),
                                                                 MarkForDeleting = false,
-                                                                Model = Convert.ToInt64(modelObj),
+                                                                CaseModel = Convert.ToInt64(caseModelObj),
+                                                                LampModel = Convert.ToInt64(lampModelObj),
+                                                                UnitModel = Convert.ToInt64(unitModelObj),
                                                                 TypesOfWarrantly = (TypesOfLampsWarrantly)
                                                                     Convert.ToInt32(row["TypesOfWarrantly"]),
                                                                 TypeOfAccessories = (TypeOfAccessories)
@@ -492,30 +498,30 @@ namespace WMS_client
                     }
                 }
 
-                PerformQuery("GetAcceptSubDocs", notAcceptedDoc);
+                //PerformQuery("GetAcceptSubDocs", notAcceptedDoc);
 
-                if (IsExistParameters)
-                {
-                    table = Parameters[0] as DataTable;
+                //if (IsExistParameters)
+                //{
+                //    table = Parameters[0] as DataTable;
 
-                    if (table != null)
-                    {
-                        foreach (DataRow row in table.Rows)
-                        {
-                            string markingRef = row["Marking"].ToString();
-                            object idObj = BarcodeWorker.GetIdByRef(typeof(Models), markingRef);
+                //    if (table != null)
+                //    {
+                //        foreach (DataRow row in table.Rows)
+                //        {
+                //            string markingRef = row["Marking"].ToString();
+                //            object idObj = BarcodeWorker.GetIdByRef(typeof(Models), markingRef);
 
-                            SubAcceptanceOfNewComponentsMarkingInfo subDoc = new SubAcceptanceOfNewComponentsMarkingInfo
-                                                                                 {
-                                                                                     Id = Convert.ToInt64(row["IdDoc"]),
-                                                                                     Marking = Convert.ToInt64(idObj),
-                                                                                     Plan = Convert.ToInt32(row["Plan"]),
-                                                                                     Fact = 0
-                                                                                 };
-                            subDoc.Save();
-                        }
-                    }
-                }
+                //            SubAcceptanceOfNewComponentsMarkingInfo subDoc = new SubAcceptanceOfNewComponentsMarkingInfo
+                //                                                                 {
+                //                                                                     Id = Convert.ToInt64(row["IdDoc"]),
+                //                                                                     Marking = Convert.ToInt64(idObj),
+                //                                                                     Plan = Convert.ToInt32(row["Plan"]),
+                //                                                                     Fact = 0
+                //                                                                 };
+                //            subDoc.Save();
+                //        }
+                //    }
+                //}
             }
         }
 

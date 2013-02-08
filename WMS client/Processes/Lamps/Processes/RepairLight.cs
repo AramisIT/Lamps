@@ -199,41 +199,43 @@ namespace WMS_client.Processes.Lamps
         /// <param name="Barcode">Штрихкод</param>
         public override void OnBarcode(string Barcode)
         {
-            //Скан ел.блоків?
-            if (stage == Stages.ScanUnitBarcode)
+            if (Barcode.IsValidBarcode())
             {
-                TypeOfAccessories accessory = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
+                //Скан ел.блоків?
+                if (stage == Stages.ScanUnitBarcode)
+                {
+                    TypeOfAccessories accessory = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
 
-                //Чи використовується цей штрихкод?
-                if (accessory == TypeOfAccessories.None)
-                {
-                    unitBarcode = Barcode;
-                    stage = Stages.ExtractionElectricUnit;
-                    DrawControls();
+                    //Чи використовується цей штрихкод?
+                    if (accessory == TypeOfAccessories.None)
+                    {
+                        unitBarcode = Barcode;
+                        stage = Stages.ExtractionElectricUnit;
+                        DrawControls();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Штрихкод уже используеться!");
+                    }
                 }
-                else
+                    //Скан ламп?
+                else if (stage == Stages.ScanLampBarcode)
                 {
-                    MessageBox.Show("Штрихкод уже используеться!");
+                    TypeOfAccessories accessory = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
+
+                    //Чи використовується цей штрихкод?
+                    if (accessory == TypeOfAccessories.None)
+                    {
+                        lampBarcode = Barcode;
+                        stage = Stages.ExtractionLamp;
+                        DrawControls();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Штрихкод уже используеться!");
+                    }
                 }
             }
-                //Скан ламп?
-            else if (stage == Stages.ScanLampBarcode)
-            {
-                TypeOfAccessories accessory = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
-
-                //Чи використовується цей штрихкод?
-                if (accessory == TypeOfAccessories.None)
-                {
-                    lampBarcode = Barcode;
-                    stage = Stages.ExtractionLamp;
-                    DrawControls();
-                }
-                else
-                {
-                    MessageBox.Show("Штрихкод уже используеться!");
-                }
-            }
-
         }
 
         public override void OnHotKey(KeyAction TypeOfAction)

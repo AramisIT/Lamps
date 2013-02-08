@@ -49,7 +49,6 @@ namespace WMS_client
     public abstract class BusinessProcess
     {
         #region Public fields
-
         protected bool IsLoad;
         public object[] Parameters;
         public WMSClient MainProcess;
@@ -61,12 +60,10 @@ namespace WMS_client
         public int NextFormNumber = 1;
         public bool IsExistParameters { get { return Parameters != null && Parameters.Length>0 && Parameters[0] != null; } }
         public bool IsAnswerIsTrue { get { return IsExistParameters && Convert.ToBoolean(Parameters[0]); } }
-        #endregion             
-
+        #endregion
         #region Public methods
 
         #region Constructor
-
         protected BusinessProcess() { }
 
         protected BusinessProcess(WMSClient MainProcess, int FormNumber)
@@ -87,7 +84,6 @@ namespace WMS_client
             this.MainProcess = MainProcess;
             Start();
         }
-       
         #endregion
 
         public void PerformQuery(string QueryName, params object[] parameters)
@@ -135,8 +131,6 @@ namespace WMS_client
            
         }
 
-        
-
         public void ShowMessage(string msg)
         {
             MessageBox.Show(msg.ToUpper(), "aramis wms");
@@ -146,19 +140,9 @@ namespace WMS_client
         {
             return MessageBox.Show(msg.ToUpper(), "aramis wms", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes;
         }
-
-        //public void SetFormHotKeys(params KeyAction[] keys)
-        //{
-        //    foreach (KeyAction key in keys)
-        //    {
-        //        MainProcess.MainForm.HotKeyAgent.SetHotKey(key);                
-        //    }
-        //}
-
         #endregion
 
         #region Private methods
-
         private void SetEventHendlers()
         {
             if (FormNumber == 0)
@@ -206,20 +190,12 @@ namespace WMS_client
                 Start();
             }
         }
-
         #endregion
 
         #region Abstract methods
-
-        // A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   A   
-
         public abstract void DrawControls();
-        //public abstract void SetHotKeys();
-
         public abstract void OnBarcode(string Barcode);
         public abstract void OnHotKey(KeyAction Key);
-
         #endregion
     }
 }
-
