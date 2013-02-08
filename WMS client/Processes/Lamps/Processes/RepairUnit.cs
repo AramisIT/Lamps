@@ -64,8 +64,16 @@ namespace WMS_client.Processes.Lamps
 
                 listOfLabels.ListOfLabels = list;
 
-                MainProcess.CreateButton("Так", 15, 275, 100, 35, "firstButton", yes_Click);
-                MainProcess.CreateButton("Ні", 125, 275, 100, 35, "secondButton", no_Click);
+                if (underWarrantly)
+                {
+                    MainProcess.CreateButton("Так", 15, 275, 100, 35, "exchangeButton", exchange_Click);
+                    MainProcess.CreateButton("Ні", 125, 275, 100, 35, "repairButton", repair_Click);
+                }
+                else
+                {
+                    MainProcess.CreateButton("Ок", 15, 275, 100, 35, "repairButton", repair_Click);
+                    MainProcess.CreateButton("Відміна", 125, 275, 100, 35, "exitButton", exit_click);
+                }
             }
         }
 
@@ -87,16 +95,22 @@ namespace WMS_client.Processes.Lamps
 
         #region Buttons
         /// <summary>Завершення процесу. Помітити на обмін</summary>
-        private void yes_Click()
+        private void exchange_Click()
         {
             changeUnitStatus(TypesOfLampsStatus.ForExchange);
             OnHotKey(KeyAction.Esc);
         }
 
         /// <summary>Завершення процесу. Помітити на ремонт</summary>
-        private void no_Click()
+        private void repair_Click()
         {
             changeUnitStatus(TypesOfLampsStatus.ToRepair);
+            OnHotKey(KeyAction.Esc);
+        }
+
+        /// <summary>Завершення процесу. Вихід</summary>
+        private void exit_click()
+        {
             OnHotKey(KeyAction.Esc);
         }
         #endregion

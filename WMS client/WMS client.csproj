@@ -134,7 +134,7 @@
     <Compile Include="Processes\Lamps\Processes\RepairUnit.cs" />
     <Compile Include="Processes\Lamps\Processes\RepairLight.cs" />
     <Compile Include="Processes\Lamps\Processes\RemovalLight.cs" />
-    <Compile Include="Processes\Lamps\Processes\SetLightForStorage.cs" />
+    <Compile Include="Processes\Lamps\Processes\SetAccessoryForStorage.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\ValueEditor.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\EditBuilder.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\EditSelector.cs" />

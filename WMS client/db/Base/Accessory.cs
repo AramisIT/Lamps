@@ -101,6 +101,26 @@ namespace WMS_client.db
             return (Accessory)copyObj;
         }
 
+        /// <summary>ВСтановити статус комплектующего</summary>
+        /// <param name="accessory">Тип комплектуючого</param>
+        /// <param name="barcode">Штихкод</param>
+        /// <param name="state">Новий статус</param>
+        public static void SetNewState(TypeOfAccessories accessory, string barcode, TypesOfLampsStatus state)
+        {
+            if(accessory == TypeOfAccessories.Case)
+            {
+                Cases.ChangeLighterStatus(barcode, state, true);
+            }
+
+            string command = string.Format(
+                "UPDATE {0}s SET Status=@{1} WHERE RTRIM({2})=RTRIM(@{2})",
+                accessory, dbSynchronizer.PARAMETER, BARCODE_NAME);
+            SqlCeCommand query = dbWorker.NewQuery(command);
+            query.AddParameter(BARCODE_NAME, barcode);
+            query.AddParameter(dbSynchronizer.PARAMETER, state);
+            query.ExecuteNonQuery();
+        }
+
         /// <summary>Получить статус комплектующего</summary>
         /// <param name="accessory">Тип комплектующего</param>
         /// <param name="barcode">Штихкод</param>

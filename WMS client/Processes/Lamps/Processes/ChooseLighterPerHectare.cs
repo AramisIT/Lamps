@@ -127,7 +127,7 @@ namespace WMS_client
         private void Storages()
         {
             MainProcess.ClearControls();
-            MainProcess.Process = new SetLightForStorage(MainProcess, CaseBarcode);
+            MainProcess.Process = new SetAccessoryForStorage(MainProcess, CaseBarcode, TypeOfAccessories.Case);
         }
 
         /// <summary>Списання</summary>

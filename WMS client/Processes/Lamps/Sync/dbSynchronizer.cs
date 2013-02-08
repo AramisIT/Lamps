@@ -761,8 +761,8 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
         {
             MainProcess.ClearControls();
 
-            MainProcess.CreateLabel("Синхронизация начата!", 5, 125, 230, MobileFontSize.Large, MobileFontPosition.Center, MobileFontColors.Info, FontStyle.Bold);
-            MainProcess.CreateLabel("Сейчас обновляется:", 5, 155, 230, MobileFontSize.Normal, MobileFontPosition.Center);
+            MainProcess.CreateLabel("Синхронізація!", 5, 125, 230, MobileFontSize.Large, MobileFontPosition.Center, MobileFontColors.Info, FontStyle.Bold);
+            MainProcess.CreateLabel("Зараз оновлюється:", 5, 155, 230, MobileFontSize.Normal, MobileFontPosition.Center);
             infoLabel = MainProcess.CreateLabel(string.Empty, 5, 175, 230, MobileFontSize.Normal, MobileFontPosition.Center, MobileFontColors.Default, FontStyle.Bold);
         }
 

@@ -33,6 +33,7 @@ namespace WMS_client
         {
             if (IsLoad)
             {
+                TypesOfLampsStatus state = Accessory.GetStatus(TypeOfAccessories.ElectronicUnit, UnitBarcode);
                 ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, "Ел. блок", getData());
                 list.ListOfLabels = new List<LabelForConstructor>
                                         {
@@ -45,8 +46,15 @@ namespace WMS_client
                                             new LabelForConstructor("Гарантія до {0}")
                                         };
 
-                MainProcess.CreateButton("Ремонт", 15, 275, 100, 35, "repair", Repair_Click);
-                MainProcess.CreateButton("Списание", 125, 275, 100, 35, "writeoff", Writeoff_Click);
+                if (state == TypesOfLampsStatus.Repair || state == TypesOfLampsStatus.ToRepair)
+                {
+                    MainProcess.CreateButton("Зберігання", 15, 275, 100, 35, "storage", Storage_Click);
+                }
+                else
+                {
+                    MainProcess.CreateButton("Ремонт", 15, 275, 100, 35, "repair", Repair_Click);
+                }
+                MainProcess.CreateButton("Списание", 125, 275, 100, 35, "writeoff", Writeoff_Click, null, null, false);
             }
         }
 
@@ -67,6 +75,13 @@ namespace WMS_client
         #endregion
 
         #region ButtonClick
+        /// <summary>Ремонт</summary>
+        private void Storage_Click()
+        {
+            MainProcess.ClearControls();
+            MainProcess.Process = new SetAccessoryForStorage(MainProcess, UnitBarcode, TypeOfAccessories.ElectronicUnit);
+        }
+
         /// <summary>Ремонт</summary>
         private void Repair_Click()
         {
