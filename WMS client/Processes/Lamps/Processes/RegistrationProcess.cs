@@ -20,7 +20,7 @@ namespace WMS_client
             MainProcess.ToDoCommand = "Регистрация в системе";
 
             //todo: заглушка
-            MainProcess.CreateButton("Enter", 10, 275, 220, 35, "enter", () => OnBarcode("9786175660690"));
+            MainProcess.CreateButton("Enter", 10, 275, 220, 35, "enter", () => OnBarcode("L9786175660690"));
         }
 
         public override void OnBarcode(string Barcode)
