@@ -38,6 +38,9 @@ namespace WMS_client.db
         /// <summary>Гарантия лет</summary>
         [dbFieldAtt(Description = "WarrantlyYears")]
         public int WarrantlyYears { get; set; }
+        /// <summary>Статус комплектуючого</summary>
+        [dbFieldAtt(Description = "Статус комплектуючого")]
+        public TypesOfLampsStatus State { get; set; }
 
         /// <summary>Запрос: ID всех проведенных приймок</summary>
         private const string ACCEPTED_ID_QUERY = "SELECT Id FROM AcceptanceOfNewComponents WHERE Posted=1";

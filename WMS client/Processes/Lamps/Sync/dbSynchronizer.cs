@@ -492,7 +492,8 @@ namespace WMS_client
                                                                 TypeOfAccessories = (TypeOfAccessories)
                                                                     Convert.ToInt32(row["TypeOfAccessories"]),
                                                                 WarrantlyHours = Convert.ToInt32(row["WarrantlyHours"]),
-                                                                WarrantlyYears = Convert.ToInt32(row["WarrantlyYears"])
+                                                                WarrantlyYears = Convert.ToInt32(row["WarrantlyYears"]),
+                                                                State = (TypesOfLampsStatus)Convert.ToInt32(row["State"])
                                                             };
                         doc.Sync<AcceptanceOfNewComponents>();
                     }

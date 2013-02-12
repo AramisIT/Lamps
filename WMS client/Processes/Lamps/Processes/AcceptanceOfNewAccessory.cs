@@ -21,6 +21,7 @@ namespace WMS_client.Processes.Lamps
         private int TypeOfAccessory { get { return (int)typeOfAccessory; } }
         private readonly Dictionary<string, long> newElements = new Dictionary<string, long>();
         private MobileLabel labelOfCount;
+        private int count;
         #endregion
 
         //#region Names of Columns
@@ -188,16 +189,26 @@ namespace WMS_client.Processes.Lamps
         {
             if (newElements != null)
             {
-                //acceptanceDoc = new AcceptanceOfNewComponents();
+                //if (newElements.Count>10)
+                //{
+                //    ShowMessage("Процес збереження може зайняти багато часу.\r\nОчікуйте завершення процессу!");
+                //}
+
                 acceptanceDoc.Read<AcceptanceOfNewComponents>(documentId);
+                DateTime t1 = DateTime.Now;
 
                 foreach (KeyValuePair<string, long> element in newElements)
                 {
+                    //Створення
                     createAccessory(element.Key, element.Value);
                 }
 
-                acceptanceDoc.Posted = true;
-                acceptanceDoc.Save();
+                //Збереження змін для документу прийомки
+                //acceptanceDoc.Posted = true;
+                //acceptanceDoc.Save();
+
+                TimeSpan time = DateTime.Now - t1;
+                ShowMessage(time.ToString());
             }
 
             OnHotKey(KeyAction.Esc);
@@ -228,6 +239,19 @@ namespace WMS_client.Processes.Lamps
         /// <returns>Id созданного комплектующего</returns>
         private long createAccessory(TypeOfAccessories type, string barcode, long modelId, long caseId)
         {
+            //Якщо вже було оброблено N елементів, то очистити
+            if (count == 30)
+            {
+                //Збір мусору
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                count = 0;
+            }
+            else
+            {
+                count++;
+            }
+
             Accessory accessory = null;
 
             switch (type)
@@ -254,6 +278,7 @@ namespace WMS_client.Processes.Lamps
                 accessory.DateOfWarrantyEnd = acceptanceDoc.InvoiceDate.AddYears(acceptanceDoc.WarrantlyYears);
                 accessory.Party = acceptanceDoc.InvoiceNumber;
                 accessory.TypeOfWarrantly = acceptanceDoc.TypesOfWarrantly;
+                accessory.Status = acceptanceDoc.State;
 
                 accessory.Save();
 

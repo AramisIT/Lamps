@@ -8,6 +8,7 @@ namespace WMS_client.db
     /// <summary>Корпус</summary>
     public class Cases : Accessory
     {
+        #region Properties
         /// <summary>Ел. блок</summary>
         [dbFieldAtt(Description = "Ел. блок", dbObjectType = typeof(ElectronicUnits), NeedDetailInfo = true)]
         public long ElectronicUnit { get; set; }
@@ -22,17 +23,153 @@ namespace WMS_client.db
         public int Position { get; set; }
         /// <summary>Регістр</summary>
         [dbFieldAtt(Description = "Регістр")]
-        public int Register { get; set; }
+        public int Register { get; set; } 
+        #endregion
 
+        #region Save&Sync
         public override object Save()
         {
-            return base.Save<Cases>();
+            //old:
+            return Save<Cases>();
+            //new:
+            //return saveChanges(false, true);
         }
 
         public override object Sync()
         {
-            return base.Sync<Cases>();
+            return Sync<Cases>();
+            //return saveChanges(true, true);
         }
+
+//        public override object Sync<T>(bool updId)
+//        {
+//            return saveChanges(true, updId);
+//        } 
+
+//        private object saveChanges(bool sync, bool updId)
+//        {
+//            object idValue;
+//            LastModified = DateTime.Now;
+//            IsSynced = sync;
+
+//            if (IsNew)
+//            {
+//                if (string.IsNullOrEmpty(SyncRef))
+//                {
+//                    SyncRef = GenerateSyncRef();
+//                }
+
+//                if (Date == SqlDateTime.MinValue.Value)
+//                {
+//                    Date = DateTime.Now;
+//                }
+
+//                idValue = save(updId);
+//            }
+//            else
+//            {
+//                idValue = update();
+//            }
+
+//            return idValue;
+//        }
+
+//        private object save(bool updId)
+//        {
+//            string query = string.Format(@"
+//INSERT INTO {0}(
+//{1},{2},Date,DateOfActuality,DateOfWarrantyEnd,DrawdownDate,
+//ElectronicUnit,HoursOfWork,Lamp,Map,{3},Marking,Model,Number,Party,Position,
+//Posted,Register,Responsible,Status,TypeOfWarrantly,{4},LastModified,Location,{5},{6})
+//VALUES(
+//@{1},@{2},@Date,@DateOfActuality,@DateOfWarrantyEnd,@DrawdownDate,
+//@ElectronicUnit,@HoursOfWork,@Lamp,@Map,@{3},@Marking,@Model,@Number,@Party,@Position,
+//@Posted,@Register,@Responsible,@Status,@TypeOfWarrantly,@{4},@LastModified,@Location,@{5},@{6})",
+//                                         GetType().Name, IDENTIFIER_NAME, BARCODE_NAME, MARK_FOR_DELETING, DESCRIPTION,
+//                                         IS_SYNCED, SYNCREF_NAME);
+//            SqlCeCommand command = dbWorker.NewQuery(query);
+
+//            if(updId)
+//            {
+//                Id = Convert.ToInt64(GetNewId());
+//            }
+
+//            command.AddParameter(IDENTIFIER_NAME, Id);
+//            command.AddParameter(BARCODE_NAME, BarCode);
+//            command.AddParameter("Date", Date);
+//            command.AddParameter("DateOfActuality", DateOfActuality);
+//            command.AddParameter("DateOfWarrantyEnd", DateOfWarrantyEnd);
+//            command.AddParameter("DrawdownDate", DrawdownDate);
+//            command.AddParameter("ElectronicUnit", ElectronicUnit);
+//            command.AddParameter("HoursOfWork", HoursOfWork);
+//            command.AddParameter("Lamp", Lamp);
+//            command.AddParameter("Map", Map);
+//            command.AddParameter(MARK_FOR_DELETING, MarkForDeleting);
+//            command.AddParameter("Marking", Marking);
+//            command.AddParameter("Model", Model);
+//            command.AddParameter("Number", Number);
+//            command.AddParameter("Party", Party);
+//            command.AddParameter("Position", Position);
+//            command.AddParameter("Posted", Posted);
+//            command.AddParameter("Register", Register);
+//            command.AddParameter("Responsible", Responsible);
+//            command.AddParameter("Status", Status);
+//            command.AddParameter("TypeOfWarrantly", TypeOfWarrantly);
+//            command.AddParameter(DESCRIPTION, Description);
+//            command.AddParameter("LastModified", LastModified);
+//            command.AddParameter("Location", Location);
+//            command.AddParameter(IS_SYNCED, Location);
+//            command.AddParameter(SYNCREF_NAME, SyncRef);
+//            command.ExecuteNonQuery();
+
+//            return Id;
+//        }
+
+//        private object update()
+//        {
+//            string query = string.Format(@"
+//UPDATE {0} SET 
+//{2}=@{2},Date=@Date,DateOfActuality=@DateOfActuality,DateOfWarrantyEnd=@DateOfWarrantyEnd,
+//DrawdownDate=@DrawdownDate,ElectronicUnit=@ElectronicUnit,HoursOfWork=@HoursOfWork,Lamp=@Lamp,
+//Map=@Map,{3}=@{3},Marking=@Marking,Model=@Model,Number=@Number,Party=@Party,Position=@Position,
+//Posted=@Posted,Register=@Register,Responsible=@Responsible,Status=@Status,
+//TypeOfWarrantly=@TypeOfWarrantly,{4}=@{4},LastModified=@LastModified,Location=@Location,{5}=@{5},{6}=@{6}
+//WHERE {1}=@{1}",
+//                                            GetType().Name, IDENTIFIER_NAME, BARCODE_NAME, MARK_FOR_DELETING, DESCRIPTION,
+//                                            IS_SYNCED, SYNCREF_NAME);
+//            SqlCeCommand command = dbWorker.NewQuery(query);
+
+//            command.AddParameter(IDENTIFIER_NAME, Id);
+//            command.AddParameter(BARCODE_NAME, BarCode);
+//            command.AddParameter("Date", Date);
+//            command.AddParameter("DateOfActuality", DateOfActuality);
+//            command.AddParameter("DateOfWarrantyEnd", DateOfWarrantyEnd);
+//            command.AddParameter("DrawdownDate", DrawdownDate);
+//            command.AddParameter("ElectronicUnit", ElectronicUnit);
+//            command.AddParameter("HoursOfWork", HoursOfWork);
+//            command.AddParameter("Lamp", Lamp);
+//            command.AddParameter("Map", Map);
+//            command.AddParameter(MARK_FOR_DELETING, MARK_FOR_DELETING);
+//            command.AddParameter("Marking", Marking);
+//            command.AddParameter("Model", Model);
+//            command.AddParameter("Number", Number);
+//            command.AddParameter("Party", Party);
+//            command.AddParameter("Position", Position);
+//            command.AddParameter("Posted", Posted);
+//            command.AddParameter("Register", Register);
+//            command.AddParameter("Responsible", Responsible);
+//            command.AddParameter("Status", Status);
+//            command.AddParameter("TypeOfWarrantly", TypeOfWarrantly);
+//            command.AddParameter(DESCRIPTION, Description);
+//            command.AddParameter("LastModified", LastModified);
+//            command.AddParameter("Location", Location);
+//            command.AddParameter(IS_SYNCED, Location);
+//            command.AddParameter(SYNCREF_NAME, SyncRef);
+//            command.ExecuteNonQuery();
+
+//            return Id;
+//        }
+        #endregion
 
         #region Static
         #region Accessory

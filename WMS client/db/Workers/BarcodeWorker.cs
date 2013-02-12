@@ -29,7 +29,7 @@ FROM(
         /// <param name="barcode">Строка</param>
         public static bool ValidBarcode(string barcode)
         {
-            return barcode.Length > 1 && barcode[0] == 'L';
+            return barcode.Length ==0 || barcode[0] == 'L';
         }
 
         /// <summary>Получить тип комплектующего со штрих-кода</summary>

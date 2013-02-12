@@ -91,7 +91,7 @@ namespace WMS_client.db
         /// <param name="sync">Синхронизация?</param>
         /// <param name="updId">Нужно обновить ID</param>
         /// <returns>Id</returns>
-        protected object SaveChanges<T>(bool sync, bool updId) where T : dbObject
+        protected virtual object SaveChanges<T>(bool sync, bool updId) where T : dbObject
         {
             object idValue;
             LastModified = DateTime.Now;
@@ -106,7 +106,7 @@ namespace WMS_client.db
             {
                 if (string.IsNullOrEmpty(SyncRef))
                 {
-                    SyncRef = generateSyncRef();
+                    SyncRef = GenerateSyncRef();
                 }
 
                 DocumentObject document = this as DocumentObject;
@@ -126,7 +126,7 @@ namespace WMS_client.db
             return idValue;
         }
 
-        private string generateSyncRef()
+        protected string GenerateSyncRef()
         {
             StringBuilder refStr = new StringBuilder();
             Random rand = new Random();
@@ -176,7 +176,7 @@ namespace WMS_client.db
                     {
                         if (updId && Convert.ToInt64(value) == 0)
                         {
-                            newId = getNewId();
+                            newId = GetNewId();
                             value = newId;
                         }
                         else
@@ -255,7 +255,7 @@ namespace WMS_client.db
 
         /// <summary>Получить новый Id для объекта</summary>
         /// <returns>Новый Id</returns>
-        private object getNewId()
+        protected object GetNewId()
         {
             Type type = GetType();
             string command = string.Format("SELECT [{0}]+1 Id FROM {1} ORDER BY [{0}] DESC", IDENTIFIER_NAME, type.Name);
