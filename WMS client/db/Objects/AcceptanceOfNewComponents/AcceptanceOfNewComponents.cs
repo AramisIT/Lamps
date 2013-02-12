@@ -8,6 +8,7 @@ namespace WMS_client.db
     /// <summary>Приемка новых комплектующих</summary>
     public class AcceptanceOfNewComponents : DocumentObject
     {
+        #region Properties
         /// <summary>Контрагент</summary>
         [dbFieldAtt(Description = "Contractor", dbObjectType = typeof(Contractors))]
         public long Contractor { get; set; }
@@ -40,50 +41,22 @@ namespace WMS_client.db
         public int WarrantlyYears { get; set; }
         /// <summary>Статус комплектуючого</summary>
         [dbFieldAtt(Description = "Статус комплектуючого")]
-        public TypesOfLampsStatus State { get; set; }
+        public TypesOfLampsStatus State { get; set; } 
+        #endregion
 
+        #region Query
         /// <summary>Запрос: ID всех проведенных приймок</summary>
         private const string ACCEPTED_ID_QUERY = "SELECT Id FROM AcceptanceOfNewComponents WHERE Posted=1";
         /// <summary>Запрос: ID всех НЕ проведенных приймок</summary>
-        private const string NOT_ACCEPTED_ID_QUERY = "SELECT Id FROM AcceptanceOfNewComponents WHERE Posted=0";
+        private const string NOT_ACCEPTED_ID_QUERY = "SELECT Id FROM AcceptanceOfNewComponents WHERE Posted=0"; 
+        #endregion
 
-        /// <summary>Очистить все документы</summary>
-        public static void ClearOldDocuments()
-        {
-            dbArchitector.ClearAllDataFromTable("AcceptanceOfNewComponents");
-            //dbArchitector.ClearAllDataFromTable("SubAcceptanceOfNewComponentsMarkingInfo");
-        }
-
+        #region Static Methods
         /// <summary>Очистить проведенные документы</summary>
         public static void ClearAcceptedDocuments()
         {
-            //SqlCeCommand command = dbWorker.NewQuery(ACCEPTED_ID_QUERY);
-            //List<object> acceptedDocuments = command.SelectToList();
-
-            //if (acceptedDocuments.Count > 0)
-            //{
-            //    StringBuilder subDocCommand =
-            //        new StringBuilder("DELETE FROM SubAcceptanceOfNewComponentsMarkingInfo WHERE ");
-            //    Dictionary<string, object> parameters = new Dictionary<string, object>();
-            //    int index = 0;
-
-            //    foreach (object acceptedDocument in acceptedDocuments)
-            //    {
-            //        subDocCommand.AppendFormat("{0}=@{1}{2} OR ", IDENTIFIER_NAME, dbSynchronizer.PARAMETER, index);
-            //        parameters.Add(dbSynchronizer.PARAMETER + index.ToString(), acceptedDocument);
-            //        index++;
-            //    }
-
-            //    SqlCeCommand subDocQuery = dbWorker.NewQuery(subDocCommand.ToString(0, subDocCommand.Length - 3));
-            //    subDocQuery.AddParameters(parameters);
-            //    subDocQuery.ExecuteNonQuery();
-
-            //    SqlCeCommand acceptedDocQuery = dbWorker.NewQuery("DELETE FROM AcceptanceOfNewComponents WHERE Posted=1");
-            //    acceptedDocQuery.ExecuteNonQuery();
-            //}
-
-            SqlCeCommand acceptedDocQuery = dbWorker.NewQuery("DELETE FROM AcceptanceOfNewComponents WHERE Posted=1");
-            acceptedDocQuery.ExecuteNonQuery();
+            SqlCeCommand clearAccepted = dbWorker.NewQuery("DELETE FROM AcceptanceOfNewComponents WHERE Posted=1");
+            clearAccepted.ExecuteNonQuery();
         }
 
         /// <summary>Получить все проведенные документы</summary>
@@ -104,16 +77,19 @@ namespace WMS_client.db
             DataTable acceptedDocuments = command.SelectToTable();
 
             return acceptedDocuments;
-        }
+        } 
+        #endregion
 
+        #region Implemention
         public override object Save()
         {
             return base.Save<AcceptanceOfNewComponents>();
         }
-        
+
         public override object Sync()
         {
             return base.Sync<AcceptanceOfNewComponents>();
-        }
+        } 
+        #endregion
     }
 }

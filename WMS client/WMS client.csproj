@@ -88,6 +88,7 @@
     <Compile Include="db\Objects\AcceptanceAccessoriesFrom\Exchange\SubAcceptanceAccessoriesFromRepairRepairTable.cs" />
     <Compile Include="db\Objects\AcceptanceAccessoriesFrom\Repair\AcceptanceAccessoriesFromRepair.cs" />
     <Compile Include="db\Objects\AcceptanceAccessoriesFrom\Repair\SubAcceptanceAccessoriesFromRepairRepairTable.cs" />
+    <Compile Include="db\Objects\AcceptanceOfNewComponents\AcceptanceOfNewComponentsDetails.cs" />
     <Compile Include="db\Objects\Contractors.cs" />
     <Compile Include="db\Base\Sending.cs" />
     <Compile Include="db\Objects\Movement.cs" />

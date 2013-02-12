@@ -368,6 +368,21 @@ namespace WMS_client.db
 
             return desObj == null ? string.Empty : desObj.ToString();
         }
+
+        public static string GetSyncRef(string tableName, object id)
+        {
+            if (id == null || Convert.ToInt64(id) == 0)
+            {
+                return string.Empty;
+            }
+
+            string query = string.Format("SELECT {0} FROM {1} WHERE {2}=@{2}", SYNCREF_NAME, tableName, IDENTIFIER_NAME);
+            SqlCeCommand command = dbWorker.NewQuery(query);
+            command.AddParameter(IDENTIFIER_NAME, id);
+            object desObj = command.ExecuteScalar();
+
+            return desObj == null ? string.Empty : desObj.ToString();
+        }
         #endregion
     }
 }

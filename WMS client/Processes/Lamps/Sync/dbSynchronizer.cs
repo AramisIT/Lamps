@@ -35,6 +35,11 @@ namespace WMS_client
             infoLabel.Text = "Партії";
             SyncObjects<Party>(WaysOfSync.OneWay);
             infoLabel.Text = "Моделі";
+            //Прийомка нового
+            infoLabel.Text = "Документи прийомки нового комплектучого";
+            SyncAccepmentsDocWithServer();
+            SyncAccepmentsDocFromServer();
+            //Комплектуюче
             SyncObjects<Models>(WaysOfSync.TwoWay);
             infoLabel.Text = "Лампи";
             SyncObjects<Lamps>(WaysOfSync.TwoWay);
@@ -46,9 +51,6 @@ namespace WMS_client
             infoLabel.Text = "Оновлення посилань";
             updateDeferredProperties();
             PerformQuery("EndOfSync");
-            //Прийомка
-            infoLabel.Text = "Документи прийомки нового комплектучого";
-            SyncAccepmentsDocWithServer();
             //Відправка на ...
             infoLabel.Text = "Відправка на списання";
             SyncOutSending<SendingToCharge, SubSendingToChargeChargeTable>();
@@ -448,8 +450,16 @@ namespace WMS_client
         #endregion
 
         #region Sync.other
-        /// <summary>Синхронизировать "Приемку" с сервером</summary>
+        /// <summary>Синхронизировать принятое комплектующее с сервером</summary>
         private void SyncAccepmentsDocWithServer()
+        {
+            DataTable data = AcceptanceOfNewComponentsDetails.GetAllData();
+            PerformQuery("SetAcceptDocs", data);
+            dbArchitector.ClearAllDataFromTable(typeof(AcceptanceOfNewComponentsDetails).Name);
+        }
+
+        /// <summary>Синхронизировать документы "Приемка нового компл." с сервера</summary>
+        private void SyncAccepmentsDocFromServer()
         {
             DataTable acceptedDoc = AcceptanceOfNewComponents.GetAcceptedDocuments();
             DataTable notAcceptedDoc = AcceptanceOfNewComponents.GetNotAcceptedDocuments();
@@ -498,31 +508,6 @@ namespace WMS_client
                         doc.Sync<AcceptanceOfNewComponents>();
                     }
                 }
-
-                //PerformQuery("GetAcceptSubDocs", notAcceptedDoc);
-
-                //if (IsExistParameters)
-                //{
-                //    table = Parameters[0] as DataTable;
-
-                //    if (table != null)
-                //    {
-                //        foreach (DataRow row in table.Rows)
-                //        {
-                //            string markingRef = row["Marking"].ToString();
-                //            object idObj = BarcodeWorker.GetIdByRef(typeof(Models), markingRef);
-
-                //            SubAcceptanceOfNewComponentsMarkingInfo subDoc = new SubAcceptanceOfNewComponentsMarkingInfo
-                //                                                                 {
-                //                                                                     Id = Convert.ToInt64(row["IdDoc"]),
-                //                                                                     Marking = Convert.ToInt64(idObj),
-                //                                                                     Plan = Convert.ToInt32(row["Plan"]),
-                //                                                                     Fact = 0
-                //                                                                 };
-                //            subDoc.Save();
-                //        }
-                //    }
-                //}
             }
         }
 
