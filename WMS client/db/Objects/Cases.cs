@@ -185,6 +185,18 @@ WHERE RTRIM(c.Barcode)=RTRIM(@BarCode)");
         /// <param name="remove">Процесс демонтажа?</param>
         public static void ChangeLighterStatus(string lighterBarcode, TypesOfLampsStatus status, bool remove)
         {
+            ChangeLighterStatus(lighterBarcode, status, remove, 0, 0, 0);
+        }
+
+        /// <summary>Изменить статус корпуса</summary>
+        /// <param name="lighterBarcode">Штрихкод корпуса</param>
+        /// <param name="status">Новый статус</param>
+        /// <param name="remove">Процесс демонтажа?</param>
+        /// <param name="map"></param>
+        /// <param name="register"></param>
+        /// <param name="position"></param>
+        public static void ChangeLighterStatus(string lighterBarcode, TypesOfLampsStatus status, bool remove, int map, int register, int position)
+        {
             //Корпус
             string command = string.Format(
                 "UPDATE Cases SET Map=0,Register=0,Position=0,Status=@Status,{0}=0,DateOfActuality=@Date{1} WHERE RTRIM(Barcode)=@Barcode",
@@ -192,7 +204,10 @@ WHERE RTRIM(c.Barcode)=RTRIM(@BarCode)");
                 remove ? ",DrawdownDate=@DrawdownDate" : string.Empty);
             SqlCeCommand query = dbWorker.NewQuery(command);
             query.AddParameter("Barcode", lighterBarcode);
-            query.AddParameter("Status", status);
+            query.AddParameter("Status", status); 
+            query.AddParameter("Map", map);
+            query.AddParameter("Register", register);
+            query.AddParameter("Position", position);
             query.AddParameter("Date", DateTime.Now);
             query.AddParameter("DrawdownDate", DateTime.Now);
             query.ExecuteNonQuery();

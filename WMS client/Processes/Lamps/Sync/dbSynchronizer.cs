@@ -35,12 +35,12 @@ namespace WMS_client
             infoLabel.Text = "Партії";
             SyncObjects<Party>(WaysOfSync.OneWay);
             infoLabel.Text = "Моделі";
+            SyncObjects<Models>(WaysOfSync.TwoWay);
             //Прийомка нового
             infoLabel.Text = "Документи прийомки нового комплектучого";
             SyncAccepmentsDocWithServer();
             SyncAccepmentsDocFromServer();
             //Комплектуюче
-            SyncObjects<Models>(WaysOfSync.TwoWay);
             infoLabel.Text = "Лампи";
             SyncObjects<Lamps>(WaysOfSync.TwoWay);
             infoLabel.Text = "Ел.блоки";

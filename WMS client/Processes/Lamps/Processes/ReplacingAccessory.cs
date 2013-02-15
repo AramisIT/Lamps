@@ -179,6 +179,8 @@ namespace WMS_client.Processes.Lamps
             query.AddParameter("Date", DateTime.Now);
             query.ExecuteNonQuery();
 
+            string caseBarcode = CaseBarcode.ToString();
+            installMovement(caseBarcode);
             OnHotKey(KeyAction.Esc);
         }
 
@@ -239,7 +241,39 @@ WHERE RTRIM(c.BarCode)=@BarCode", accessoryTable));
             query.ExecuteNonQuery();
             
             //Завершение
+            string caseBarcode = CaseBarcode.ToString();
+            installMovement(caseBarcode);
+            removeMovement(oldLampBarcode.ToString(), caseBarcode);
             OnHotKey(KeyAction.Esc);
+        }
+
+        private void installMovement(string caseBarCode)
+        {
+            List<object> data = getPositionInfo(caseBarCode);
+            string newBarcode = NewAccessoryBarcode.ToString();
+            string syncRef = BarcodeWorker.GetRefByBarcode(accessoryTable, newBarcode);
+
+            Movement.RegisterLighter(newBarcode, syncRef, OperationsWithLighters.Installing,
+                                     (int) data[0], (int) data[1], (int) data[2]);
+        }
+
+        private void removeMovement(string oldBarcode, string caseBarCode)
+        {
+            List<object> data = getPositionInfo(caseBarCode);
+            string syncRef = BarcodeWorker.GetRefByBarcode(accessoryTable, oldBarcode);
+
+            Movement.RegisterLighter(oldBarcode, syncRef, OperationsWithLighters.Removing,
+                                     (int) data[0], (int) data[1], (int) data[2]);
+        }
+
+        private List<object> getPositionInfo(string caseBarCode)
+        {
+            string query = string.Format("SELECT Map,Register,Position From {0} WHERE RTRIM({1})=RTRIM(@{1})",
+                                         typeof (Cases).Name, dbObject.BARCODE_NAME);
+            SqlCeCommand command = dbWorker.NewQuery(query);
+            command.AddParameter(dbObject.BARCODE_NAME, caseBarCode);
+
+            return command.SelectToList();
         }
         #endregion
 

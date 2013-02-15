@@ -105,32 +105,46 @@ WHERE c.BarCode=@BarCode");
 
         private void finishingReplaceLamps()
         {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT Map, Register, Position, Status FROM Cases WHERE RTRIM(BarCode)=RTRIM(@Old)");
+            SqlCeCommand query = dbWorker.NewQuery(@"SELECT Map, Register, Position, Status, SyncRef FROM Cases WHERE RTRIM(BarCode)=RTRIM(@Old)");
             query.AddParameter("Old", ExistLampBarCode);
             object[] result = query.SelectArray();
 
             if (result != null)
             {
-                string command = string.Format(
-                    "UPDATE Cases SET Map=@Map,Register=@Register,Position=@Position,Status=@IsWorking,{0}=0,DateOfActuality=@Date WHERE RTRIM(BarCode)=@New",
-                    dbObject.IS_SYNCED);
-                query = dbWorker.NewQuery(command);
-                query.AddParameter("Map", result[0]);
-                query.AddParameter("Register", result[1]);
-                query.AddParameter("Position", result[2]);
-                query.AddParameter("IsWorking", TypesOfLampsStatus.IsWorking);
-                query.AddParameter("New", NewLampBarCode);
-                query.AddParameter("Date", DateTime.Now);
-                query.ExecuteNonQuery();
+                int map = Convert.ToInt32(result[0]);
+                int register = Convert.ToInt32(result[0]);
+                int position = Convert.ToInt32(result[0]);
 
-                command = string.Format(
-                    "UPDATE Cases SET Map=0,Register=0,Position=0,Status=@Storage,{0}=0,DateOfActuality=@Date WHERE RTRIM(BarCode)=@Old",
-                    dbObject.IS_SYNCED);
-                query = dbWorker.NewQuery(command);
-                query.AddParameter("Storage", TypesOfLampsStatus.Storage);
-                query.AddParameter("Old", ExistLampBarCode);
-                query.AddParameter("Date", DateTime.Now);
-                query.ExecuteNonQuery();
+
+                Cases.ChangeLighterStatus(NewLampBarCode, TypesOfLampsStatus.IsWorking, false, map, register, position);
+                Cases.ChangeLighterStatus(ExistLampBarCode, TypesOfLampsStatus.Storage, true);
+                //string command = string.Format(
+                //    "UPDATE Cases SET Map=@Map,Register=@Register,Position=@Position,Status=@IsWorking,{0}=0,DateOfActuality=@Date WHERE RTRIM(BarCode)=@New",
+                //    dbObject.IS_SYNCED);
+                //query = dbWorker.NewQuery(command);
+                //query.AddParameter("Map", map);
+                //query.AddParameter("Register", register);
+                //query.AddParameter("Position", position);
+                //query.AddParameter("IsWorking", TypesOfLampsStatus.IsWorking);
+                //query.AddParameter("New", NewLampBarCode);
+                //query.AddParameter("Date", DateTime.Now);
+                //query.ExecuteNonQuery();
+
+                //command = string.Format(
+                //    "UPDATE Cases SET Map=0,Register=0,Position=0,Status=@Storage,{0}=0,DateOfActuality=@Date WHERE RTRIM(BarCode)=RTRIM(@Old)",
+                //    dbObject.IS_SYNCED);
+                //query = dbWorker.NewQuery(command);
+                //query.AddParameter("Storage", TypesOfLampsStatus.Storage);
+                //query.AddParameter("Old", ExistLampBarCode);
+                //query.AddParameter("Date", DateTime.Now);
+                //query.ExecuteNonQuery();
+
+                //Внесение записи в "Перемещение"
+                string newLampRef = BarcodeWorker.GetRefByBarcode(typeof(Cases), NewLampBarCode);
+                Movement.RegisterLighter(ExistLampBarCode, result[4].ToString(), OperationsWithLighters.Removing,
+                                         map, register, position);
+                Movement.RegisterLighter(NewLampBarCode, newLampRef, OperationsWithLighters.Installing,
+                                         map, register, position);
             }
         }
         #endregion

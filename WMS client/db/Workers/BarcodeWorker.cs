@@ -89,7 +89,7 @@ FROM(
         /// <param name="barcode">Штрихкод</param>
         public static object GetIdByBarcode(string barcode)
         {
-            SqlCeCommand query = dbWorker.NewQuery(string.Format(ACCESSORY_QUERY_COMMAND, "Id"));
+            SqlCeCommand query = dbWorker.NewQuery(string.Format(ACCESSORY_QUERY_COMMAND, dbObject.IDENTIFIER_NAME));
             query.AddParameter("Barcode", barcode);
             object result = query.ExecuteScalar();
 
@@ -118,11 +118,31 @@ FROM(
         /// <param name="barcode">Штрихкод</param>
         public static object GetIdByBarcode(Type type, string barcode)
         {
-            SqlCeCommand query = dbWorker.NewQuery(string.Format(DEFAULT_QUERY_COMMAND, "Id", type.Name));
+            SqlCeCommand query = dbWorker.NewQuery(string.Format(DEFAULT_QUERY_COMMAND, dbObject.IDENTIFIER_NAME, type.Name));
             query.AddParameter("Barcode", barcode);
             object result = query.ExecuteScalar();
 
             return result ?? 0;
+        }
+
+        /// <summary>Чи вже існує штрихкод?</summary>
+        /// <param name="type"> </param>
+        /// <param name="barcode">Штрихкод</param>
+        public static string GetRefByBarcode(Type type, string barcode)
+        {
+            return GetRefByBarcode(type.Name, barcode);
+        }
+
+        /// <summary>Чи вже існує штрихкод?</summary>
+        /// <param name="tableName"> </param>
+        /// <param name="barcode">Штрихкод</param>
+        public static string GetRefByBarcode(string tableName, string barcode)
+        {
+            SqlCeCommand query = dbWorker.NewQuery(string.Format(DEFAULT_QUERY_COMMAND, dbObject.SYNCREF_NAME, tableName));
+            query.AddParameter("Barcode", barcode);
+            object result = query.ExecuteScalar();
+
+            return result == null ? string.Empty : result.ToString();
         }
     }
 }
