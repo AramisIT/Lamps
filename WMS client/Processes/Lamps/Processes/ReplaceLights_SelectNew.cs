@@ -78,26 +78,32 @@ namespace WMS_client
         #region Query
         private object[] GetNewIlluminatorInfo()
         {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
-	t.Description CaseModel
-	, p.Description CaseParty
-	, c.DateOfWarrantyEnd CaseWarrantly
-FROM Cases c
-LEFT JOIN Models t ON t.Id=c.Model
-LEFT JOIN Party p ON p.Id=c.Party
-WHERE c.BarCode=@BarCode
+            SqlCeCommand query = dbWorker.NewQuery(@"
+SELECT CaseModel,CaseParty,CaseWarrantly
+FROM(
+    SELECT 
+	    0 Type
+        , t.Description CaseModel
+	    , p.Description CaseParty
+	    , c.DateOfWarrantyEnd CaseWarrantly
+    FROM Cases c
+    LEFT JOIN Models t ON t.Id=c.Model
+    LEFT JOIN Party p ON p.Id=c.Party
+    WHERE c.BarCode=@BarCode
 
-UNION 
+    UNION 
 
-SELECT 
-	'' CaseModel
-	, p.Description CaseParty
-	, u.DateOfWarrantyEnd CaseWarrantly
-FROM Cases c
-LEFT JOIN ElectronicUnits u ON u.Id=c.ElectronicUnit
-LEFT JOIN Models t ON t.Id=u.Model
-LEFT JOIN Party p ON p.Id=u.Party
-WHERE c.BarCode=@BarCode");
+    SELECT 
+	    1 Type
+	    , '' CaseModel
+	    , p.Description CaseParty
+	    , u.DateOfWarrantyEnd CaseWarrantly
+    FROM Cases c
+    LEFT JOIN ElectronicUnits u ON u.Id=c.ElectronicUnit
+    LEFT JOIN Models t ON t.Id=u.Model
+    LEFT JOIN Party p ON p.Id=u.Party
+    WHERE c.BarCode=@BarCode)t
+ORDER BY Type");
             query.AddParameter("BarCode", NewLampBarCode);
 
             return query.SelectArray(new Dictionary<string, Enum> {{BaseFormatName.DateTime, DateTimeFormat.OnlyDate}});
@@ -112,32 +118,11 @@ WHERE c.BarCode=@BarCode");
             if (result != null)
             {
                 int map = Convert.ToInt32(result[0]);
-                int register = Convert.ToInt32(result[0]);
-                int position = Convert.ToInt32(result[0]);
-
+                int register = Convert.ToInt32(result[1]);
+                int position = Convert.ToInt32(result[2]);
 
                 Cases.ChangeLighterStatus(NewLampBarCode, TypesOfLampsStatus.IsWorking, false, map, register, position);
                 Cases.ChangeLighterStatus(ExistLampBarCode, TypesOfLampsStatus.Storage, true);
-                //string command = string.Format(
-                //    "UPDATE Cases SET Map=@Map,Register=@Register,Position=@Position,Status=@IsWorking,{0}=0,DateOfActuality=@Date WHERE RTRIM(BarCode)=@New",
-                //    dbObject.IS_SYNCED);
-                //query = dbWorker.NewQuery(command);
-                //query.AddParameter("Map", map);
-                //query.AddParameter("Register", register);
-                //query.AddParameter("Position", position);
-                //query.AddParameter("IsWorking", TypesOfLampsStatus.IsWorking);
-                //query.AddParameter("New", NewLampBarCode);
-                //query.AddParameter("Date", DateTime.Now);
-                //query.ExecuteNonQuery();
-
-                //command = string.Format(
-                //    "UPDATE Cases SET Map=0,Register=0,Position=0,Status=@Storage,{0}=0,DateOfActuality=@Date WHERE RTRIM(BarCode)=RTRIM(@Old)",
-                //    dbObject.IS_SYNCED);
-                //query = dbWorker.NewQuery(command);
-                //query.AddParameter("Storage", TypesOfLampsStatus.Storage);
-                //query.AddParameter("Old", ExistLampBarCode);
-                //query.AddParameter("Date", DateTime.Now);
-                //query.ExecuteNonQuery();
 
                 //Внесение записи в "Перемещение"
                 string newLampRef = BarcodeWorker.GetRefByBarcode(typeof(Cases), NewLampBarCode);

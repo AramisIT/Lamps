@@ -47,7 +47,7 @@ namespace WMS_client
                                         };
 
 
-                if (state == TypesOfLampsStatus.Repair || state == TypesOfLampsStatus.ToRepair)
+                if (state == TypesOfLampsStatus.ToRepair)
                 {
                     MainProcess.CreateButton("«бер≥ганн€", 15, 275, 100, 35, "storage", Storage_Click);
                 }

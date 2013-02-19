@@ -73,6 +73,7 @@ namespace WMS_client.db
         {
             dbObject copyObj = base.Copy();
             Cases caseObj = copyObj as Cases;
+            //BarCode = string.Empty;
 
             if (caseObj != null)
             {

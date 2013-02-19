@@ -199,8 +199,14 @@ namespace WMS_client
             SqlCeCommand command = dbWorker.NewQuery(@"SELECT c.Status FROM Cases c WHERE RTRIM(BarCode)=@BarCode");
             command.AddParameter("@BarCode", barcode);
             object result = command.ExecuteScalar();
+            
+            if(result==null)
+            {
+                return false;
+            }
 
-            return result != null && Convert.ToInt32(result)==2;
+            TypesOfLampsStatus state = (TypesOfLampsStatus) Convert.ToInt32(result);
+            return state == TypesOfLampsStatus.IsWorking;
         }
 
         private object[] LuminaireOnHectareInfo(string barcode)

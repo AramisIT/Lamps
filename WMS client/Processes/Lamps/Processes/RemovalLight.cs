@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlServerCe;
 using WMS_client.Enums;
 using WMS_client.db;
+using System;
 
 namespace WMS_client
 {
@@ -34,9 +35,9 @@ namespace WMS_client
             if (IsLoad)
             {
                 object[] data = getLightPositionInfo();
-                map = (int) data[1];
-                position = (int) data[2];
-                register = (int) data[3];
+                map = Convert.ToInt32(data[1]);
+                position = Convert.ToInt32(data[2]);
+                register = Convert.ToInt32(data[3]);
 
                 ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, "ƒ≈ÃŒÕ“¿∆ —¬≤“»À‹Õ» ”", data);
                 list.ListOfLabels = new List<LabelForConstructor>
@@ -93,7 +94,7 @@ namespace WMS_client
         /// <returns> ‡Ú‡, Register, Position</returns>
         private object[] getLightPositionInfo()
         {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT m.Description, m.Id, c.Register, c.Position 
+            SqlCeCommand query = dbWorker.NewQuery(@"SELECT m.Description, c.Map MapId, c.Register, c.Position 
 FROM Cases c
 LEFT JOIN Maps m ON m.Id=c.Map
 WHERE RTRIM(c.Barcode)=@Barcode");

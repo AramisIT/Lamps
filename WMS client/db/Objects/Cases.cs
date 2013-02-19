@@ -199,7 +199,7 @@ WHERE RTRIM(c.Barcode)=RTRIM(@BarCode)");
         {
             //Корпус
             string command = string.Format(
-                "UPDATE Cases SET Map=0,Register=0,Position=0,Status=@Status,{0}=0,DateOfActuality=@Date{1} WHERE RTRIM(Barcode)=@Barcode",
+                "UPDATE Cases SET Map=@Map,Register=@Register,Position=@Position,Status=@Status,{0}=0,DateOfActuality=@Date{1} WHERE RTRIM(Barcode)=@Barcode",
                 IS_SYNCED,
                 remove ? ",DrawdownDate=@DrawdownDate" : string.Empty);
             SqlCeCommand query = dbWorker.NewQuery(command);

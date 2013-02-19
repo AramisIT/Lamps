@@ -29,7 +29,8 @@ FROM(
         /// <param name="barcode">Строка</param>
         public static bool ValidBarcode(string barcode)
         {
-            return barcode.Length ==0 || barcode[0] == 'L';
+            string trimBarcode = barcode.Trim();
+            return trimBarcode.Length == 0 || trimBarcode[0] == 'L';
         }
 
         /// <summary>Получить тип комплектующего со штрих-кода</summary>

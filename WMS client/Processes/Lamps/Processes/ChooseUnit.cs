@@ -46,7 +46,7 @@ namespace WMS_client
                                             new LabelForConstructor("Гарантія до {0}")
                                         };
 
-                if (state == TypesOfLampsStatus.Repair || state == TypesOfLampsStatus.ToRepair)
+                if (state == TypesOfLampsStatus.ToRepair)
                 {
                     MainProcess.CreateButton("Зберігання", 15, 275, 100, 35, "storage", Storage_Click);
                 }

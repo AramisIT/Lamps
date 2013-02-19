@@ -153,6 +153,11 @@ namespace WMS_client
 
                 showData(accesoryIsExist, Barcode);
             }
+            else
+            {
+                ShowMessage("Невірний формат штрихкоду!");
+                OnHotKey(KeyAction.Esc);
+            }
         }
 
         private void showData(bool accesoryIsExist, string Barcode)

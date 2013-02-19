@@ -8,9 +8,6 @@ namespace WMS_client.Enums
         /// <summary>Зберігання</summary>
         [dbFieldAtt(Description = "Зберігання")]
         Storage,
-        /// <summary>Ремонт</summary>
-        [dbFieldAtt(Description = "Ремонт")]
-        Repair,
         /// <summary>Працює</summary>
         [dbFieldAtt(Description = "Працює")]
         IsWorking,
@@ -31,9 +28,6 @@ namespace WMS_client.Enums
         ToRepair,
         /// <summary>У ремонті</summary>
         [dbFieldAtt(Description = "У ремонті")]
-        UnderRepair,
-        /// <summary>В списанні</summary>
-        [dbFieldAtt(Description = "В списанні")]
-        UnderCharge
+        UnderRepair
     }
 }

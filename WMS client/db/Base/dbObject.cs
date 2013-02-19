@@ -19,8 +19,8 @@ namespace WMS_client.db
         public const string BARCODE_NAME = "BarCode";
         /// <summary>Колонка флага состояния синхронизации</summary>
         public const string IS_SYNCED = "issynced";
-        /// <summary>Длинна идентификатора синхронизации</summary>
-        private const int REF_LENGTH = 25;
+        ///// <summary>Длинна идентификатора синхронизации</summary>
+        //private const int REF_LENGTH = 25;
 
         /// <summary>Сохранить</summary>
         /// <returns>Id</returns>

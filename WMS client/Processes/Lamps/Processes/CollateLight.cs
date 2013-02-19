@@ -213,8 +213,8 @@ namespace WMS_client
         private void saveCaseData()
         {
             string command = string.Format(
-                "UPDATE {0} SET Lamp=0,ElectronicUnit=0 WHERE {1}=@{1}",
-                typeof(Cases).Name, dbObject.BARCODE_NAME);
+                "UPDATE {0} SET Lamp=0,ElectronicUnit=0,{1}=0 WHERE {2}=@{2}",
+                typeof(Cases).Name, dbObject.IS_SYNCED, dbObject.BARCODE_NAME);
             SqlCeCommand query = dbWorker.NewQuery(command);
             query.AddParameter(dbObject.BARCODE_NAME, LightBarcode);
             query.ExecuteNonQuery();
@@ -223,9 +223,10 @@ namespace WMS_client
         private void saveLampData()
         {
             string command = string.Format(
-                "UPDATE {0} SET {1}[Case]=0 WHERE {2}=@{2}",
+                "UPDATE {0} SET {1}[Case]=0,{2}=0 WHERE {3}=@{3}",
                 typeof (Lamps).Name, 
                 string.IsNullOrEmpty(lampBarcode) ? string.Empty : string.Format("{0}=@{0}, ", dbObject.BARCODE_NAME),
+                dbObject.IS_SYNCED,
                 dbObject.IDENTIFIER_NAME);
             SqlCeCommand query = dbWorker.NewQuery(command);
             query.AddParameter(dbObject.BARCODE_NAME, lampBarcode);
@@ -237,10 +238,11 @@ namespace WMS_client
         private void saveUnitData()
         {
             string command = string.Format(
-                "UPDATE {0} SET {1}[Case]=0 WHERE {2}=@{2}",
+                "UPDATE {0} SET {1}[Case]=0,{2}=0 WHERE {3}=@{3}",
                 typeof(ElectronicUnits).Name,
-                string.IsNullOrEmpty(unitBarcode) ? string.Empty : string.Format("{0}=@{0}, ", dbObject.BARCODE_NAME)
-                , dbObject.IDENTIFIER_NAME);
+                string.IsNullOrEmpty(unitBarcode) ? string.Empty : string.Format("{0}=@{0}, ", dbObject.BARCODE_NAME),
+                dbObject.IS_SYNCED,
+                dbObject.IDENTIFIER_NAME);
             SqlCeCommand query = dbWorker.NewQuery(command);
             query.AddParameter(dbObject.BARCODE_NAME, unitBarcode);
             query.AddParameter(dbSynchronizer.PARAMETER, 0);

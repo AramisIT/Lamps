@@ -50,7 +50,7 @@ namespace WMS_client
                 MainProcess.CreateButton("Уснановка", 15, 225, 100, 35, "installNew", InstallNew);
                 MainProcess.CreateButton("Розібрати", 125, 225, 100, 35, "collate", Collate);
 
-                if (state == TypesOfLampsStatus.Repair || state == TypesOfLampsStatus.ToRepair)
+                if (state == TypesOfLampsStatus.ToRepair)
                 {
                     MainProcess.CreateButton("Зберігання", 15, 275, 100, 35, "storages", Storages);
                 }
