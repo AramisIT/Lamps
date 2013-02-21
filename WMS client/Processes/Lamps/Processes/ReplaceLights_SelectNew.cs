@@ -7,11 +7,18 @@ using System.Data.SqlServerCe;
 
 namespace WMS_client
 {
+    /// <summary>Заміна/встановлення світильника на гектар</summary>
     public class ReplaceLights_SelectNew : BusinessProcess
     {
+        /// <summary>Штрихкод нового світильника</summary>
         private readonly string NewLampBarCode;
+        /// <summary>Штрихкод існуючого(вже встановленого) світильника</summary>
         private readonly string ExistLampBarCode;
 
+        /// <summary>Заміна/встановлення світильника на гектар</summary>
+        /// <param name="MainProcess"></param>
+        /// <param name="newLampBarCode">Штрихкод нового світильника</param>
+        /// <param name="existLampBarCode">Штрихкод існуючого(вже встановленого) світильника</param>
         public ReplaceLights_SelectNew(WMSClient MainProcess, string newLampBarCode, string existLampBarCode)
             : base(MainProcess, 1)
         {
@@ -67,6 +74,7 @@ namespace WMS_client
         #endregion
 
         #region ButtonClick
+        /// <summary>Зберігти</summary>
         private void Ok()
         {
             finishingReplaceLamps();
@@ -76,6 +84,7 @@ namespace WMS_client
         #endregion
 
         #region Query
+        /// <summary>Інформація про новий світильник</summary>
         private object[] GetNewIlluminatorInfo()
         {
             SqlCeCommand query = dbWorker.NewQuery(@"
@@ -109,6 +118,7 @@ ORDER BY Type");
             return query.SelectArray(new Dictionary<string, Enum> {{BaseFormatName.DateTime, DateTimeFormat.OnlyDate}});
         }
 
+        /// <summary>Завершення заміни</summary>
         private void finishingReplaceLamps()
         {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT Map, Register, Position, Status, SyncRef FROM Cases WHERE RTRIM(BarCode)=RTRIM(@Old)");
@@ -121,8 +131,8 @@ ORDER BY Type");
                 int register = Convert.ToInt32(result[1]);
                 int position = Convert.ToInt32(result[2]);
 
-                Cases.ChangeLighterStatus(NewLampBarCode, TypesOfLampsStatus.IsWorking, false, map, register, position);
-                Cases.ChangeLighterStatus(ExistLampBarCode, TypesOfLampsStatus.Storage, true);
+                Cases.ChangeLighterState(NewLampBarCode, TypesOfLampsStatus.IsWorking, false, map, register, position);
+                Cases.ChangeLighterState(ExistLampBarCode, TypesOfLampsStatus.Storage, true);
 
                 //Внесение записи в "Перемещение"
                 string newLampRef = BarcodeWorker.GetRefByBarcode(typeof(Cases), NewLampBarCode);

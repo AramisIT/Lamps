@@ -105,7 +105,7 @@ WHERE RTRIM(c.Barcode)=@Barcode");
         /// <summary>Завершение (Сохранение)</summary>
         private void finish()
         {
-            Cases.ChangeLighterStatus(LightBarcode, TypesOfLampsStatus.Storage, true);
+            Cases.ChangeLighterState(LightBarcode, TypesOfLampsStatus.Storage, true);
 
             SqlCeCommand query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
             query.AddParameter("Barcode", LightBarcode);

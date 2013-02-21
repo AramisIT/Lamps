@@ -33,7 +33,7 @@ namespace WMS_client
         {
             if (IsLoad)
             {
-                TypesOfLampsStatus state = Accessory.GetStatus(TypeOfAccessories.Lamp, LampBarcode);
+                TypesOfLampsStatus state = Accessory.GetState(TypeOfAccessories.Lamp, LampBarcode);
                 ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, "Лампа", getData());
                 list.ListOfLabels = new List<LabelForConstructor>
                                         {
@@ -53,9 +53,9 @@ namespace WMS_client
                 }
                 else
                 {
-                    MainProcess.CreateButton("Ремонт", 15, 275, 100, 35, "repair", Repair_Click, null, null, false);
+                    MainProcess.CreateButton("Ремонт", 15, 275, 100, 35, "repair", Repair_Click);
                 }
-                MainProcess.CreateButton("Списание", 125, 275, 100, 35, "writeoff", Writeoff_Click, null, null, false);
+                MainProcess.CreateButton("Списання", 125, 275, 100, 35, "writeoff", Writeoff_Click, null, null, state != TypesOfLampsStatus.ToCharge);
             }
         }
 
@@ -79,7 +79,7 @@ namespace WMS_client
         private void Storage_Click()
         {
             MainProcess.ClearControls();
-            MainProcess.Process = new SetAccessoryForStorage(MainProcess, LampBarcode, TypeOfAccessories.Lamp);
+            MainProcess.Process = new SetAccessoryNewState(MainProcess, LampBarcode, TypeOfAccessories.Lamp, TypesOfLampsStatus.Storage);
         }
 
         private void Repair_Click()
@@ -88,6 +88,8 @@ namespace WMS_client
 
         private void Writeoff_Click()
         {
+            MainProcess.ClearControls();
+            MainProcess.Process = new SetAccessoryNewState(MainProcess, LampBarcode, TypeOfAccessories.Lamp, TypesOfLampsStatus.ToCharge);
         }
         #endregion
 

@@ -183,9 +183,9 @@ WHERE RTRIM(c.Barcode)=RTRIM(@BarCode)");
         /// <param name="lighterBarcode">Штрихкод корпуса</param>
         /// <param name="status">Новый статус</param>
         /// <param name="remove">Процесс демонтажа?</param>
-        public static void ChangeLighterStatus(string lighterBarcode, TypesOfLampsStatus status, bool remove)
+        public static void ChangeLighterState(string lighterBarcode, TypesOfLampsStatus status, bool remove)
         {
-            ChangeLighterStatus(lighterBarcode, status, remove, 0, 0, 0);
+            ChangeLighterState(lighterBarcode, status, remove, 0, 0, 0);
         }
 
         /// <summary>Изменить статус корпуса</summary>
@@ -195,7 +195,7 @@ WHERE RTRIM(c.Barcode)=RTRIM(@BarCode)");
         /// <param name="map"></param>
         /// <param name="register"></param>
         /// <param name="position"></param>
-        public static void ChangeLighterStatus(string lighterBarcode, TypesOfLampsStatus status, bool remove, int map, int register, int position)
+        public static void ChangeLighterState(string lighterBarcode, TypesOfLampsStatus status, bool remove, int map, int register, int position)
         {
             //Корпус
             string command = string.Format(

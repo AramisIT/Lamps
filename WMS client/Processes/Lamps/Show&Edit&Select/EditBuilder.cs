@@ -425,6 +425,7 @@ namespace WMS_client
             {
                 accessory = lastObj.CopyWithoutLinks();
                 MainProcess.ClearControls();
+                accessory.Status = TypesOfLampsStatus.Storage;
                 showData(false, currBarcode);
             }
         }
@@ -458,6 +459,8 @@ namespace WMS_client
                 {
                     accessory = (Accessory)accessory.Read(currentType, barcodeValue, dbObject.BARCODE_NAME);
                 }
+
+                accessory.Status = TypesOfLampsStatus.Storage;
             }
         }
     }

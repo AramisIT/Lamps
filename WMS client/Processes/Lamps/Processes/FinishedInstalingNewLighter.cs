@@ -94,7 +94,7 @@ namespace WMS_client
         /// <summary>Сохранение размещения светильника</summary>
         public void FinishedInstaling()
         {
-            Cases.ChangeLighterStatus(LightBarcode, TypesOfLampsStatus.IsWorking, false);
+            Cases.ChangeLighterState(LightBarcode, TypesOfLampsStatus.IsWorking, false);
 
             SqlCeCommand query = dbWorker.NewQuery(
                     "UPDATE Cases SET Map=@Map,Register=@Register,Position=@Position WHERE RTRIM(Barcode)=RTRIM(@Barcode)");

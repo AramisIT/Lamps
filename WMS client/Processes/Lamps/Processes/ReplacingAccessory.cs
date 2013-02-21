@@ -7,6 +7,7 @@ using WMS_client.Enums;
 
 namespace WMS_client.Processes.Lamps
 {
+    /// <summary>Заміна комплектуючого</summary>
     public class ReplacingAccessory : BusinessProcess
     {
         private readonly object CaseBarcode;
@@ -146,7 +147,7 @@ namespace WMS_client.Processes.Lamps
         {
             object caseId = BarcodeWorker.GetIdByBarcode(CaseBarcode);
             //Статус корпуса, в который запихиваем новое комплектующее
-            TypesOfLampsStatus status = Accessory.GetStatus(TypeOfAccessories.Case, CaseBarcode.ToString());
+            TypesOfLampsStatus status = Accessory.GetState(TypeOfAccessories.Case, CaseBarcode.ToString());
 
             string command = string.Format(
                 "UPDATE {0} SET Status=@IsWorking,[Case]=@Case,{1}=0,DateOfActuality=@Date WHERE RTRIM(BarCode)=@Barcode",
@@ -207,7 +208,7 @@ WHERE RTRIM(c.BarCode)=@BarCode", accessoryTable));
                 "{0}");
             
             //Статус комплектующего, которое меняем
-            TypesOfLampsStatus status = Accessory.GetStatus(TypeOfAccessories.Lamp, oldLampBarcode.ToString());
+            TypesOfLampsStatus status = Accessory.GetState(TypeOfAccessories.Lamp, oldLampBarcode.ToString());
 
             //Старое комплектующее
             query = dbWorker.NewQuery(string.Concat(

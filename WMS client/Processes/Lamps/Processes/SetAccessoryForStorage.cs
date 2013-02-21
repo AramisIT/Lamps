@@ -1,23 +1,30 @@
+using System;
 using System.Drawing;
 using WMS_client.Enums;
 using WMS_client.db;
 
 namespace WMS_client.Processes.Lamps
 {
-    /// <summary>Поставити світильник на зберігання</summary>
-    public class SetAccessoryForStorage : BusinessProcess
+    /// <summary>Поставити світильник на [новий статус]</summary>
+    public class SetAccessoryNewState : BusinessProcess
     {
         /// <summary>Штрихкод светильника</summary>
         private readonly string accessoryBarcode;
         /// <summary>Штрихкод светильника</summary>
         private readonly TypeOfAccessories typeOfAccessory;
+        private readonly TypesOfLampsStatus newState;
 
         /// <summary>Поставити світильник на зберігання</summary>
-        public SetAccessoryForStorage(WMSClient MainProcess, string barcode, TypeOfAccessories type)
+        /// <param name="MainProcess"></param>
+        /// <param name="barcode">Штрихкод комплектуючого</param>
+        /// <param name="type">Тип комплектуючого</param>
+        /// <param name="state">Новий статус</param>
+        public SetAccessoryNewState(WMSClient MainProcess, string barcode, TypeOfAccessories type, TypesOfLampsStatus state)
             : base(MainProcess, 1)
         {
             accessoryBarcode = barcode;
             typeOfAccessory = type;
+            newState = state;
 
             IsLoad = true;
             DrawControls();
@@ -29,6 +36,7 @@ namespace WMS_client.Processes.Lamps
             if (IsLoad)
             {
                 string accessory = string.Empty;
+                string endOfTopic;
 
                 switch (typeOfAccessory)
                 {
@@ -43,8 +51,22 @@ namespace WMS_client.Processes.Lamps
                         break;
                 }
 
-                MainProcess.CreateLabel(accessory+" буде поставленно на зберігання!", 5, 105, 230, 65,
-                                        MobileFontSize.Multiline,
+                switch (newState)
+                {
+                        case TypesOfLampsStatus.Storage:
+                        endOfTopic = "зберігання";
+                        break;
+                        case TypesOfLampsStatus.ToCharge:
+                        endOfTopic = "списання";
+                        break;
+                    default:
+                        const string message = "Для даного статусу не реалізовано логіку!";
+                        ShowMessage(message);
+                        throw new Exception(message);
+                }
+
+                MainProcess.CreateLabel(string.Format("{0} буде поставленно на {1}!", accessory, endOfTopic),
+                                        5, 105, 230, 65, MobileFontSize.Multiline,
                                         MobileFontPosition.Center, MobileFontColors.Default, FontStyle.Bold);
                 MainProcess.CreateLabel("Зберегти дані?", 5, 190, 230,
                                         MobileFontSize.Large, MobileFontPosition.Center, MobileFontColors.Info);
@@ -84,7 +106,7 @@ namespace WMS_client.Processes.Lamps
 
         private void save()
         {
-            Accessory.SetNewState(typeOfAccessory, accessoryBarcode, TypesOfLampsStatus.Storage);
+            Accessory.SetNewState(typeOfAccessory, accessoryBarcode, newState);
             OnHotKey(KeyAction.Esc);
         }
     }

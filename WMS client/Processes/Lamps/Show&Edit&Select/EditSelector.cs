@@ -1,9 +1,10 @@
 using WMS_client.db;
 namespace WMS_client
 {
-    /// <summary>Выбор типа комплектующего для регистрации (редактирования)</summary>
+    /// <summary>Вибір типу комплектуючого для регістрації (редагування)</summary>
     public class EditSelector : BusinessProcess
     {
+        /// <summary>Вибір типу комплектуючого для регістрації (редагування)</summary>
         public EditSelector(WMSClient MainProcess)
             : base(MainProcess, 1)
         {
@@ -34,19 +35,22 @@ namespace WMS_client
         }
         #endregion
 
-        #region Переход на регестрацию(редактирование) конкретного типа комплектующего
+        #region Перехід на регестрацію (редагування) конкретного типу комплектуючого
+        /// <summary>Ел.блок</summary>
         private void unit_Click()
         {
             MainProcess.ClearControls();
             MainProcess.Process = new EditBuilder(MainProcess, typeof(ElectronicUnits), null, "Електронний блок");
         }
 
+        /// <summary>Лампа</summary>
         private void lamp_Click()
         {
             MainProcess.ClearControls();
             MainProcess.Process = new EditBuilder(MainProcess, typeof(Lamps), null, "Лампа");
         }
 
+        /// <summary>Корпус</summary>
         private void case_Click()
         {
             MainProcess.ClearControls();

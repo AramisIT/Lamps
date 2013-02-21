@@ -34,7 +34,7 @@ namespace WMS_client
         {
             if (IsLoad)
             {
-                TypesOfLampsStatus state = Accessory.GetStatus(TypeOfAccessories.Case, CaseBarcode);
+                TypesOfLampsStatus state = Accessory.GetState(TypeOfAccessories.Case, CaseBarcode);
                 ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, Parameters);
                 list.ListOfLabels = new List<LabelForConstructor>
                                         {
@@ -59,7 +59,7 @@ namespace WMS_client
                     MainProcess.CreateButton("Ремонт", 15, 275, 100, 35, "repair", Repair);
                 }
 
-                MainProcess.CreateButton("Спиння", 125, 275, 100, 35, "writeoff", WriteOff);
+                MainProcess.CreateButton("Спиння", 125, 275, 100, 35, "writeoff", WriteOff, null, null, state != TypesOfLampsStatus.ToCharge);
             }
         }
 
@@ -130,12 +130,14 @@ namespace WMS_client
         private void Storages()
         {
             MainProcess.ClearControls();
-            MainProcess.Process = new SetAccessoryForStorage(MainProcess, CaseBarcode, TypeOfAccessories.Case);
+            MainProcess.Process = new SetAccessoryNewState(MainProcess, CaseBarcode, TypeOfAccessories.Case, TypesOfLampsStatus.Storage);
         }
 
         /// <summary>Списання</summary>
         private void WriteOff()
         {
+            MainProcess.ClearControls();
+            MainProcess.Process = new SetAccessoryNewState(MainProcess, CaseBarcode, TypeOfAccessories.Case, TypesOfLampsStatus.ToCharge);
         }
         #endregion
     }

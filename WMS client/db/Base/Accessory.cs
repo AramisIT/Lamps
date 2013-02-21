@@ -31,7 +31,7 @@ namespace WMS_client.db
         [dbFieldAtt(Description = "Партія", dbObjectType = typeof(Party), ShowInEditForm = true, ShowEmbadedInfo = true)]
         public long Party { get; set; }
         /// <summary>Статус</summary>
-        [dbFieldAtt(Description = "Статус")]
+        [dbFieldAtt(Description = "Статус", ShowInEditForm = true)]
         public TypesOfLampsStatus Status { get; set; }
         /// <summary>Тип гарантії</summary>
         [dbFieldAtt(Description = "Тип гарантії", ShowInEditForm = true)]
@@ -110,7 +110,7 @@ namespace WMS_client.db
         {
             if(accessory == TypeOfAccessories.Case)
             {
-                Cases.ChangeLighterStatus(barcode, state, true);
+                Cases.ChangeLighterState(barcode, state, true);
             }
 
             string command = string.Format(
@@ -126,7 +126,7 @@ namespace WMS_client.db
         /// <param name="accessory">Тип комплектующего</param>
         /// <param name="barcode">Штихкод</param>
         /// <returns>Статус комплектующего</returns>
-        public static TypesOfLampsStatus GetStatus(TypeOfAccessories accessory, string barcode)
+        public static TypesOfLampsStatus GetState(TypeOfAccessories accessory, string barcode)
         {
             string command = string.Format("SELECT Status FROM {0}s WHERE RTRIM({1})=RTRIM(@{1})",
                                            accessory, BARCODE_NAME);
@@ -136,6 +136,20 @@ namespace WMS_client.db
             int statusNumber = statusObj == null ? 0 : Convert.ToInt32(statusObj);
 
             return (TypesOfLampsStatus)statusNumber;
+        }
+
+        /// <summary>Встановити новий статус</summary>
+        /// <param name="accessory">Тип комплектуючого</param>
+        /// <param name="newState">Новий статус</param>
+        /// <param name="barcode">Штрихкод комплектуючого</param>
+        public static void SetState(TypeOfAccessories accessory, TypesOfLampsStatus newState, string barcode)
+        {
+            string command = string.Format("UPDATE {0}s SET Status=@State WHERE RTRIM({1})=RTRIM(@{1})",
+                                           accessory, BARCODE_NAME);
+            SqlCeCommand query = dbWorker.NewQuery(command);
+            query.AddParameter("State", newState);
+            query.AddParameter(BARCODE_NAME, barcode);
+            query.ExecuteNonQuery();
         }
 
         /// <summary>Получить последний созданный объект комлектующего заданого типа</summary>
