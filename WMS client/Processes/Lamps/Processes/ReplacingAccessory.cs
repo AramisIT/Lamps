@@ -148,19 +148,22 @@ namespace WMS_client.Processes.Lamps
             object caseId = BarcodeWorker.GetIdByBarcode(CaseBarcode);
             //Статус корпуса, в который запихиваем новое комплектующее
             TypesOfLampsStatus status = Accessory.GetState(TypeOfAccessories.Case, CaseBarcode.ToString());
+            bool isLamp = accessoryTable == typeof(db.Lamps).Name;
+            object accessoryId = BarcodeWorker.GetIdByBarcode(NewAccessoryBarcode.ToString());
 
             string command = string.Format(
-                "UPDATE {0} SET Status=@IsWorking,[Case]=@Case,{1}=0,DateOfActuality=@Date WHERE RTRIM(BarCode)=@Barcode",
+                "UPDATE {0} SET Status=@IsWorking,[Case]=@Case,{1}=0,DateOfActuality=@Date{2} WHERE RTRIM(BarCode)=@Barcode",
                 accessoryTable,
-                dbObject.IS_SYNCED);
+                dbObject.IS_SYNCED,
+                isLamp ? ",Barcode=@NewBarCode":string.Empty);
             SqlCeCommand query = dbWorker.NewQuery(command);
             query.AddParameter("Barcode", NewAccessoryBarcode);
+            query.AddParameter("NewBarCode", string.Empty);
             query.AddParameter("Case", caseId);
             query.AddParameter("IsWorking", status);
             query.AddParameter("Date", DateTime.Now);
             query.ExecuteNonQuery();
 
-            object accessoryId = BarcodeWorker.GetIdByBarcode(NewAccessoryBarcode.ToString());
             query = dbWorker.NewQuery(string.Format(
                 "UPDATE Cases SET {0}=@Id,{1}=0,DateOfActuality=@Date WHERE RTRIM(BarCode)=@Case",
                 accessoryField,
@@ -170,15 +173,15 @@ namespace WMS_client.Processes.Lamps
             query.AddParameter("Date", DateTime.Now);
             query.ExecuteNonQuery();
 
-            query = dbWorker.NewQuery(string.Format(
-                "UPDATE {0} SET [Case]=@Id,{1}=0,DateOfActuality=@Date WHERE {2}=@Id",
-                accessoryTable,
-                dbObject.IS_SYNCED,
-                dbObject.IDENTIFIER_NAME));
-            query.AddParameter("Id", caseId);
-            query.AddParameter(dbObject.IDENTIFIER_NAME, accessoryId);
-            query.AddParameter("Date", DateTime.Now);
-            query.ExecuteNonQuery();
+            //query = dbWorker.NewQuery(string.Format(
+            //    "UPDATE {0} SET Status=@IsWorking,[Case]=@Id,{1}=0,DateOfActuality=@Date WHERE {2}=@Id",
+            //    accessoryTable,
+            //    dbObject.IS_SYNCED,
+            //    dbObject.IDENTIFIER_NAME));
+            //query.AddParameter("Id", caseId);
+            //query.AddParameter(dbObject.IDENTIFIER_NAME, accessoryId);
+            //query.AddParameter("Date", DateTime.Now);
+            //query.ExecuteNonQuery();
 
             //string caseBarcode = CaseBarcode.ToString();
             //installMovement(caseBarcode);
@@ -189,63 +192,71 @@ namespace WMS_client.Processes.Lamps
         {
             //Штрихкод установленной лампы
             SqlCeCommand query = dbWorker.NewQuery(string.Format(@"
-SELECT a.Barcode
+SELECT a.Barcode, a.SyncRef
 FROM Cases c
-LEFT JOIN {0} a ON a.Id=c.Lamp
-WHERE RTRIM(c.BarCode)=@BarCode", accessoryTable));
+LEFT JOIN {0} a ON a.Id=c.{1}
+WHERE RTRIM(c.BarCode)=@BarCode", accessoryTable, accessoryTable.Substring(0, accessoryTable.Length-1)));
             query.AddParameter("BarCode", CaseBarcode);
-            object oldLampBarcode = query.ExecuteScalar();
-            object caseId = BarcodeWorker.GetIdByBarcode(CaseBarcode);
-            object newAccessoryId = BarcodeWorker.GetIdByBarcode(NewAccessoryBarcode);
+            object[] result = query.SelectArray();
 
-            string partOfCommand = string.Format(
-                "UPDATE {0} SET Status=@Status{1},[Case]=@Case,{2}=0,DateOfActuality=@Date{3} WHERE ",
-                accessoryTable,
-                type != TypeOfAccessories.ElectronicUnit
-                    ? ", Barcode=@NewBarcode "
-                    : string.Empty,
-                dbObject.IS_SYNCED,
-                "{0}");
-            
-            //Статус комплектующего, которое меняем
-            TypesOfLampsStatus status = Accessory.GetState(TypeOfAccessories.Lamp, oldLampBarcode.ToString());
+            if (result != null && result.Length == 2)
+            {
+                object oldLampBarcode = result[0];
+                object accessoryRef = result[1];
+                object caseId = BarcodeWorker.GetIdByBarcode(CaseBarcode);
+                object newAccessoryId = BarcodeWorker.GetIdByBarcode(NewAccessoryBarcode);
+                bool isLamp = accessoryTable == typeof (db.Lamps).Name;
 
-            //Старое комплектующее
-            query = dbWorker.NewQuery(string.Concat(
-                string.Format(partOfCommand, ",DrawdownDate=@DrawdownDate"),
-                " RTRIM(BarCode)=RTRIM(@LampBarcode)"));
-            query.AddParameter("Status", isForExchange ? TypesOfLampsStatus.ToRepair : TypesOfLampsStatus.Storage);
-            query.AddParameter("Case", 0);
-            query.AddParameter("LampBarcode", oldLampBarcode);
-            query.AddParameter("NewBarcode", NewAccessoryBarcode);
-            query.AddParameter("Date", DateTime.Now);
-            query.AddParameter("DrawdownDate", DateTime.Now);
-            query.ExecuteNonQuery();
+                string partOfCommand = string.Format(
+                    "UPDATE {0} SET Status=@Status{1},[Case]=@Case,{2}=0,DateOfActuality=@Date{3} WHERE ",
+                    accessoryTable,
+                    type != TypeOfAccessories.ElectronicUnit
+                        ? ", Barcode=@NewBarcode "
+                        : string.Empty,
+                    dbObject.IS_SYNCED,
+                    "{0}");
 
-            //Новое комплектующее
-            query = dbWorker.NewQuery(string.Concat(string.Format(partOfCommand, string.Empty), " Id=@Id"));
-            query.AddParameter("Status", status);
-            query.AddParameter("Case", caseId);
-            query.AddParameter("Id", newAccessoryId);
-            query.AddParameter("NewBarcode", oldLampBarcode);
-            query.AddParameter("Date", DateTime.Now);
-            query.ExecuteNonQuery();
+                //Статус комплектующего, которое меняем
+                TypesOfLampsStatus status = Accessory.GetState(TypeOfAccessories.Lamp, oldLampBarcode.ToString());
 
-            //Замена комплектующего в светильнике
-            query = dbWorker.NewQuery(string.Format(
-                "UPDATE CASES SET {0}=@NewAccessoryId,{1}=0,DateOfActuality=@Date WHERE RTRIM(BarCode)=RTRIM(@CaseBarcode)",
-                accessoryField,
-                dbObject.IS_SYNCED));
-            query.AddParameter("CaseBarcode", CaseBarcode);
-            query.AddParameter("NewAccessoryId", newAccessoryId);
-            query.AddParameter("Date", DateTime.Now);
-            query.ExecuteNonQuery();
-            
-            //Завершение
-            //string caseBarcode = CaseBarcode.ToString();
-            //installMovement(caseBarcode);
-            //removeMovement(oldLampBarcode.ToString(), caseBarcode);
-            OnHotKey(KeyAction.Esc);
+                //Старое комплектующее
+                query = dbWorker.NewQuery(string.Concat(
+                    string.Format(partOfCommand, ",DrawdownDate=@DrawdownDate"),
+                    " RTRIM(SyncRef)=RTRIM(@SyncRef)"));
+                query.AddParameter("Status", isForExchange ? TypesOfLampsStatus.ToRepair : TypesOfLampsStatus.Storage);
+                query.AddParameter("Case", 0);
+                query.AddParameter("LampBarcode", oldLampBarcode);
+                query.AddParameter("NewBarcode", isLamp ? NewAccessoryBarcode : oldLampBarcode);
+                query.AddParameter(dbObject.SYNCREF_NAME, accessoryRef);
+                query.AddParameter("Date", DateTime.Now);
+                query.AddParameter("DrawdownDate", DateTime.Now);
+                query.ExecuteNonQuery();
+
+                //Новое комплектующее
+                query = dbWorker.NewQuery(string.Concat(string.Format(partOfCommand, string.Empty), " Id=@Id"));
+                query.AddParameter("Status", status);
+                query.AddParameter("Case", caseId);
+                query.AddParameter("Id", newAccessoryId);
+                query.AddParameter("NewBarcode", isLamp ? string.Empty : oldLampBarcode);
+                query.AddParameter("Date", DateTime.Now);
+                query.ExecuteNonQuery();
+
+                //Замена комплектующего в светильнике
+                query = dbWorker.NewQuery(string.Format(
+                    "UPDATE CASES SET {0}=@NewAccessoryId,{1}=0,DateOfActuality=@Date WHERE RTRIM(BarCode)=RTRIM(@CaseBarcode)",
+                    accessoryField,
+                    dbObject.IS_SYNCED));
+                query.AddParameter("CaseBarcode", CaseBarcode);
+                query.AddParameter("NewAccessoryId", newAccessoryId);
+                query.AddParameter("Date", DateTime.Now);
+                query.ExecuteNonQuery();
+
+                //Завершение
+                //string caseBarcode = CaseBarcode.ToString();
+                //installMovement(caseBarcode);
+                //removeMovement(oldLampBarcode.ToString(), caseBarcode);
+                OnHotKey(KeyAction.Esc);
+            }
         }
 
         //private void installMovement(string caseBarCode)

@@ -8,6 +8,8 @@ namespace WMS_client.Enums
         /// <summary>Стандартна синхронізація "Відправка/Прийомка на ..."</summary>
         StandartToX,
         /// <summary>Синхронізація "Отправка на обмен"</summary>
-        SendingToExchange
+        SendingToExchange,
+        /// <summary>Синхронізація "Прийомка з ремонту"</summary>
+        AcceptanceFromRepair
     }
 }

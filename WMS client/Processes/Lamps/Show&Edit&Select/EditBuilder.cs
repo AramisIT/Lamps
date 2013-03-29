@@ -26,9 +26,15 @@ namespace WMS_client
         private readonly string currentTopic;
         /// <summary>Отсканированный щтрих-код</summary>
         private string barcode;
+        /// <summary>Чи заповнені основні дані</summary>
+        private bool isMainDataEntered{get{return accessory.Model != 0;}}
+        /// <summary></summary>
         private readonly bool emptyBarcodeEnabled;
+        /// <summary></summary>
         private readonly bool existMode;
+        /// <summary>Напис кнопки для збереження данних (завершення гілки)</summary>
         private const string okBtnText = "Ок";
+        /// <summary>напис кнопки для переходу далі</summary>
         private const string nextBtnText = "Далі";
         #endregion
 
@@ -120,7 +126,10 @@ namespace WMS_client
                 MainProcess.CreateLabel("ШТРИХ-КОД!", 0, 150, 240,
                                         MobileFontSize.Normal, MobileFontPosition.Center, MobileFontColors.Info, FontStyle.Bold);
 
-                MainProcess.CreateButton("Без штрихкода", 10, 270, 220, 35, string.Empty, () => OnBarcode(string.Empty));
+                if(currentType != typeof(Cases))
+                {
+                    MainProcess.CreateButton("Без штрихкода", 10, 270, 220, 35, string.Empty, () => OnBarcode(string.Empty));
+                }
             }
         }
 
@@ -290,82 +299,95 @@ namespace WMS_client
             Button button = ((Button) sender);
             Type type = button.Tag as Type;
 
-            if (warrantlyDataIsValid())
+            if (isMainDataEntered)
             {
-                if (type != null)
+                if (warrantlyDataIsValid())
                 {
-                    MainProcess.ClearControls();
-                    bool isNewObject = accessory.IsNew;
-
-                    //Если выбранный тип совпадает с основным типом - "Сохранение перекрестных ссылок"
-                    if (mainType == type && linkId != -1)
+                    if (type != null)
                     {
-                        //if (string.IsNullOrEmpty(accessory.BarCode)){accessory.SetIsNew();}
-                        accessory.SetValue(mainType.Name.Substring(0, mainType.Name.Length - 1), linkId);
-                        //Сохраняем для того что бы получить accessory.Id
+                        MainProcess.ClearControls();
+                        bool isNewObject = accessory.IsNew;
+
+                        //Если выбранный тип совпадает с основным типом - "Сохранение перекрестных ссылок"
+                        if (mainType == type && linkId != -1)
+                        {
+                            //if (string.IsNullOrEmpty(accessory.BarCode)){accessory.SetIsNew();}
+                            accessory.SetValue(mainType.Name.Substring(0, mainType.Name.Length - 1), linkId);
+                            //Сохраняем для того что бы получить accessory.Id
+                            accessory.Save();
+
+                            dbObject mainObj = (Accessory) Activator.CreateInstance(mainType);
+                            mainObj = (Accessory) mainObj.Read(mainType, linkId, dbObject.IDENTIFIER_NAME);
+                            mainObj.SetValue(currentType.Name.Substring(0, currentType.Name.Length - 1), accessory.Id);
+                            mainObj.Save();
+                        }
+
+                        //Запись
                         accessory.Save();
 
-                        dbObject mainObj = (Accessory) Activator.CreateInstance(mainType);
-                        mainObj = (Accessory) mainObj.Read(mainType, linkId, dbObject.IDENTIFIER_NAME);
-                        mainObj.SetValue(currentType.Name.Substring(0, currentType.Name.Length - 1), accessory.Id);
-                        mainObj.Save();
-                    }
-
-                    //Запись
-                    accessory.Save();
-
-                    //Если документ новый - значит был процесс "Регистрация"
-                    if (isNewObject)
-                    {
-                        //Внесение записи в "Перемещение"
-                        Movement.RegisterLighter(accessory.BarCode, accessory.SyncRef,
-                                                 OperationsWithLighters.Registration);
-                    }
-
-                    //Отображение 
-                    string propertyName = type.Name.Substring(0, type.Name.Length - 1);
-                    object newAccessory = accessory.GetPropery(propertyName);
-                    long newAccessoryId = newAccessory == null ? 0 : Convert.ToInt64(newAccessory);
-
-                    //Переход на связанное комплектующее
-                    if ((newAccessoryId != 0 || (newAccessoryId == 0 && linkId != -1 && mainType == type))
-                        && button.Text != okBtnText && button.Text != nextBtnText)
-                    {
-                        Accessory newObj = (Accessory) Activator.CreateInstance(type);
-                        newObj.Read(type, newAccessoryId, dbObject.IDENTIFIER_NAME);
-                        MainProcess.Process = new EditBuilder(MainProcess, mainType, mainTopic, type,
-                                                              button.Text, newObj, newObj.BarCode);
-                        accessory = newObj;
-                    }
-                        //Переход на НОВЫЙ выбранный тип комплектующего 
-                    else
-                    {
-                        //Если выбранный тип совпадает с основным типом
-                        if (mainType == type)
+                        //Если документ новый - значит был процесс "Регистрация"
+                        if (isNewObject)
                         {
-                            if (mainType == null || linkId == -1)
-                            {
-                                accessory = (Accessory) accessory.Copy();
-                                MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
-                            }
-
-                            MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
+                            //Внесение записи в "Перемещение"
+                            Movement.RegisterLighter(accessory.BarCode, accessory.SyncRef,
+                                                     OperationsWithLighters.Registration);
                         }
-                            //Не совпадает - "Передача ИД комплектующего с которого переходим"
+
+                        //Отображение 
+                        string propertyName = type.Name.Substring(0, type.Name.Length - 1);
+                        object newAccessory = accessory.GetPropery(propertyName);
+                        long newAccessoryId = newAccessory == null ? 0 : Convert.ToInt64(newAccessory);
+
+                        //Переход на связанное комплектующее
+                        if ((newAccessoryId != 0 || (newAccessoryId == 0 && linkId != -1 && mainType == type))
+                            && button.Text != okBtnText && button.Text != nextBtnText)
+                        {
+                            Accessory newObj = (Accessory) Activator.CreateInstance(type);
+                            newObj.Read(type, newAccessoryId, dbObject.IDENTIFIER_NAME);
+                            MainProcess.Process = new EditBuilder(MainProcess, mainType, mainTopic, type,
+                                                                  button.Text, newObj, newObj.BarCode);
+                            accessory = newObj;
+                        }
+                            //Переход на НОВЫЙ выбранный тип комплектующего 
                         else
                         {
-                            MainProcess.Process = new EditBuilder(MainProcess, type, mainType, button.Text,
-                                                                  accessory.Id, type == typeof (ElectronicUnits));
-                        }
+                            //Если выбранный тип совпадает с основным типом
+                            if (mainType == type)
+                            {
+                                if (mainType == null || linkId == -1)
+                                {
+                                    accessory = (Accessory) accessory.Copy();
+                                    MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
+                                }
+
+                                MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
+                            }
+                                //Не совпадает - "Передача ИД комплектующего с которого переходим"
+                            else
+                            {
+                                MainProcess.Process = new EditBuilder(MainProcess, type, mainType, button.Text,
+                                                                      accessory.Id, type == typeof (ElectronicUnits));
+                            }
 
 
-                        //Если не было произведено копирование полей для следующего комплектующего, то очистить все поля
-                        if (!accessory.IsNew)
-                        {
-                            accessory = null;
+                            //Если не было произведено копирование полей для следующего комплектующего, то очистить все поля
+                            if (!accessory.IsNew)
+                            {
+                                accessory = null;
+                            }
                         }
                     }
                 }
+            }
+            else
+            {
+                //Для того щоб не зберігали "пусті" документи
+                MessageBox.Show(
+                    "Комплектуюче без моделі збережено не буде!\r\nВідредагуйте дані!",
+                    "Збереження..",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Asterisk,
+                    MessageBoxDefaultButton.Button1);
             }
         }
 

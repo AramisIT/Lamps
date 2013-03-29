@@ -63,7 +63,7 @@ namespace WMS_client
             SyncInSending<SendingToRepair, SubSendingToRepairRepairTable>();
             //Приймання комплектуючого з ...
             infoLabel.Text = "Приймання з ремонту";
-            SyncOutSending<AcceptanceAccessoriesFromRepair, SubAcceptanceAccessoriesFromRepairRepairTable>();
+            SyncOutSending<AcceptanceAccessoriesFromRepair, SubAcceptanceAccessoriesFromRepairRepairTable>(SyncModes.AcceptanceFromRepair);
             SyncInSending<AcceptanceAccessoriesFromRepair, SubAcceptanceAccessoriesFromRepairRepairTable>();
             infoLabel.Text = "Приймання з обміну";
             SyncOutAcceptanceFromExchange();

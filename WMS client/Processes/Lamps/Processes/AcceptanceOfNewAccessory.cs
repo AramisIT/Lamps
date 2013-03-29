@@ -86,7 +86,7 @@ namespace WMS_client.Processes.Lamps
                         , 5, 165, 230, MobileFontSize.Normal, MobileFontPosition.Left, MobileFontColors.Default);
                     labelOfCount = MainProcess.CreateLabel("0", 0, 215, 240, MobileFontSize.Large,
                                                            MobileFontPosition.Center, MobileFontColors.Info);
-                    MainProcess.CreateButton("Ок", 15, 275, 210, 35, "ok", ok_Click);
+                    MainProcess.CreateButton("Завершити приймання", 15, 275, 210, 35, "ok", ok_Click);
                 }
                 else
                 {

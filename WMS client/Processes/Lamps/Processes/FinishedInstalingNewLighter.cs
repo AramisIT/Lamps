@@ -97,11 +97,12 @@ namespace WMS_client
             Cases.ChangeLighterState(LightBarcode, TypesOfLampsStatus.IsWorking, false);
 
             SqlCeCommand query = dbWorker.NewQuery(
-                    "UPDATE Cases SET Map=@Map,Register=@Register,Position=@Position WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
+                    "UPDATE Cases SET Map=@Map,Register=@Register,Position=@Position,DateOfActuality=@DateOfActuality WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
             query.AddParameter("Map", MapId);
             query.AddParameter("Register", Parameters[1]);
             query.AddParameter("Position", Parameters[2]);
             query.AddParameter("Barcode", LightBarcode);
+            query.AddParameter("DateOfActuality", DateTime.Now);
             query.ExecuteNonQuery();
 
             query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)");

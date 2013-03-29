@@ -36,8 +36,8 @@ namespace WMS_client
             {
                 object[] data = getLightPositionInfo();
                 map = Convert.ToInt32(data[1]);
-                position = Convert.ToInt32(data[2]);
-                register = Convert.ToInt32(data[3]);
+                register = Convert.ToInt32(data[2]);
+                position = Convert.ToInt32(data[3]);
 
                 ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, "ƒ≈ÃŒÕ“¿∆ —¬≤“»À‹Õ» ”", data);
                 list.ListOfLabels = new List<LabelForConstructor>

@@ -46,8 +46,9 @@ namespace WMS_client
                 visualTable.AddColumn("№Позиции", "Position", 214);
 
                 List<object> list = getFilledPosition();
+                int maxNumber = Maps.GetMaxPositionNumber(MapInfo.Id);
 
-                for (int i = 1; i <= 25;i++ )
+                for (int i = 1; i <= maxNumber; i++)
                 {
                     if(!list.Contains(i))
                     {
