@@ -136,16 +136,17 @@ namespace WMS_client
         /// <summary>Комплектующее отсканировано, нужно начать редактирование</summary>
         /// <param name="Barcode">ШтрихКод</param>
         public override sealed void OnBarcode(string Barcode)
-        {
-            if (Barcode.IsValidBarcode())
             {
+            //Если это штрих-код комплектующего
+            if (Barcode.IsValidBarcode())
+                {
                 MainProcess.ClearControls();
                 barcode = Barcode;
                 bool accesoryIsExist = !string.IsNullOrEmpty(Barcode) && BarcodeWorker.IsBarcodeExist(Barcode);
 
                 //Если в системе уже существует штрихкод
                 if (!existMode && accesoryIsExist)
-                {
+                    {
                     //Тип комплектующего штрихкода
                     TypeOfAccessories typesOfAccessories = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
                     //Является ли тип комплектующего (существующий) = типу который нужно отредактировать (отсканированный)
@@ -153,21 +154,42 @@ namespace WMS_client
 
                     //Если типы не совпадают - "Выход"
                     if (isTypeLikeCurrent)
-                    {
-                        ShowMessage("Штрихкод уже используеться в другом типе комплектующего!");
+                        {
+                        ShowMessage("Штрихкод уже используется в другом типе комплектующего!");
                         OnHotKey(KeyAction.Esc);
                         return;
+                        }
                     }
-                }
 
                 showData(accesoryIsExist, Barcode);
-            }
+                }
+                //Если это штрих-код позиции
+            else if (Barcode.IsValidPositionBarcode())
+                {
+                Cases cases = accessory as Cases;
+
+                if (cases != null)
+                    {
+                    long map;
+                    int register;
+                    int position;
+                    BarcodeWorker.GetPositionData(Barcode, out map, out register, out position);
+
+                    cases.Map = map;
+                    cases.Register = register;
+                    cases.Position = position;
+                    cases.Status = TypesOfLampsStatus.IsWorking;
+                    MainProcess.ClearControls();
+                    showData(cases.Id == 0, cases.BarCode);
+                    }
+                }
+                //Во всех других случаях
             else
-            {
+                {
                 ShowMessage("Невірний формат штрихкоду!");
                 OnHotKey(KeyAction.Esc);
+                }
             }
-        }
 
         private void showData(bool accesoryIsExist, string Barcode)
         {
@@ -300,17 +322,17 @@ namespace WMS_client
             Type type = button.Tag as Type;
 
             if (isMainDataEntered)
-            {
-                if (warrantlyDataIsValid())
                 {
-                    if (type != null)
+                if (warrantlyDataIsValid())
                     {
+                    if (type != null)
+                        {
                         MainProcess.ClearControls();
                         bool isNewObject = accessory.IsNew;
 
                         //Если выбранный тип совпадает с основным типом - "Сохранение перекрестных ссылок"
                         if (mainType == type && linkId != -1)
-                        {
+                            {
                             //if (string.IsNullOrEmpty(accessory.BarCode)){accessory.SetIsNew();}
                             accessory.SetValue(mainType.Name.Substring(0, mainType.Name.Length - 1), linkId);
                             //Сохраняем для того что бы получить accessory.Id
@@ -320,18 +342,18 @@ namespace WMS_client
                             mainObj = (Accessory) mainObj.Read(mainType, linkId, dbObject.IDENTIFIER_NAME);
                             mainObj.SetValue(currentType.Name.Substring(0, currentType.Name.Length - 1), accessory.Id);
                             mainObj.Save();
-                        }
+                            }
 
                         //Запись
                         accessory.Save();
 
                         //Если документ новый - значит был процесс "Регистрация"
                         if (isNewObject)
-                        {
+                            {
                             //Внесение записи в "Перемещение"
                             Movement.RegisterLighter(accessory.BarCode, accessory.SyncRef,
                                                      OperationsWithLighters.Registration);
-                        }
+                            }
 
                         //Отображение 
                         string propertyName = type.Name.Substring(0, type.Name.Length - 1);
@@ -341,44 +363,45 @@ namespace WMS_client
                         //Переход на связанное комплектующее
                         if ((newAccessoryId != 0 || (newAccessoryId == 0 && linkId != -1 && mainType == type))
                             && button.Text != okBtnText && button.Text != nextBtnText)
-                        {
+                            {
                             Accessory newObj = (Accessory) Activator.CreateInstance(type);
                             newObj.Read(type, newAccessoryId, dbObject.IDENTIFIER_NAME);
                             MainProcess.Process = new EditBuilder(MainProcess, mainType, mainTopic, type,
                                                                   button.Text, newObj, newObj.BarCode);
                             accessory = newObj;
-                        }
+                            }
                             //Переход на НОВЫЙ выбранный тип комплектующего 
                         else
-                        {
+                            {
                             //Если выбранный тип совпадает с основным типом
                             if (mainType == type)
-                            {
-                                if (mainType == null || linkId == -1)
                                 {
+                                if (mainType == null || linkId == -1)
+                                    {
                                     accessory = (Accessory) accessory.Copy();
+                                    accessory.ClearPosition();
                                     MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
-                                }
+                                    }
 
                                 MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
-                            }
+                                }
                                 //Не совпадает - "Передача ИД комплектующего с которого переходим"
                             else
-                            {
+                                {
                                 MainProcess.Process = new EditBuilder(MainProcess, type, mainType, button.Text,
                                                                       accessory.Id, type == typeof (ElectronicUnits));
-                            }
+                                }
 
 
                             //Если не было произведено копирование полей для следующего комплектующего, то очистить все поля
                             if (!accessory.IsNew)
-                            {
+                                {
                                 accessory = null;
+                                }
                             }
                         }
                     }
                 }
-            }
             else
             {
                 //Для того щоб не зберігали "пусті" документи
@@ -448,7 +471,9 @@ namespace WMS_client
                 accessory = lastObj.CopyWithoutLinks();
                 MainProcess.ClearControls();
                 accessory.Status = TypesOfLampsStatus.Storage;
-                showData(false, currBarcode);
+
+            accessory.ClearPosition();
+            showData(false, currBarcode);
             }
         }
         #endregion

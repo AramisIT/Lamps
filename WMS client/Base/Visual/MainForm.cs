@@ -204,7 +204,10 @@ namespace WMS_client
             if (LogoOnLine.InvokeRequired)
             {
                 try { Invoke(new FVoid1StringDelegate(BarCodeOnTDC), new object[] { Barcode }); }
-                catch { }
+                catch(Exception exc)
+                    {
+                    Console.Write(exc.Message);
+                    }
             }
             else
             {

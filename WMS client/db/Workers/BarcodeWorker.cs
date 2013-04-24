@@ -7,6 +7,7 @@ namespace WMS_client.db
     /// <summary>Штрих код рабочий</summary>
     public static class BarcodeWorker
     {
+        const char POSITION_SEPARATOR = '_';
         /// <summary>Запрос для определения типа комплектующего и Id документа по штрихкоду (или наличия такого документа в системе)</summary>
         private const string ACCESSORY_QUERY_COMMAND = @"
 SELECT {0}
@@ -18,20 +19,55 @@ FROM(
     SELECT 3 Type, Id FROM ElectronicUnits WHERE RTRIM(BarCode)=RTRIM(@BarCode) AND MarkForDeleting=0)t";
         private const string DEFAULT_QUERY_COMMAND = @"SELECT {0} FROM {1} WHERE RTRIM(BarCode)=RTRIM(@BarCode)";
 
-        /// <summary>Чи являється строка валідним штрихкодом</summary>
+        /// <summary>Чи являється строка валідним штрихкодом комплектуючого</summary>
         /// <param name="barcode">Строка</param>
         public static bool IsValidBarcode(this string barcode)
-        {
-            return ValidBarcode(barcode);
-        }
-
-        /// <summary>Чи являється строка валідним штрихкодом</summary>
-        /// <param name="barcode">Строка</param>
-        public static bool ValidBarcode(string barcode)
         {
             string trimBarcode = barcode.Trim();
             return trimBarcode.Length == 0 || trimBarcode[0] == 'L';
         }
+
+        /// <summary>Чи являється строка валідним штрих-кодом позиції</summary>
+        /// <param name="barcode">Штрих-код</param>
+        public static bool IsValidPositionBarcode(this string barcode)
+        {
+            string trimBarcode = barcode.Trim();
+            return trimBarcode.Length > 0 &&
+                   trimBarcode[0] == 'P' &&
+                   trimBarcode.Split(POSITION_SEPARATOR).Length == 4;
+        }
+
+        /// <summary>Отримати дані позиції розміщення зі штрих-коду</summary>
+        /// <param name="barcode">Штрих-код</param>
+        /// <param name="map">Id карти</param>
+        /// <param name="register">№ регістру</param>
+        /// <param name="position">№ позиції</param>
+        /// <returns>Чи були отримані данні з штрих-коду</returns>
+        public static bool GetPositionData(string barcode, out long map, out int register, out int position)
+            {
+            const char SEPARATOR = '_';
+            string[] parts = barcode.Split(SEPARATOR);
+
+            if (parts.Length == 4)
+                {
+                try
+                    {
+                    map = Convert.ToInt64(parts[1]);
+                    register = Convert.ToInt32(parts[2]);
+                    position = Convert.ToInt32(parts[3]);
+                    return true;
+                    }
+                catch (Exception exc)
+                    {
+                    Console.Write(exc.Message);
+                    }
+                }
+
+            map = 0;
+            register = 0;
+            position = 0;
+            return false;
+            }
 
         /// <summary>Получить тип комплектующего со штрих-кода</summary>
         /// <param name="barcode">Штрих-код</param>

@@ -66,6 +66,19 @@ namespace WMS_client.db
             return Read<T>(barcode, BARCODE_NAME);
         }
 
+        public void ClearPosition()
+            {
+            Cases caseAccessory = this as Cases;
+
+            if (caseAccessory != null)
+                {
+                Status = TypesOfLampsStatus.Storage;
+                caseAccessory.Position = 0;
+                caseAccessory.Map = 0;
+                caseAccessory.Register = 0;
+                }
+            }
+
         #region Static
         /// <summary>Копіювати без посилань на комплектуюче</summary>
         /// <returns>Нове комплектуюче (ще без ІД)</returns>
