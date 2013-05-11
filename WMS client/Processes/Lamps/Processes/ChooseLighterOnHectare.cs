@@ -5,10 +5,10 @@ using WMS_client.Processes.Lamps;
 using WMS_client.db;
 
 namespace WMS_client
-{
+    {
     /// <summary>Выбран светильник на гектаре</summary>
     public class ChooseLighterOnHectare : BusinessProcess
-    {
+        {
         /// <summary>Штрихкод свтильника</summary>
         private readonly string CaseBarcode;
 
@@ -16,22 +16,23 @@ namespace WMS_client
         /// <param name="MainProcess"></param>
         /// <param name="parameters">Масив инф. о светильнике</param>
         /// <param name="caseBarcode">Штрихкод свтильника</param>
-        public ChooseLighterOnHectare(WMSClient MainProcess, object[] parameters, string caseBarcode) : base(MainProcess, 1)
-        {
+        public ChooseLighterOnHectare(WMSClient MainProcess, object[] parameters, string caseBarcode)
+            : base(MainProcess, 1)
+            {
             Parameters = parameters;
             FormNumber = 1;
             BusinessProcessType = ProcessType.Registration;
             CaseBarcode = caseBarcode;
-            
+
             IsLoad = true;
             DrawControls();
-        }
+            }
 
         #region Override methods
         public override sealed void DrawControls()
-        {
-            if (IsLoad)
             {
+            if (IsLoad)
+                {
                 ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, Parameters);
                 list.ListOfLabels = new List<LabelForConstructor>
                                         {
@@ -50,19 +51,19 @@ namespace WMS_client
 
                 MainProcess.CreateButton("Демонтаж", 15, 275, 100, 35, "breakDown", BreakDown);
                 MainProcess.CreateButton("Перемістити", 125, 275, 100, 35, "installNew", InstallNew);
+                }
             }
-        }
 
         public override void OnBarcode(string Barcode)
-        {
-            if (Barcode.IsValidBarcode())
             {
+            if (Barcode.IsValidBarcode())
+                {
                 //Тип отсканированого комплектующего
                 TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
 
                 switch (type)
-                {
-                        //Лампа - установка/замена лампы
+                    {
+                    //Лампа - установка/замена лампы
                     case TypeOfAccessories.Lamp:
                         MainProcess.ClearControls();
                         MainProcess.Process = new ReplacingAccessory(
@@ -70,12 +71,12 @@ namespace WMS_client
                             Cases.IsCaseHaveAccessory(CaseBarcode, TypeOfAccessories.Lamp),
                             TypeOfAccessories.Lamp);
                         break;
-                        //Корпус - установка/замена корпуса
+                    //Корпус - установка/замена корпуса
                     case TypeOfAccessories.Case:
                         MainProcess.ClearControls();
                         MainProcess.Process = new ReplaceLights_SelectNew(MainProcess, Barcode, CaseBarcode);
                         break;
-                        //Ел.блок - установка/замена блока
+                    //Ел.блок - установка/замена блока
                     case TypeOfAccessories.ElectronicUnit:
                         MainProcess.ClearControls();
                         MainProcess.Process = new ReplacingAccessory(
@@ -83,14 +84,14 @@ namespace WMS_client
                             Cases.IsCaseHaveAccessory(CaseBarcode, TypeOfAccessories.ElectronicUnit),
                             TypeOfAccessories.ElectronicUnit);
                         break;
+                    }
                 }
             }
-        }
 
         public override void OnHotKey(KeyAction TypeOfAction)
-        {
-            switch (TypeOfAction)
             {
+            switch (TypeOfAction)
+                {
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
                     MainProcess.Process = new SelectingLampProcess(MainProcess);
@@ -98,25 +99,25 @@ namespace WMS_client
                 case KeyAction.Proceed:
                     OnBarcode("9786175660690");
                     break;
+                }
             }
-        }
         #endregion
 
         #region ButtonClick
         /// <summary>Демонтаж</summary>
         private void BreakDown()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new RemovalLight(MainProcess, CaseBarcode);
-        }
+            }
 
         /// <summary>Установка</summary>
         private void InstallNew()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new InstallingNewLighter(MainProcess, CaseBarcode);
-        }
+            }
         #endregion
+        }
     }
-}
 

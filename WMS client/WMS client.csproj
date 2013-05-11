@@ -206,6 +206,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="media_player.ico" />
+    <Content Include="ServerIP.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\tcdEnums\tcdEnums.csproj">

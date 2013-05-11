@@ -5,10 +5,10 @@ using WMS_client.Processes.Lamps;
 using WMS_client.db;
 
 namespace WMS_client
-{
+    {
     /// <summary>Выбран светильник не на гектаре</summary>
     public class ChooseLighterPerHectare : BusinessProcess
-    {
+        {
         /// <summary>Штрихкод светильника</summary>
         private readonly string CaseBarcode;
 
@@ -18,22 +18,22 @@ namespace WMS_client
         /// <param name="lampBarCode">Штрихкод светильника</param>
         public ChooseLighterPerHectare(WMSClient MainProcess, object[] parameters, string lampBarCode)
             : base(MainProcess, 1)
-        {
+            {
             Parameters = parameters;
             FormNumber = 1;
             BusinessProcessType = ProcessType.Registration;
 
             CaseBarcode = lampBarCode;
-            
+
             IsLoad = true;
             DrawControls();
-        }
+            }
 
         #region Override methods
         public override sealed void DrawControls()
-        {
-            if (IsLoad)
             {
+            if (IsLoad)
+                {
                 TypesOfLampsStatus state = Accessory.GetState(TypeOfAccessories.Case, CaseBarcode);
                 ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, Parameters);
                 list.ListOfLabels = new List<LabelForConstructor>
@@ -51,26 +51,26 @@ namespace WMS_client
                 MainProcess.CreateButton("Розібрати", 125, 225, 100, 35, "collate", Collate);
 
                 if (state == TypesOfLampsStatus.ToRepair)
-                {
+                    {
                     MainProcess.CreateButton("Зберігання", 15, 275, 100, 35, "storages", Storages);
-                }
+                    }
                 else
-                {
+                    {
                     MainProcess.CreateButton("Ремонт", 15, 275, 100, 35, "repair", Repair);
-                }
+                    }
 
                 MainProcess.CreateButton("Спиння", 125, 275, 100, 35, "writeoff", WriteOff, null, null, state != TypesOfLampsStatus.ToCharge);
+                }
             }
-        }
 
         public override void OnBarcode(string Barcode)
-        {
-            if (Barcode.IsValidBarcode())
             {
+            if (Barcode.IsValidBarcode())
+                {
                 TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
 
                 switch (type)
-                {
+                    {
                     case TypeOfAccessories.Lamp:
                         MainProcess.ClearControls();
                         MainProcess.Process = new ReplacingAccessory(MainProcess, CaseBarcode, Barcode,
@@ -85,14 +85,14 @@ namespace WMS_client
                                                                      Cases.IsCaseHaveAccessory(CaseBarcode, type),
                                                                      TypeOfAccessories.ElectronicUnit);
                         break;
+                    }
                 }
             }
-        }
 
         public override void OnHotKey(KeyAction TypeOfAction)
-        {
-            switch (TypeOfAction)
             {
+            switch (TypeOfAction)
+                {
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
                     MainProcess.Process = new SelectingLampProcess(MainProcess);
@@ -100,46 +100,46 @@ namespace WMS_client
                 case KeyAction.Proceed:
                     OnBarcode("9786175660690");
                     break;
+                }
             }
-        }
         #endregion
 
         #region ButtonClick
         /// <summary>Установка</summary>
         private void InstallNew()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new InstallingNewLighter(MainProcess, CaseBarcode);
-        }
+            }
 
         /// <summary>Розібрати</summary>
         private void Collate()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new CollateLight(MainProcess, CaseBarcode);
-        }
+            }
 
         /// <summary>Ремонт</summary>
         private void Repair()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new RepairLight(MainProcess, CaseBarcode);
-        }
+            }
 
         /// <summary>Зберігання</summary>
         private void Storages()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new SetAccessoryNewState(MainProcess, CaseBarcode, TypeOfAccessories.Case, TypesOfLampsStatus.Storage);
-        }
+            }
 
         /// <summary>Списання</summary>
         private void WriteOff()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new SetAccessoryNewState(MainProcess, CaseBarcode, TypeOfAccessories.Case, TypesOfLampsStatus.ToCharge);
-        }
+            }
         #endregion
+        }
     }
-}
 

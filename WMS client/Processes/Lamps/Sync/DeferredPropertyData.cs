@@ -1,10 +1,10 @@
 ﻿using System;
 
 namespace WMS_client
-{
+    {
     /// <summary>Данные о отложенном свойстве</summary>
     public class DataAboutDeferredProperty
-    {
+        {
         /// <summary>ID комплектующего</summary>
         public long Id { get; set; }
         /// <summary>Тип данных комплектующего</summary>
@@ -22,11 +22,11 @@ namespace WMS_client
         /// <param name="property">Имя свойства</param>
         /// <param name="value">Значение свойства</param>
         public DataAboutDeferredProperty(Type accessoryType, Type propertyType, string property, object value)
-        {
+            {
             AccessoryType = accessoryType;
             PropertyType = propertyType;
             PropertyName = property;
             Value = value;
+            }
         }
     }
-}

@@ -6,10 +6,10 @@ using System.Data.SqlServerCe;
 using WMS_client.Enums;
 
 namespace WMS_client.Processes.Lamps
-{
+    {
     /// <summary>Заміна комплектуючого</summary>
     public class ReplacingAccessory : BusinessProcess
-    {
+        {
         private readonly object CaseBarcode;
         private readonly object NewAccessoryBarcode;
         private readonly bool replaceProcess;
@@ -21,7 +21,7 @@ namespace WMS_client.Processes.Lamps
 
         public ReplacingAccessory(WMSClient MainProcess, object caseBarcode, object accessoryBarcode, bool replaceProcess, TypeOfAccessories type)
             : base(MainProcess, 1)
-        {
+            {
             CaseBarcode = caseBarcode;
             NewAccessoryBarcode = accessoryBarcode;
             FormNumber = 1;
@@ -32,54 +32,54 @@ namespace WMS_client.Processes.Lamps
             IsLoad = true;
             fillStr();
             DrawControls();
-        }
+            }
 
         private void fillStr()
-        {
+            {
             accessoryTable = Cases.GetTableNameForAccessory(type);
             accessoryDescription = Cases.GetDescriptionOfAccessory(type);
             accessoryField = Cases.GetColumnOfAccessory(type);
-        }
+            }
 
         #region Override methods
         public override sealed void DrawControls()
-        {
-            if (IsLoad)
             {
+            if (IsLoad)
+                {
                 bool underWarranty;
                 object[] array = getInfo(out underWarranty);
                 List<LabelForConstructor> listOfLabels;
 
                 if (replaceProcess)
-                {
-                    if (underWarranty)
                     {
+                    if (underWarranty)
+                        {
                         listOfLabels = new List<LabelForConstructor>
                                            {
                                                new LabelForConstructor("УВАГА!", ControlsStyle.LabelH2Red),
                                                new LabelForConstructor("Вилучене комплектуюче",ControlsStyle.LabelH2Red),
                                                new LabelForConstructor("знаходиться на гарантії!", ControlsStyle.LabelH2Red),
                                            };
-                    }
+                        }
                     else
-                    {
+                        {
                         listOfLabels = new List<LabelForConstructor>
                                            {
                                                new LabelForConstructor(string.Empty, false),
                                                new LabelForConstructor("Комплектуюче", ControlsStyle.LabelH2),
                                                new LabelForConstructor("не на гарантії!", ControlsStyle.LabelH2),
                                            };
+                        }
                     }
-                }
                 else
-                {
+                    {
                     listOfLabels = new List<LabelForConstructor>
                                            {
                                                new LabelForConstructor(string.Empty, false),
                                                new LabelForConstructor(string.Empty, false),
                                                new LabelForConstructor(string.Empty, false)
                                            };
-                }
+                    }
 
                 listOfLabels.AddRange(new List<LabelForConstructor>
                                           {
@@ -98,53 +98,53 @@ namespace WMS_client.Processes.Lamps
                 new ListOfLabelsConstructor(MainProcess, accessoryDescription, array) { ListOfLabels = listOfLabels };
 
                 if (replaceProcess)
-                {
-                    if (underWarranty)
                     {
+                    if (underWarranty)
+                        {
                         MainProcess.CreateButton("Так", 15, 275, 100, 35, "yes", yes_Click);
                         MainProcess.CreateButton("Ні", 125, 275, 100, 35, "no", no_Click);
-                    }
+                        }
                     else
-                    {
+                        {
                         MainProcess.CreateButton("Замінити", 15, 275, 210, 35, "ok", no_Click);
+                        }
                     }
-                }
                 else
-                {
+                    {
                     MainProcess.CreateButton("Ок", 15, 275, 210, 35, "ok", ok_Click);
+                    }
                 }
             }
-        }
 
         public override void OnBarcode(string Barcode)
-        {
-        }
+            {
+            }
 
         public override void OnHotKey(KeyAction TypeOfAction)
-        {
-            switch (TypeOfAction)
             {
+            switch (TypeOfAction)
+                {
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
                     MainProcess.Process = new SelectingLampProcess(MainProcess);
                     break;
+                }
             }
-        }
         #endregion
 
         #region ButtonClick
         private void yes_Click()
-        {
+            {
             finish(true);
-        }
+            }
 
         private void no_Click()
-        {
+            {
             finish(false);
-        }
+            }
 
         private void ok_Click()
-        {
+            {
             object caseId = BarcodeWorker.GetIdByBarcode(CaseBarcode);
             //Статус корпуса, в который запихиваем новое комплектующее
             TypesOfLampsStatus status = Accessory.GetState(TypeOfAccessories.Case, CaseBarcode.ToString());
@@ -155,7 +155,7 @@ namespace WMS_client.Processes.Lamps
                 "UPDATE {0} SET Status=@IsWorking,[Case]=@Case,{1}=0,DateOfActuality=@Date{2} WHERE RTRIM(BarCode)=@Barcode",
                 accessoryTable,
                 dbObject.IS_SYNCED,
-                isLamp ? ",Barcode=@NewBarCode":string.Empty);
+                isLamp ? ",Barcode=@NewBarCode" : string.Empty);
             SqlCeCommand query = dbWorker.NewQuery(command);
             query.AddParameter("Barcode", NewAccessoryBarcode);
             query.AddParameter("NewBarCode", string.Empty);
@@ -186,26 +186,26 @@ namespace WMS_client.Processes.Lamps
             //string caseBarcode = CaseBarcode.ToString();
             //installMovement(caseBarcode);
             OnHotKey(KeyAction.Esc);
-        }
+            }
 
         private void finish(bool isForExchange)
-        {
+            {
             //Штрихкод установленной лампы
             SqlCeCommand query = dbWorker.NewQuery(string.Format(@"
 SELECT a.Barcode, a.SyncRef
 FROM Cases c
 LEFT JOIN {0} a ON a.Id=c.{1}
-WHERE RTRIM(c.BarCode)=@BarCode", accessoryTable, accessoryTable.Substring(0, accessoryTable.Length-1)));
+WHERE RTRIM(c.BarCode)=@BarCode", accessoryTable, accessoryTable.Substring(0, accessoryTable.Length - 1)));
             query.AddParameter("BarCode", CaseBarcode);
             object[] result = query.SelectArray();
 
             if (result != null && result.Length == 2)
-            {
+                {
                 object oldLampBarcode = result[0];
                 object accessoryRef = result[1];
                 object caseId = BarcodeWorker.GetIdByBarcode(CaseBarcode);
                 object newAccessoryId = BarcodeWorker.GetIdByBarcode(NewAccessoryBarcode);
-                bool isLamp = accessoryTable == typeof (db.Lamps).Name;
+                bool isLamp = accessoryTable == typeof(db.Lamps).Name;
 
                 string partOfCommand = string.Format(
                     "UPDATE {0} SET Status=@Status{1},[Case]=@Case,{2}=0,DateOfActuality=@Date{3} WHERE ",
@@ -256,8 +256,8 @@ WHERE RTRIM(c.BarCode)=@BarCode", accessoryTable, accessoryTable.Substring(0, ac
                 //installMovement(caseBarcode);
                 //removeMovement(oldLampBarcode.ToString(), caseBarcode);
                 OnHotKey(KeyAction.Esc);
+                }
             }
-        }
 
         //private void installMovement(string caseBarCode)
         //{
@@ -291,7 +291,7 @@ WHERE RTRIM(c.BarCode)=@BarCode", accessoryTable, accessoryTable.Substring(0, ac
 
         #region Query
         private object[] getInfo(out bool underWarranty)
-        {
+            {
             string table = type == TypeOfAccessories.Lamp ? "Lamps" : "ElectronicUnits";
             SqlCeCommand query = dbWorker.NewQuery(string.Format(@"SELECT 
 	CASE WHEN l.DateOfWarrantyEnd>=@EndOfDay THEN 1 ELSE 0 END UnderWarranty
@@ -306,10 +306,10 @@ WHERE RTRIM(l.BarCode) like @BarCode", table));
             query.AddParameter("BarCode", NewAccessoryBarcode);
             query.AddParameter("EndOfDay", DateTime.Now.Date.AddDays(1));
             object[] result = query.SelectArray();
-            underWarranty = result!=null && Convert.ToBoolean(result[0]);
+            underWarranty = result != null && Convert.ToBoolean(result[0]);
 
             return result;
-        }
+            }
         #endregion
+        }
     }
-}

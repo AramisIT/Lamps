@@ -6,10 +6,10 @@ using WMS_client.db;
 using System.Data.SqlServerCe;
 
 namespace WMS_client
-{
+    {
     /// <summary>Заміна/встановлення світильника на гектар</summary>
     public class ReplaceLights_SelectNew : BusinessProcess
-    {
+        {
         /// <summary>Штрихкод нового світильника</summary>
         private readonly string NewLampBarCode;
         /// <summary>Штрихкод існуючого(вже встановленого) світильника</summary>
@@ -21,20 +21,20 @@ namespace WMS_client
         /// <param name="existLampBarCode">Штрихкод існуючого(вже встановленого) світильника</param>
         public ReplaceLights_SelectNew(WMSClient MainProcess, string newLampBarCode, string existLampBarCode)
             : base(MainProcess, 1)
-        {
+            {
             BusinessProcessType = ProcessType.Registration;
             FormNumber = 1;
             NewLampBarCode = newLampBarCode;
             ExistLampBarCode = existLampBarCode;
             IsLoad = true;
             DrawControls();
-        }
+            }
 
         #region Override methods
         public override sealed void DrawControls()
-        {
-            if (IsLoad)
             {
+            if (IsLoad)
+                {
                 object[] parameters = GetNewIlluminatorInfo();
                 ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, "Заміна світильника",
                                                                          parameters);
@@ -52,41 +52,41 @@ namespace WMS_client
                                         };
 
                 MainProcess.CreateButton("Ок", 20, 275, 200, 35, "ok", Ok);
+                }
             }
-        }
 
         public override void OnBarcode(string Barcode)
-        {
-        }
+            {
+            }
 
         public override void OnHotKey(KeyAction TypeOfAction)
-        {
-            switch (TypeOfAction)
             {
+            switch (TypeOfAction)
+                {
                 case KeyAction.Esc:
-                    {
+                        {
                         MainProcess.ClearControls();
                         MainProcess.Process = new SelectingLampProcess(MainProcess);
                         break;
-                    }
+                        }
+                }
             }
-        }
         #endregion
 
         #region ButtonClick
         /// <summary>Зберігти</summary>
         private void Ok()
-        {
+            {
             finishingReplaceLamps();
             MainProcess.ClearControls();
             MainProcess.Process = new SelectingLampProcess(MainProcess);
-        }
+            }
         #endregion
 
         #region Query
         /// <summary>Інформація про новий світильник</summary>
         private object[] GetNewIlluminatorInfo()
-        {
+            {
             SqlCeCommand query = dbWorker.NewQuery(@"
 SELECT CaseModel,CaseParty,CaseWarrantly
 FROM(
@@ -115,18 +115,18 @@ FROM(
 ORDER BY Type");
             query.AddParameter("BarCode", NewLampBarCode);
 
-            return query.SelectArray(new Dictionary<string, Enum> {{BaseFormatName.DateTime, DateTimeFormat.OnlyDate}});
-        }
+            return query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+            }
 
         /// <summary>Завершення заміни</summary>
         private void finishingReplaceLamps()
-        {
+            {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT Map, Register, Position, Status, SyncRef FROM Cases WHERE RTRIM(BarCode)=RTRIM(@Old)");
             query.AddParameter("Old", ExistLampBarCode);
             object[] result = query.SelectArray();
 
             if (result != null)
-            {
+                {
                 int map = Convert.ToInt32(result[0]);
                 int register = Convert.ToInt32(result[1]);
                 int position = Convert.ToInt32(result[2]);
@@ -140,9 +140,9 @@ ORDER BY Type");
                                          map, register, position);
                 Movement.RegisterLighter(NewLampBarCode, newLampRef, OperationsWithLighters.Installing,
                                          map, register, position);
+                }
             }
-        }
         #endregion
+        }
     }
-}
 

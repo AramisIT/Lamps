@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace WMS_client.Processes.Lamps
-{
+    {
     /// <summary>Прийомка з ...</summary>
     public class AcceptionSendingDocs : BusinessProcess
-    {
+        {
         #region Properties
         /// <summary>Тип комплектуючого</summary>
         private readonly TypeOfAccessories typeOfAccessory;
@@ -22,7 +22,7 @@ namespace WMS_client.Processes.Lamps
         /// <summary>Візуальна таблиця</summary>
         private MobileTable visualTable;
         /// <summary>Таблиця з даними</summary>
-        private DataTable sourceTable; 
+        private DataTable sourceTable;
         #endregion
 
         /// <summary>Прийомка з ...</summary>
@@ -30,14 +30,14 @@ namespace WMS_client.Processes.Lamps
         /// <param name="type">Тип комплектуючого</param>
         public AcceptionSendingDocs(WMSClient MainProcess, TypeOfAccessories type)
             : base(MainProcess, 1)
-        {
+            {
             rows = new Dictionary<string, DataRow>();
             accepted = new List<string>();
 
             typeOfAccessory = type;
             IsLoad = true;
             DrawControls();
-        }
+            }
 
         /// <summary>Прийомка з ...</summary>
         /// <param name="MainProcess"></param>
@@ -46,7 +46,7 @@ namespace WMS_client.Processes.Lamps
         /// <param name="subTableName">Ім'я табличної частини</param>
         public AcceptionSendingDocs(WMSClient MainProcess, string topic, TypeOfAccessories type, string subTableName)
             : base(MainProcess, 1)
-        {
+            {
             rows = new Dictionary<string, DataRow>();
             accepted = new List<string>();
             this.subTableName = subTableName;
@@ -55,13 +55,13 @@ namespace WMS_client.Processes.Lamps
             typeOfAccessory = type;
             IsLoad = true;
             DrawControls();
-        }
+            }
 
         #region Override methods
         public override sealed void DrawControls()
-        {
-            if (IsLoad)
             {
+            if (IsLoad)
+                {
                 sourceTable = new DataTable();
                 sourceTable.Columns.AddRange(new[]
                                                  {
@@ -73,84 +73,84 @@ namespace WMS_client.Processes.Lamps
                 SqlCeDataReader reader = GetData();
 
                 while (reader.Read())
-                {
+                    {
                     string id = reader["Id"].ToString().TrimEnd();
                     DataRow row = visualTable.AddRow(id);
 
                     rows.Add(id, row);
-                }
+                    }
 
                 visualTable.Focus();
                 MainProcess.CreateButton("Ок", 15, 275, 210, 35, "ok", ok_Click);
+                }
             }
-        }
 
         public override void OnBarcode(string Barcode)
-        {
+            {
             //Якщо такий штрихкод наявний у таблиці
             if (Barcode.IsValidBarcode() && rows.ContainsKey(Barcode))
-            {
+                {
                 //Прийняти
                 accepted.Add(Barcode);
                 //Видалити з візуальної таблиці
                 sourceTable.Rows.Remove(rows[Barcode]);
                 rows.Remove(Barcode);
+                }
             }
-        }
 
         public override void OnHotKey(KeyAction TypeOfAction)
-        {
-            switch (TypeOfAction)
             {
+            switch (TypeOfAction)
+                {
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
                     MainProcess.Process = new SelectingLampProcess(MainProcess);
                     break;
+                }
             }
-        }
         #endregion
 
         #region ButtonClick
         /// <summary>Завершення процесу</summary>
         private void ok_Click()
-        {
+            {
             Accept();
             MainProcess.ClearControls();
             MainProcess.Process = new SelectingLampProcess(MainProcess);
-        }
+            }
         #endregion
 
         #region Query
         /// <summary>Отримати дані для заповнення в таблиці</summary>
         private SqlCeDataReader GetData()
-        {
+            {
             string command = string.Format(@"SELECT DISTINCT c.Document Id
 FROM {0} c 
 WHERE c.TypeOfAccessory=@Type AND c.{1}=1", subTableName, dbObject.IS_SYNCED);
             SqlCeCommand query = dbWorker.NewQuery(command);
             query.AddParameter("Type", typeOfAccessory);
             return query.ExecuteReader();
-        }
+            }
 
         /// <summary>Збереження інформації</summary>
         private void Accept()
-        {
+            {
             StringBuilder command = new StringBuilder();
             command.AppendFormat("UPDATE {0} SET {1}=0 WHERE 1=0", subTableName, dbObject.IS_SYNCED);
             Dictionary<string, object> parameters = new Dictionary<string, object>();
             int index = 0;
 
             foreach (string a in accepted)
-            {
+                {
                 command.AppendFormat(" OR Document=@{0}{1}", dbSynchronizer.PARAMETER, index);
                 parameters.Add(string.Concat(dbSynchronizer.PARAMETER, index), a);
                 index++;
-            }
+                }
 
             SqlCeCommand query = dbWorker.NewQuery(command.ToString());
             query.AddParameters(parameters);
             query.ExecuteNonQuery();
-        }
+            }
         #endregion
+        }
     }
-}

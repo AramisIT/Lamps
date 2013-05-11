@@ -7,10 +7,10 @@ using WMS_client.Processes.Lamps;
 using WMS_client.db;
 
 namespace WMS_client
-{
+    {
     /// <summary>Выбран блок</summary>
     public class ChooseUnit : BusinessProcess
-    {
+        {
         /// <summary>Штрихкод блока</summary>
         private readonly string UnitBarcode;
 
@@ -19,20 +19,20 @@ namespace WMS_client
         /// <param name="unitBarcode">Штрихкод блока</param>
         public ChooseUnit(WMSClient MainProcess, string unitBarcode)
             : base(MainProcess, 1)
-        {
+            {
             FormNumber = 1;
             BusinessProcessType = ProcessType.Registration;
             UnitBarcode = unitBarcode;
 
             IsLoad = true;
             DrawControls();
-        }
+            }
 
         #region Override methods
         public override sealed void DrawControls()
-        {
-            if (IsLoad)
             {
+            if (IsLoad)
+                {
                 TypesOfLampsStatus state = Accessory.GetState(TypeOfAccessories.ElectronicUnit, UnitBarcode);
                 ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, "Ел. блок", getData());
                 list.ListOfLabels = new List<LabelForConstructor>
@@ -47,61 +47,61 @@ namespace WMS_client
                                         };
 
                 if (state == TypesOfLampsStatus.ToRepair)
-                {
+                    {
                     MainProcess.CreateButton("Зберігання", 15, 275, 100, 35, "storage", Storage_Click);
-                }
+                    }
                 else
-                {
+                    {
                     MainProcess.CreateButton("Ремонт", 15, 275, 100, 35, "repair", Repair_Click);
-                }
+                    }
 
                 MainProcess.CreateButton("Списання", 125, 275, 100, 35, "writeoff", Writeoff_Click, null, null, state != TypesOfLampsStatus.ToCharge);
+                }
             }
-        }
 
         public override void OnBarcode(string Barcode)
-        {
-        }
+            {
+            }
 
         public override void OnHotKey(KeyAction TypeOfAction)
-        {
-            switch (TypeOfAction)
             {
+            switch (TypeOfAction)
+                {
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
                     MainProcess.Process = new SelectingLampProcess(MainProcess);
                     break;
+                }
             }
-        }
         #endregion
 
         #region ButtonClick
         /// <summary>Ремонт</summary>
         private void Storage_Click()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new SetAccessoryNewState(MainProcess, UnitBarcode, TypeOfAccessories.ElectronicUnit, TypesOfLampsStatus.Storage);
-        }
+            }
 
         /// <summary>Ремонт</summary>
         private void Repair_Click()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new RepairUnit(MainProcess, UnitBarcode);
-        }
+            }
 
         /// <summary>Списание</summary>
         private void Writeoff_Click()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new SetAccessoryNewState(MainProcess, UnitBarcode, TypeOfAccessories.ElectronicUnit, TypesOfLampsStatus.ToCharge);
-        }
+            }
         #endregion
 
         #region Query
         /// <summary>Инфо о блоке</summary>
         private object[] getData()
-        {
+            {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT
     t.Description Model
     , p.Description Party
@@ -112,8 +112,8 @@ LEFT JOIN Party p ON p.Id=e.Party
 WHERE RTRIM(e.BarCode)=RTRIM(@BarCode)");
             query.AddParameter("BarCode", UnitBarcode);
 
-            return query.SelectArray(new Dictionary<string, Enum> {{BaseFormatName.DateTime, DateTimeFormat.OnlyDate}});
-        }
+            return query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+            }
         #endregion
+        }
     }
-}

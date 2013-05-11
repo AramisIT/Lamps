@@ -6,10 +6,10 @@ using WMS_client.db;
 using System;
 
 namespace WMS_client
-{
+    {
     /// <summary>Демонтаж светильника</summary>
     public class RemovalLight : BusinessProcess
-    {
+        {
         /// <summary>Штрихкод світильника</summary>
         private readonly string LightBarcode;
         /// <summary>ІД карти з якої знімаємо</summary>
@@ -22,18 +22,18 @@ namespace WMS_client
         /// <summary>Демонтаж светильника</summary>
         public RemovalLight(WMSClient MainProcess, string lightBarcode)
             : base(MainProcess, 1)
-        {
+            {
             LightBarcode = lightBarcode;
 
             IsLoad = true;
             DrawControls();
-        }
+            }
 
         #region Override methods
         public override sealed void DrawControls()
-        {
-            if (IsLoad)
             {
+            if (IsLoad)
+                {
                 object[] data = getLightPositionInfo();
                 map = Convert.ToInt32(data[1]);
                 register = Convert.ToInt32(data[2]);
@@ -53,58 +53,58 @@ namespace WMS_client
 
                 MainProcess.CreateButton("Oк", 10, 275, 105, 35, "ok", Ok_click);
                 MainProcess.CreateButton("Відміна", 125, 275, 105, 35, "cancel", Cancel_click);
+                }
             }
-        }
 
         public override void OnBarcode(string Barcode)
-        {
-        }
+            {
+            }
 
         public override void OnHotKey(KeyAction TypeOfAction)
-        {
-            switch (TypeOfAction)
             {
+            switch (TypeOfAction)
+                {
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
                     MainProcess.Process = new SelectingLampProcess(MainProcess);
                     break;
+                }
             }
-        }
         #endregion
 
         #region ButtonClick
         /// <summary>Завершення операції. Збереження інформації</summary>
         private void Ok_click()
-        {
+            {
             finish();
             MainProcess.ClearControls();
             MainProcess.Process = new SelectingLampProcess(MainProcess);
-        }
+            }
 
         /// <summary>Вихід</summary>
         private void Cancel_click()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new SelectingLampProcess(MainProcess);
-        }
+            }
         #endregion
 
         #region Query
         /// <summary>Позиция светильника</summary>
         /// <returns>Карта, Register, Position</returns>
         private object[] getLightPositionInfo()
-        {
+            {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT m.Description, c.Map MapId, c.Register, c.Position 
 FROM Cases c
 LEFT JOIN Maps m ON m.Id=c.Map
 WHERE RTRIM(c.Barcode)=@Barcode");
             query.AddParameter("Barcode", LightBarcode);
             return query.SelectArray();
-        }
+            }
 
         /// <summary>Завершение (Сохранение)</summary>
         private void finish()
-        {
+            {
             Cases.ChangeLighterState(LightBarcode, TypesOfLampsStatus.Storage, true);
 
             SqlCeCommand query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
@@ -114,8 +114,8 @@ WHERE RTRIM(c.Barcode)=@Barcode");
 
             //Внесение записи в "Перемещение"
             Movement.RegisterLighter(LightBarcode, syncRef, OperationsWithLighters.Removing, map, register, position);
-        }
+            }
         #endregion
+        }
     }
-}
 

@@ -6,10 +6,10 @@ using System.Data.SqlServerCe;
 using WMS_client.db;
 
 namespace WMS_client.Processes.Lamps
-{
+    {
     /// <summary>Приймання нового коплектующего</summary>
     public class AcceptanceOfNewAccessory : BusinessProcess
-    {
+        {
         #region Variables
         private string selectedModelRef;
         private object documentId;
@@ -32,7 +32,7 @@ namespace WMS_client.Processes.Lamps
         /// <param name="accessory">Тип комплектующего</param>
         public AcceptanceOfNewAccessory(WMSClient MainProcess, string topic, TypeOfAccessories accessory)
             : base(MainProcess, 1)
-        {
+            {
             MainProcess.ToDoCommand = topic;
             FormNumber = 1;
             BusinessProcessType = ProcessType.Registration;
@@ -41,21 +41,21 @@ namespace WMS_client.Processes.Lamps
 
             IsLoad = true;
             DrawControls();
-        }
+            }
 
         #region Override methods
         public override sealed void DrawControls()
-        {
-            if (IsLoad)
             {
+            if (IsLoad)
+                {
                 object idObj = getAcceptanceDoc();
 
                 if (idObj != null)
-                {
+                    {
 
                     documentId = idObj;
                     acceptanceDoc.Read<AcceptanceOfNewComponents>(documentId);
-                    
+
                     string caseModel = CatalogObject.GetDescription(typeof(Models).Name, acceptanceDoc.CaseModel);
                     string lampModel = CatalogObject.GetDescription(typeof(Models).Name, acceptanceDoc.LampModel);
                     string unitModel = CatalogObject.GetDescription(typeof(Models).Name, acceptanceDoc.UnitModel);
@@ -64,16 +64,16 @@ namespace WMS_client.Processes.Lamps
                     lampModelRef = CatalogObject.GetSyncRef(typeof(Models).Name, acceptanceDoc.LampModel);
                     unitModelRef = CatalogObject.GetSyncRef(typeof(Models).Name, acceptanceDoc.UnitModel);
 
-                    if(acceptanceDoc.CaseModel==0)
-                    {
+                    if (acceptanceDoc.CaseModel == 0)
+                        {
                         selectedModelRef = acceptanceDoc.LampModel == 0
                                               ? unitModelRef
                                               : lampModelRef;
-                    }
+                        }
                     else
-                    {
+                        {
                         selectedModelRef = caseModelRef;
-                    }
+                        }
                     const string emptyModel = "-";
                     MainProcess.CreateLabel(
                         string.Concat("Корпус: ", string.IsNullOrEmpty(caseModel) ? emptyModel : caseModel)
@@ -87,62 +87,62 @@ namespace WMS_client.Processes.Lamps
                     labelOfCount = MainProcess.CreateLabel("0", 0, 215, 240, MobileFontSize.Large,
                                                            MobileFontPosition.Center, MobileFontColors.Info);
                     MainProcess.CreateButton("Завершити приймання", 15, 275, 210, 35, "ok", ok_Click);
-                }
+                    }
                 else
-                {
+                    {
                     MainProcess.CreateLabel(
                         "Не знайдено жодного відкритого документа \"Прийомка нового комплектуючого\" для обраного типу!",
                         5, 115, 230, 150, MobileFontSize.Multiline, MobileFontPosition.Center, MobileFontColors.Warning, FontStyle.Bold);
+                    }
                 }
             }
-        }
 
         /// <summary>Отсканировано комплектующее для приемки</summary>
         public override void OnBarcode(string Barcode)
-        {
-            if (Barcode.IsValidBarcode())
             {
+            if (Barcode.IsValidBarcode())
+                {
                 if (newComponents.ContainsKey(Barcode) || BarcodeWorker.IsBarcodeExist(Barcode))
-                {
+                    {
                     ShowMessage("Данный штрих-код вже існує у системі!");
-                }
+                    }
                 else
-                {
+                    {
                     newComponents.Add(Barcode, selectedModelRef);
 
                     int currCount = Convert.ToInt32(labelOfCount.Text);
                     labelOfCount.Text = (++currCount).ToString();
+                    }
                 }
             }
-        }
 
         public override void OnHotKey(KeyAction TypeOfAction)
-        {
-            switch (TypeOfAction)
             {
+            switch (TypeOfAction)
+                {
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
                     MainProcess.Process = new SelectingLampProcess(MainProcess);
                     break;
+                }
             }
-        }
         #endregion
 
         #region Button+Create
         /// <summary>Закрытие приемки</summary>
         private void ok_Click()
-        {
-            if (newComponents != null)
             {
+            if (newComponents != null)
+                {
                 AcceptanceOfNewComponentsDetails.SaveArray(Convert.ToInt64(documentId), typeOfAccessory, newComponents);
 
                 //Збереження змін для документу прийомки
                 acceptanceDoc.Posted = true;
                 acceptanceDoc.Save();
-            }
+                }
 
             OnHotKey(KeyAction.Esc);
-        }
+            }
 
         #region 4Deleting
         ///// <summary>Создание комплектующего</summary>
@@ -247,12 +247,12 @@ namespace WMS_client.Processes.Lamps
         /// <summary>Получить ID свежей приемки</summary>
         /// <returns></returns>
         private object getAcceptanceDoc()
-        {
+            {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT Id FROM AcceptanceOfNewComponents a WHERE a.Posted=0 AND a.MarkForDeleting=0 AND TypeOfAccessories=@Accessory ORDER BY a.Date DESC");
             query.AddParameter("Accessory", TypeOfAccessory);
 
             return query.ExecuteScalar();
-        }
+            }
         #endregion
+        }
     }
-}

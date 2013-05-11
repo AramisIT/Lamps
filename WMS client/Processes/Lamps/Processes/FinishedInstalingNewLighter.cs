@@ -6,10 +6,10 @@ using System.Data.SqlServerCe;
 using System;
 
 namespace WMS_client
-{
+    {
     /// <summary>Завершение установки светильника</summary>
     public class FinishedInstalingNewLighter : BusinessProcess
-    {
+        {
         /// <summary>Штрихкод светильника</summary>
         private readonly string LightBarcode;
         /// <summary>ИД карты на которую устанавливаеться светильник</summary>
@@ -22,7 +22,7 @@ namespace WMS_client
         /// <param name="lampBarCode">Штрихкод светильника</param>
         public FinishedInstalingNewLighter(WMSClient MainProcess, object[] parameters, object mapId, string lampBarCode)
             : base(MainProcess, 1)
-        {
+            {
             Parameters = parameters;
             FormNumber = 1;
             BusinessProcessType = ProcessType.Registration;
@@ -32,13 +32,13 @@ namespace WMS_client
 
             IsLoad = true;
             DrawControls();
-        }
+            }
 
         #region Override methods
         public override sealed void DrawControls()
-        {
-            if (IsLoad)
             {
+            if (IsLoad)
+                {
                 ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, "ВСТАНОВЛЕННЯ СВІТИЛЬНИКУ", Parameters);
                 list.ListOfLabels = new List<LabelForConstructor>
                                         {
@@ -53,47 +53,47 @@ namespace WMS_client
 
                 MainProcess.CreateButton("Oк", 10, 275, 105, 35, "ok", Ok_click);
                 MainProcess.CreateButton("Відміна", 125, 275, 105, 35, "cancel", Cancel_click);
+                }
             }
-        }
 
         public override void OnBarcode(string Barcode)
-        {
-        }
+            {
+            }
 
         public override void OnHotKey(KeyAction TypeOfAction)
-        {
-            switch (TypeOfAction)
             {
+            switch (TypeOfAction)
+                {
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
                     MainProcess.Process = new SelectingLampProcess(MainProcess);
                     break;
+                }
             }
-        }
         #endregion
 
         #region ButtonClick
 
         /// <summary>Сохранение</summary>
         private void Ok_click()
-        {
+            {
             FinishedInstaling();
             MainProcess.ClearControls();
             MainProcess.Process = new SelectingLampProcess(MainProcess);
-        }
+            }
 
         /// <summary>Откат</summary>
         private void Cancel_click()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new SelectingLampProcess(MainProcess);
-        }
+            }
         #endregion
 
         #region Query
         /// <summary>Сохранение размещения светильника</summary>
         public void FinishedInstaling()
-        {
+            {
             Cases.ChangeLighterState(LightBarcode, TypesOfLampsStatus.IsWorking, false);
 
             SqlCeCommand query = dbWorker.NewQuery(
@@ -113,8 +113,8 @@ namespace WMS_client
             //Внесение записи в "Перемещение"
             Movement.RegisterLighter(LightBarcode, syncRef, OperationsWithLighters.Installing,
                                      (int)MapId, Convert.ToInt32(Parameters[1]), Convert.ToInt32(Parameters[2]));
-        }
+            }
         #endregion
+        }
     }
-}
 

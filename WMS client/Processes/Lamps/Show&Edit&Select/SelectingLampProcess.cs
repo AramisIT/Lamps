@@ -6,37 +6,38 @@ using System.Data.SqlServerCe;
 using WMS_client.db;
 
 namespace WMS_client
-{
+    {
     /// <summary>Выбор процесса (для светильников)</summary>
     public class SelectingLampProcess : BusinessProcess
-    {
+        {
         /// <summary>Выбор процесса (для светильников)</summary>
         /// <param name="MainProcess">Основной процесс</param>
-        public SelectingLampProcess(WMSClient MainProcess) : base(MainProcess, 1)
-        {
+        public SelectingLampProcess(WMSClient MainProcess)
+            : base(MainProcess, 1)
+            {
             BusinessProcessType = ProcessType.Selecting;
             FormNumber = 1;
-        }
+            }
 
         #region Override methods
         public override void DrawControls()
-        {
+            {
             MainProcess.ToDoCommand = "Оберіть процес";
             MainProcess.CreateButton("Інфо", 20, 75, 200, 45, "info", info_Click);
             MainProcess.CreateButton("Процеси", 20, 150, 200, 45, "process", process_Click);
             MainProcess.CreateButton("Регістрація", 20, 225, 200, 45, "registration", registration_Click);
-        }
+            }
 
         public override void OnBarcode(string Barcode)
-        {
-            if (Barcode.IsValidBarcode())
             {
+            if (Barcode.IsValidBarcode())
+                {
                 //Тип комплектуючого визначений за штрихкодом (якщо ШК відсутній, то тип = None)
                 TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
 
                 //Перехід на відповідний процес відповідно до типу комплектуючого
                 switch (type)
-                {
+                    {
                     case TypeOfAccessories.Lamp:
                         lampProcess(Barcode);
                         break;
@@ -49,20 +50,20 @@ namespace WMS_client
                     default:
                         ShowMessage("Не існує комплектуюче з таким штрихкодом!");
                         break;
+                    }
                 }
             }
-        }
 
         public override void OnHotKey(KeyAction TypeOfAction)
-        {
-            switch (TypeOfAction)
             {
-                    //Назад
+            switch (TypeOfAction)
+                {
+                //Назад
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
                     MainProcess.Process = new RegistrationProcess(MainProcess);
                     break;
-                    //Очищення
+                //Очищення
                 case KeyAction.Complate:
                     if (MessageBox.Show(
                         "Очистить все данные на ТСД?",
@@ -70,87 +71,87 @@ namespace WMS_client
                         MessageBoxButtons.YesNo,
                         MessageBoxIcon.Question,
                         MessageBoxDefaultButton.Button1) == DialogResult.Yes)
-                    {
+                        {
                         dbArchitector.ClearAll();
-                    }
+                        }
                     break;
-                    //Синхронізація
+                //Синхронізація
                 case KeyAction.Proceed:
                     new dbSynchronizer(MainProcess);
                     break;
+                }
             }
-        }
         #endregion
 
         #region Processes
         /// <summary>Перехід до процесу з лампою</summary>
         /// <param name="barcode">Штрихкод комплектуючого</param>
         private void lampProcess(string barcode)
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new ChooseLamp(MainProcess, barcode);
-        }
+            }
 
         /// <summary>Перехід до процесу з блоком</summary>
         /// <param name="barcode">Штрихкод комплектуючого</param>
         private void unitProcess(string barcode)
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new ChooseUnit(MainProcess, barcode);
-        }
+            }
 
         /// <summary>Перехід до процесу з корпусом</summary>
         /// <param name="Barcode">Штрихкод комплектуючого</param>
         private void caseProcess(string Barcode)
-        {
+            {
             bool onHectar = isCasePerHectare(Barcode);
             object[] array;
 
             //работает ли лампа = на гектаре
             if (onHectar)
-            {
+                {
                 array = LuminaireOnHectareInfo(Barcode);
 
                 if (array.Length != 0)
-                {
+                    {
                     MainProcess.ClearControls();
                     MainProcess.Process = new ChooseLighterOnHectare(MainProcess, array, Barcode);
+                    }
                 }
-            }
             else
-            {
+                {
                 array = LuminairePerHectareInfo(Barcode);
 
                 if (array.Length != 0)
-                {
+                    {
                     MainProcess.ClearControls();
                     MainProcess.Process = new ChooseLighterPerHectare(MainProcess, array, Barcode);
+                    }
                 }
             }
-        }
         #endregion
 
         #region ButtonClick
         /// <summary>Перехід до процессу "Інформація"</summary>
         private void info_Click()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new VisualPresenter(MainProcess);
-        }
+            }
 
         /// <summary>Перехід для вибору процесу</summary>
         private void process_Click()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new Processes.Lamps.Processes(MainProcess);
-        }
+            }
 
         /// <summary>Регістрація/редагування</summary>
         private void registration_Click()
-        {
+            {
             MainProcess.ClearControls();
             MainProcess.Process = new EditSelector(MainProcess);
-        }
+            }
         #endregion
 
         #region Query
@@ -158,25 +159,25 @@ namespace WMS_client
         /// <param name="barcode">Штрихкод світильника</param>
         /// <returns>Світильник на гектарі?</returns>
         private bool isCasePerHectare(string barcode)
-        {
+            {
             SqlCeCommand command = dbWorker.NewQuery(@"SELECT c.Status FROM Cases c WHERE RTRIM(BarCode)=@BarCode");
             command.AddParameter("@BarCode", barcode);
             object result = command.ExecuteScalar();
-            
-            if(result==null)
-            {
-                return false;
-            }
 
-            TypesOfLampsStatus state = (TypesOfLampsStatus) Convert.ToInt32(result);
+            if (result == null)
+                {
+                return false;
+                }
+
+            TypesOfLampsStatus state = (TypesOfLampsStatus)Convert.ToInt32(result);
             return state == TypesOfLampsStatus.IsWorking;
-        }
+            }
 
         /// <summary>Інформація по світильнику на гектарі</summary>
         /// <param name="barcode">Штрихкод світильника</param>
         /// <returns>Інформація</returns>
         private object[] LuminaireOnHectareInfo(string barcode)
-        {
+            {
             SqlCeCommand command = dbWorker.NewQuery(@"SELECT CaseModel, CaseParty, CaseWarrantly
 FROM (
     SELECT 
@@ -217,14 +218,14 @@ FROM (
 ORDER BY Type");
             command.AddParameter("@BarCode", barcode);
 
-            return command.SelectArray(new Dictionary<string, Enum> { {BaseFormatName.DateTime, DateTimeFormat.OnlyDate} });
-        }
+            return command.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+            }
 
         /// <summary>Інформація по світильнику не на гектарі</summary>
         /// <param name="barcode">Штрихкод світильника</param>
         /// <returns>Інформація</returns>
         private object[] LuminairePerHectareInfo(string barcode)
-        {
+            {
             SqlCeCommand command = dbWorker.NewQuery(@"
 SELECT CaseModel, CaseParty, CaseWarrantly
 FROM (
@@ -254,8 +255,8 @@ ORDER BY Type");
             command.AddParameter("@BarCode", barcode);
 
             return command.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
-        }
+            }
         #endregion
+        }
     }
-}
 

@@ -7,14 +7,14 @@ using WMS_client.db;
 using System.Windows.Forms;
 
 namespace WMS_client.Processes.Lamps
-{
+    {
     /// <summary>Ремонт світильників</summary>
     public class RepairLight : BusinessProcess
-    {
+        {
         #region Properties
         /// <summary>Шаги</summary>
         private enum Stages
-        {
+            {
             Begin,
             UnderWarrantly,
             OutOfWarrantlyUnit,
@@ -28,7 +28,7 @@ namespace WMS_client.Processes.Lamps
             FinishExtraction,
             Exit,
             Save
-        }
+            }
 
         private const string REPAIR_TOPIC = "Ремонт";
         private const string REPLACE_TOPIC = "На обмін";
@@ -56,23 +56,23 @@ namespace WMS_client.Processes.Lamps
         /// <summary>Ремонт світильників</summary>
         public RepairLight(WMSClient MainProcess, string lightBarcode)
             : base(MainProcess, 1)
-        {
+            {
             LightBarcode = lightBarcode;
 
             IsLoad = true;
             stage = Stages.Begin;
             DrawControls();
-        }
+            }
 
         #region Override methods
         public override sealed void DrawControls()
-        {
-            if (IsLoad)
             {
+            if (IsLoad)
+                {
                 MainProcess.ClearControls();
 
                 switch (stage)
-                {
+                    {
                     case Stages.Begin:
                         unitBarcode = string.Empty;
                         stage = Cases.UnderWarranty(LightBarcode) ? Stages.UnderWarrantly : Stages.OutOfWarrantlyUnit;
@@ -83,33 +83,33 @@ namespace WMS_client.Processes.Lamps
                         break;
                     case Stages.OutOfWarrantlyUnit:
                         if (Cases.IsHaveUnit(LightBarcode))
-                        {
+                            {
                             messageWin(REPAIR_TOPIC,
                                        "Вилучити Електроблок?",
                                        ButtonsSet.YesNo,
                                        Stages.ScanUnitBarcode,
                                        Stages.OutOfWarrantlyLamp);
-                        }
+                            }
                         else
-                        {
+                            {
                             stage = Stages.ExtractionElectricUnit;
                             DrawControls();
-                        }
+                            }
                         break;
                     case Stages.OutOfWarrantlyLamp:
                         if (Cases.IsHaveUnit(LightBarcode))
-                        {
+                            {
                             messageWin(REPAIR_TOPIC,
                                        "Вилучити Лампу?",
                                        ButtonsSet.YesNo,
                                        Stages.ScanLampBarcode,
                                        Stages.FromOutOfWarrantly);
-                        }
+                            }
                         else
-                        {
+                            {
                             stage = Stages.ExtractionLamp;
                             DrawControls();
-                        }
+                            }
                         break;
                     case Stages.FromUnderWarrantly:
                         newCaseStatus = TypesOfLampsStatus.ForExchange;
@@ -135,35 +135,35 @@ namespace WMS_client.Processes.Lamps
                         break;
                     case Stages.ScanLampBarcode:
                         if (IsLampHaveBarcode())
-                        {
+                            {
                             stage = Stages.ExtractionLamp;
                             DrawControls();
-                        }
+                            }
                         else
-                        {
+                            {
                             needSaveUnitBarcode = true;
                             messageWin(REPAIR_TOPIC,
                                        "Відскануйте штрихкод лампи",
                                        ButtonsSet.None,
                                        Stages.ExtractionLamp,
                                        Stages.ExtractionLamp);
-                        }
+                            }
                         break;
                     case Stages.ScanUnitBarcode:
                         if (IsUnitHaveBarcode())
-                        {
+                            {
                             stage = Stages.ExtractionElectricUnit;
                             DrawControls();
-                        }
+                            }
                         else
-                        {
+                            {
                             needSaveLampBarcode = true;
                             messageWin(REPAIR_TOPIC,
                                        "Відскануйте штрихкод електроблоку",
                                        ButtonsSet.None,
                                        Stages.ExtractionElectricUnit,
                                        Stages.ExtractionElectricUnit);
-                        }
+                            }
                         break;
                     case Stages.ExtractionElectricUnit:
                         stage = Stages.OutOfWarrantlyLamp;
@@ -191,69 +191,69 @@ namespace WMS_client.Processes.Lamps
                         save();
                         OnHotKey(KeyAction.Esc);
                         break;
+                    }
                 }
             }
-        }
 
         /// <summary>Скан штрихкода для Эл.блока/Лампы</summary>
         /// <param name="Barcode">Штрихкод</param>
         public override void OnBarcode(string Barcode)
-        {
-            if (Barcode.IsValidBarcode())
             {
+            if (Barcode.IsValidBarcode())
+                {
                 //Скан ел.блоків?
                 if (stage == Stages.ScanUnitBarcode)
-                {
+                    {
                     TypeOfAccessories accessory = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
 
                     //Чи використовується цей штрихкод?
                     if (accessory == TypeOfAccessories.None)
-                    {
+                        {
                         unitBarcode = Barcode;
                         stage = Stages.ExtractionElectricUnit;
                         DrawControls();
-                    }
+                        }
                     else
-                    {
+                        {
                         MessageBox.Show("Штрихкод уже используеться!");
+                        }
                     }
-                }
-                    //Скан ламп?
+                //Скан ламп?
                 else if (stage == Stages.ScanLampBarcode)
-                {
+                    {
                     TypeOfAccessories accessory = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
 
                     //Чи використовується цей штрихкод?
                     if (accessory == TypeOfAccessories.None)
-                    {
+                        {
                         lampBarcode = Barcode;
                         stage = Stages.ExtractionLamp;
                         DrawControls();
-                    }
+                        }
                     else
-                    {
+                        {
                         MessageBox.Show("Штрихкод уже используеться!");
+                        }
                     }
                 }
             }
-        }
 
         public override void OnHotKey(KeyAction TypeOfAction)
-        {
-            switch (TypeOfAction)
             {
+            switch (TypeOfAction)
+                {
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
                     MainProcess.Process = new SelectingLampProcess(MainProcess);
                     break;
+                }
             }
-        }
         #endregion
 
         #region WindMode
         /// <summary>Окно с шага "UnderWarrantly"</summary>
         private void warrantlyWin()
-        {
+            {
             object[] lightData = Cases.GetLightInfo(LightBarcode);
             ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, REPAIR_TOPIC, lightData);
             list.ListOfLabels = new List<LabelForConstructor>
@@ -271,7 +271,7 @@ namespace WMS_client.Processes.Lamps
 
             MainProcess.CreateButton("Так", 15, 275, 100, 35, "firstButton", button_Click, Stages.FromUnderWarrantly, true);
             MainProcess.CreateButton("Ні", 125, 275, 100, 35, "secondButton", button_Click, Stages.OutOfWarrantlyUnit, true);
-        }
+            }
 
         /// <summary>Окно отображения информации</summary>
         /// <param name="topic">Заголовок</param>
@@ -280,12 +280,12 @@ namespace WMS_client.Processes.Lamps
         /// <param name="firstButton">Делегат вызова при нажатии первой кнопки</param>
         /// <param name="secondButton">Делегат вызова при нажатии второй кнопки</param>
         private void messageWin(string topic, string message, ButtonsSet set, Stages firstButton, Stages secondButton)
-        {
+            {
             MainProcess.ToDoCommand = topic;
             MainProcess.CreateLabel(message, 0, 150, 240, MobileFontSize.Multiline, MobileFontPosition.Center);
 
             switch (set)
-            {
+                {
                 case ButtonsSet.YesNo:
                     MainProcess.CreateButton("Так", 15, 275, 100, 35, "firstButton", button_Click, firstButton, true);
                     MainProcess.CreateButton("Ні", 125, 275, 100, 35, "secondButton", button_Click, secondButton, true);
@@ -294,24 +294,24 @@ namespace WMS_client.Processes.Lamps
                     MainProcess.CreateButton("Ок", 15, 275, 100, 35, "firstButton", button_Click, firstButton, true);
                     MainProcess.CreateButton("Відміна", 125, 275, 100, 35, "secondButton", button_Click, secondButton, true);
                     break;
+                }
             }
-        }
         #endregion
 
         #region Button
         /// <summary>Переход на выбранный шаг</summary>
         private void button_Click(object sender)
-        {
+            {
             stage = (Stages)((Button)sender).Tag;
             DrawControls();
-        }
+            }
         #endregion
 
         #region Query
         #region Is ... have a barcode
         /// <summary>Есть ли у эл.блока штрихкод</summary>
         private bool IsUnitHaveBarcode()
-        {
+            {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT e.Barcode
 FROM Cases c 
 JOIN ElectronicUnits e ON e.Id=c.ElectronicUnit
@@ -321,11 +321,11 @@ WHERE RTRIM(c.Barcode)=@Barcode");
             unitBarcode = barcode == null ? string.Empty : barcode.ToString().TrimEnd();
 
             return !string.IsNullOrEmpty(unitBarcode);
-        }
+            }
 
         /// <summary>Есть ли у лампы штрихкод</summary>
         private bool IsLampHaveBarcode()
-        {
+            {
             SqlCeCommand query = dbWorker.NewQuery(@"SELECT l.Barcode
 FROM Cases c 
 JOIN Lamps l ON l.Id=c.ElectronicUnit
@@ -335,21 +335,21 @@ WHERE RTRIM(c.Barcode)=@Barcode");
             unitBarcode = barcode == null ? string.Empty : barcode.ToString().TrimEnd();
 
             return !string.IsNullOrEmpty(unitBarcode);
-        }
+            }
         #endregion
 
         #region Save
         /// <summary>Сохранение данных</summary>
         private void save()
-        {
+            {
             saveUnitData();
             saveLampData();
             saveCaseData();
-        }
+            }
 
         /// <summary>Сохранение данных по эл.блоку</summary>
         private void saveUnitData()
-        {
+            {
             string command = string.Format(
                 "UPDATE ElectronicUnits SET Status=@Status,{0}=0,DateOfActuality=@Date,[Case]=0{1} WHERE {2}=@{2}",
                 dbObject.IS_SYNCED, needSaveUnitBarcode ? ",Barcode=@Barcode" : string.Empty, dbObject.IDENTIFIER_NAME);
@@ -360,13 +360,13 @@ WHERE RTRIM(c.Barcode)=@Barcode");
             query.AddParameter("Date", DateTime.Now);
 
             query.ExecuteNonQuery();
-        }
+            }
 
         /// <summary>Сохранение данных по лампе</summary>
         private void saveLampData()
-        {
-            if (needSaveLampBarcode)
             {
+            if (needSaveLampBarcode)
+                {
                 string command = string.Format(
                     "UPDATE Lamps SET Status=@Status,{0}=0,DateOfActuality=@Date,[Case]=0{1} WHERE {2}=@{2}",
                     dbObject.IS_SYNCED, needSaveUnitBarcode ? ",Barcode=@Barcode" : string.Empty, dbObject.IDENTIFIER_NAME);
@@ -377,12 +377,12 @@ WHERE RTRIM(c.Barcode)=@Barcode");
                 query.AddParameter("Date", DateTime.Now);
 
                 query.ExecuteNonQuery();
+                }
             }
-        }
 
         /// <summary>Сохранение данных по корпусу</summary>
         private void saveCaseData()
-        {
+            {
             string command = string.Format(
                 "UPDATE Cases SET Status=@Status,{0}=0,DateOfActuality=@Date,Lamp=0,ElectronicUnit=0 WHERE RTRIM({1})=RTRIM(@{1})",
                 dbObject.IS_SYNCED, dbObject.BARCODE_NAME);
@@ -392,8 +392,8 @@ WHERE RTRIM(c.Barcode)=@Barcode");
             query.AddParameter("Date", DateTime.Now);
 
             query.ExecuteNonQuery();
+            }
+        #endregion
+        #endregion
         }
-        #endregion
-        #endregion
     }
-}
