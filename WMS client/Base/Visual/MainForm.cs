@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.IO;
 using Intermec.DataCollection;
 using WMS_client.db;
+using WMS_client.Base.Visual;
 
 namespace WMS_client
 {
@@ -313,7 +314,7 @@ namespace WMS_client
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            
+            (new emptyDialog()).ShowDialog();
             //Platform plat = GetPlatform();
             //if (plat == Platform.PocketPC)
             //{
