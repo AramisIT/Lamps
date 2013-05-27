@@ -11,8 +11,7 @@ namespace WMS_client
     /// <summary>Выбор процесса (для светильников)</summary>
     public class SelectingLampProcess : BusinessProcess
         {
-        private const string START_ACCEPTING_AFTER_FIXING_BARCODE = "SB_ACCEPT_AFTER_FIX.";
-
+       
         /// <summary>Выбор процесса (для светильников)</summary>
         /// <param name="MainProcess">Основной процесс</param>
         public SelectingLampProcess(WMSClient MainProcess)
@@ -33,7 +32,7 @@ namespace WMS_client
 
         public override void OnBarcode(string Barcode)
             {
-            if (Barcode.Equals(START_ACCEPTING_AFTER_FIXING_BARCODE))
+            if (Barcode.Equals(AcceptingAfterFixing.START_ACCEPTING_AFTER_FIXING_BARCODE))
                 {
                 MainProcess.ClearControls();
                 MainProcess.Process = new AcceptingAfterFixing(MainProcess);
