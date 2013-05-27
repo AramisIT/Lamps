@@ -3,6 +3,7 @@ using WMS_client.Enums;
 using System;
 using System.Windows.Forms;
 using System.Data.SqlServerCe;
+using WMS_client.Processes.Lamps;
 using WMS_client.db;
 
 namespace WMS_client
@@ -10,6 +11,8 @@ namespace WMS_client
     /// <summary>Выбор процесса (для светильников)</summary>
     public class SelectingLampProcess : BusinessProcess
         {
+        private const string START_ACCEPTING_AFTER_FIXING_BARCODE = "SB_ACCEPT_AFTER_FIX.";
+
         /// <summary>Выбор процесса (для светильников)</summary>
         /// <param name="MainProcess">Основной процесс</param>
         public SelectingLampProcess(WMSClient MainProcess)
@@ -30,7 +33,12 @@ namespace WMS_client
 
         public override void OnBarcode(string Barcode)
             {
-            if (Barcode.IsValidBarcode())
+            if (Barcode.Equals(START_ACCEPTING_AFTER_FIXING_BARCODE))
+                {
+                MainProcess.ClearControls();
+                MainProcess.Process = new AcceptingAfterFixing(MainProcess);
+                }
+            else if (Barcode.IsValidBarcode())
                 {
                 //Тип комплектуючого визначений за штрихкодом (якщо ШК відсутній, то тип = None)
                 TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);

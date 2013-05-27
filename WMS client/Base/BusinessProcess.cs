@@ -194,8 +194,8 @@ namespace WMS_client
 
         #region Abstract methods
         public abstract void DrawControls();
-        public abstract void OnBarcode(string Barcode);
-        public abstract void OnHotKey(KeyAction Key);
+        public abstract void OnBarcode(string barcode);
+        public abstract void OnHotKey(KeyAction key);
         #endregion
     }
 }

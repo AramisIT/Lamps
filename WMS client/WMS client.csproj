@@ -139,6 +139,7 @@
     <Compile Include="Processes\Lamps\Processes\ChooseUnit.cs" />
     <Compile Include="Processes\Lamps\Processes\CollateLight.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptionSendingDocs.cs" />
+    <Compile Include="Processes\Lamps\Processes\OnLine\AcceptingAfterFixing.cs" />
     <Compile Include="Processes\Lamps\Processes\Processes.cs" />
     <Compile Include="Processes\Lamps\Processes\RepairUnit.cs" />
     <Compile Include="Processes\Lamps\Processes\RepairLight.cs" />
