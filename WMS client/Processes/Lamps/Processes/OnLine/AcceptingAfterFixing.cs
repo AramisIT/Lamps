@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Data.SqlServerCe;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using WMS_client.Enums;
 using WMS_client.db;
 
 namespace WMS_client.Processes.Lamps
@@ -18,7 +20,8 @@ namespace WMS_client.Processes.Lamps
 
         private MobileLabel acceptedLabel;
         private MobileLabel lastBarcodeLabel;
-        private long documentNumber;
+        private long documentId;
+        private long contractorId;
 
         public AcceptingAfterFixing(WMSClient wmsClient)
             : base(wmsClient, 1)
@@ -87,7 +90,8 @@ namespace WMS_client.Processes.Lamps
                 {
                 return false;
                 }
-            documentNumber = (long)ResultParameters[1];
+
+            documentId = Convert.ToInt64(ResultParameters[1]);
 
             return true;
             }
@@ -128,33 +132,153 @@ namespace WMS_client.Processes.Lamps
                 return false;
                 }
 
-            PerformQuery("CreateAcceptanceAfterFixing", invoiceDate, yearsWarranty);
+            PerformQuery("CreateAcceptanceAfterFixing", invoiceDate.ToString("o"), yearsWarranty, contractorId);
             return SuccessQueryResult;
+            }
+
+        private const string CONTRACTOR_PREFIX = "SB_CONTR.";
+        private bool tryGetContractorBarcode(string barcode)
+            {
+            if (string.IsNullOrEmpty(barcode) || barcode.Length <= CONTRACTOR_PREFIX.Length) return false;
+
+            if (barcode.Substring(0, CONTRACTOR_PREFIX.Length).Equals(CONTRACTOR_PREFIX))
+                {
+                try
+                    {
+                    contractorId = Convert.ToInt64(barcode.Substring(CONTRACTOR_PREFIX.Length));
+                    return contractorId > 0;
+                    }
+                catch
+                    {
+                    }
+                }
+            return false;
             }
 
         public override void OnBarcode(string barcode)
             {
             if (barcode.Equals(START_ACCEPTING_AFTER_FIXING_BARCODE))
                 {
-                if (complateProcess())
+                leaveProcess();
+                }
+            else if (FormNumber == 1)
+                {
+                if (tryGetContractorBarcode(barcode))
                     {
-                    ClearControls();
-                    MainProcess.Process = new SelectingLampProcess(MainProcess);
+                    PerformQuery("GetContractorName", contractorId);
+
+                    if (SuccessQueryResult)
+                        {
+                        ShowMessage(ResultParameters[1] as string);
+                        }
                     }
                 }
-            else if (barcode.IsValidBarcode())
+            else if (FormNumber == 2)
                 {
-                lastBarcodeLabel.Text = barcode;
+                if (barcode.IsValidBarcode())
+                    {
+                    if (tryAddDocumentRow(barcode))
+                        {
+                        incAcceptedUnits();
+                        }
+                    lastBarcodeLabel.Text = barcode;
+                    }
+                }
+            }
+
+        private bool tryAddDocumentRow(string barcode)
+            {
+            long code;
+            try
+                {
+                code = Convert.ToInt64(barcode.Substring(1));
+                }
+            catch
+                {
+                return false;
+                }
+            if (acceptedRows.ContainsKey(code))
+                {
+                return false;
+                }
+           
+            if (correctAccessoryStatus(barcode) && addToDocumentRemotely(barcode))
+                {
+                Accessory.SetState(TypeOfAccessories.ElectronicUnit, TypesOfLampsStatus.Storage, barcode);
+                acceptedRows.Add(code, true);
+                return true;
+                }
+            else
+                {
+                return false;
+                }
+            }
+
+        private bool addToDocumentRemotely(string barcode)
+            {
+            if (!OnLine) return false;
+            PerformQuery("AddAcceptedElectronicUnitFromFixing", documentId, barcode);
+            return SuccessQueryResult;
+            }
+
+        private bool correctAccessoryStatus(string barcode)
+            {
+            TypesOfLampsStatus state = Accessory.GetState(TypeOfAccessories.ElectronicUnit, barcode);
+            if (state == TypesOfLampsStatus.ToRepair)
+                {
+                return true;
+                }
+            else
+                {
+                ShowMessage(@"Комплектуюча має бути у статусі ""На ремонті""!");
+                return false;
+                }
+            }
+
+        private SortedList<long, bool> acceptedRows = new SortedList<long, bool>();
+
+        private void incAcceptedUnits()
+            {
+            acceptedLabel.Text = (Convert.ToInt32(acceptedLabel.Text) + 1).ToString();
+            }
+
+        private void leaveProcess()
+            {
+            if (complateProcess())
+                {
+                ClearControls();
+                MainProcess.Process = new SelectingLampProcess(MainProcess);
                 }
             }
 
         public override void OnHotKey(KeyAction key)
             {
-
+            switch (key)
+                {
+                case KeyAction.Esc:
+                    leaveProcess();
+                    break;
+                }
             }
 
         private bool complateProcess()
             {
+            switch (FormNumber)
+                {
+                case 1:
+                    return true;
+                default:
+                    return complateAccepting();
+                }
+            }
+
+        private bool complateAccepting()
+            {
+            if (!ShowQuery("Завершити приймання?"))
+                {
+                return false;
+                }
+
             return true;
             }
         }
