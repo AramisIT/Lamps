@@ -23,7 +23,7 @@ namespace WMS_client
         public FinishedInstalingNewLighter(WMSClient MainProcess, object[] parameters, object mapId, string lampBarCode)
             : base(MainProcess, 1)
             {
-            Parameters = parameters;
+            ResultParameters = parameters;
             FormNumber = 1;
             BusinessProcessType = ProcessType.Registration;
             MapId = mapId;
@@ -39,7 +39,7 @@ namespace WMS_client
             {
             if (IsLoad)
                 {
-                ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, "ÂÑÒÀÍÎÂËÅÍÍß ÑÂ²ÒÈËÜÍÈÊÓ", Parameters);
+                ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, "ÂÑÒÀÍÎÂËÅÍÍß ÑÂ²ÒÈËÜÍÈÊÓ", ResultParameters);
                 list.ListOfLabels = new List<LabelForConstructor>
                                         {
                                             new LabelForConstructor(string.Empty, ControlsStyle.LabelH2),
@@ -99,8 +99,8 @@ namespace WMS_client
             SqlCeCommand query = dbWorker.NewQuery(
                     "UPDATE Cases SET Map=@Map,Register=@Register,Position=@Position,DateOfActuality=@DateOfActuality WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
             query.AddParameter("Map", MapId);
-            query.AddParameter("Register", Parameters[1]);
-            query.AddParameter("Position", Parameters[2]);
+            query.AddParameter("Register", ResultParameters[1]);
+            query.AddParameter("Position", ResultParameters[2]);
             query.AddParameter("Barcode", LightBarcode);
             query.AddParameter("DateOfActuality", DateTime.Now);
             query.ExecuteNonQuery();
@@ -112,7 +112,7 @@ namespace WMS_client
 
             //Âíåñåíèå çàïèñè â "Ïåğåìåùåíèå"
             Movement.RegisterLighter(LightBarcode, syncRef, OperationsWithLighters.Installing,
-                                     (int)MapId, Convert.ToInt32(Parameters[1]), Convert.ToInt32(Parameters[2]));
+                                     (int)MapId, Convert.ToInt32(ResultParameters[1]), Convert.ToInt32(ResultParameters[2]));
             }
         #endregion
         }

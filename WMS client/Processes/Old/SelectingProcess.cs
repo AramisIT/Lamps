@@ -66,13 +66,13 @@ namespace WMS_client
                 case KeyAction.F5:
                     {
                         PerformQuery("ПолучитьСписокПланаПриходаТары");
-                        if (Parameters == null || Parameters[0] == null)
+                        if (ResultParameters == null || ResultParameters[0] == null)
                         {
                             ShowMessage("Подойдите в зону беспроводного покрытия");
                             return;
                         }
 
-                        var dataTable = Parameters[0] as DataTable;
+                        var dataTable = ResultParameters[0] as DataTable;
                         if (dataTable!=null&&dataTable.Rows.Count < 1)
                         {
                             ShowMessage("В полученном документе нет строк для приема!");

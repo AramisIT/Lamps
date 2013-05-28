@@ -18,6 +18,7 @@ namespace WMS_client.Processes.Lamps
 
         private MobileLabel acceptedLabel;
         private MobileLabel lastBarcodeLabel;
+        private long documentNumber;
 
         public AcceptingAfterFixing(WMSClient wmsClient)
             : base(wmsClient, 1)
@@ -72,9 +73,63 @@ namespace WMS_client.Processes.Lamps
 
         private void startProcess()
             {
-            ClearControls();
-            FormNumber = 2;
-            DrawControls();
+            if (createDocumentOnServer())
+                {
+                ClearControls();
+                FormNumber = 2;
+                DrawControls();
+                }
+            }
+
+        private bool createDocumentOnServer()
+            {
+            if (!createDocumentRemotely())
+                {
+                return false;
+                }
+            documentNumber = (long)ResultParameters[1];
+
+            return true;
+            }
+
+        private bool createDocumentRemotely()
+            {
+            DateTime invoiceDate;
+            try
+                {
+                invoiceDate = new DateTime(Convert.ToInt32(yearTextBox.Text), Convert.ToInt32(monthTextBox.Text),
+                                           Convert.ToInt32(dayTextBox.Text));
+                }
+            catch (Exception)
+                {
+                ShowMessage("Невірно введена дата накладної!");
+                return false;
+                }
+
+            if (string.IsNullOrEmpty(warrantyYearsQuantityTextBox.Text))
+                {
+                warrantyYearsQuantityTextBox.Text = "0";
+                }
+
+            double yearsWarranty;
+            try
+                {
+                yearsWarranty = Convert.ToDouble(warrantyYearsQuantityTextBox.Text);
+                }
+            catch (Exception)
+                {
+                ShowMessage(string.Format("Невірно введено кількість років гарантії!. Допустимі значеняя: 0, 1, {0} і т.д.",
+                                          ((double)(1.5)).ToString()));
+                return false;
+                }
+
+            if (!OnLine)
+                {
+                return false;
+                }
+
+            PerformQuery("CreateAcceptanceAfterFixing", invoiceDate, yearsWarranty);
+            return SuccessQueryResult;
             }
 
         public override void OnBarcode(string barcode)

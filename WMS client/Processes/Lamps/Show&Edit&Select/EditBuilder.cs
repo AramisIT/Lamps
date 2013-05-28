@@ -251,8 +251,8 @@ namespace WMS_client
                 if (label.AddParameterData)
                     {
                     index += label.Skip;
-                    string parameter = Parameters != null && Parameters.Length > index
-                                           ? Parameters[index].ToString()
+                    string parameter = ResultParameters != null && ResultParameters.Length > index
+                                           ? ResultParameters[index].ToString()
                                            : string.Empty;
 
                     text = string.Format(label.Text.TrimEnd(), parameter);

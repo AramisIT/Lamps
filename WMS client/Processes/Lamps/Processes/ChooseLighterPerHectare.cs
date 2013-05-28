@@ -19,7 +19,7 @@ namespace WMS_client
         public ChooseLighterPerHectare(WMSClient MainProcess, object[] parameters, string lampBarCode)
             : base(MainProcess, 1)
             {
-            Parameters = parameters;
+            ResultParameters = parameters;
             FormNumber = 1;
             BusinessProcessType = ProcessType.Registration;
 
@@ -35,7 +35,7 @@ namespace WMS_client
             if (IsLoad)
                 {
                 TypesOfLampsStatus state = Accessory.GetState(TypeOfAccessories.Case, CaseBarcode);
-                ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, Parameters);
+                ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, ResultParameters);
                 list.ListOfLabels = new List<LabelForConstructor>
                                         {
                                             new LabelForConstructor("Корпус", ControlsStyle.LabelH2),

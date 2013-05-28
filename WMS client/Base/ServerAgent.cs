@@ -30,7 +30,7 @@ namespace WMS_client
         // #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   #   # 
         private TcpClient TCPClient;
         private NetworkStream TCPStream;
-        private bool ConnectionEstablished = false;
+        private volatile bool ConnectionEstablished = false;
         private string IPAddress;
         private int PortNumber;
         private WMSClient Client;       

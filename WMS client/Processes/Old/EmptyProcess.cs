@@ -27,7 +27,7 @@ namespace WMS_client
                 }
                 PerformQuery("CheckTaskAvailable");
 
-                if (Parameters == null || Parameters.Length == 1) return;
+                if (ResultParameters == null || ResultParameters.Length == 1) return;
 
                 //timer.Stop();
                 timer.Enable = false;
@@ -40,7 +40,7 @@ namespace WMS_client
             ProcessType BPType;
             try
             {
-                BPType = (ProcessType)Parameters[0];
+                BPType = (ProcessType)ResultParameters[0];
             }
             catch
             {
@@ -104,10 +104,10 @@ namespace WMS_client
                 }
 
                 PerformQuery("Activation", 10, Barcode);
-                if (Parameters == null) return;
+                if (ResultParameters == null) return;
                 try
                 {
-                    if ((bool)Parameters[0])
+                    if ((bool)ResultParameters[0])
                     {
                         MainProcess.ToDoCommand = "Активация";
                     }

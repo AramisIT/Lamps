@@ -162,7 +162,7 @@ namespace WMS_client
         private void updateObjOnLocalDb<T>(bool skipExists, bool updId) where T : dbObject
             {
             //Данные только по измененным элементам с "сервера"
-            DataTable changesForTsd = Parameters[1] as DataTable;
+            DataTable changesForTsd = ResultParameters[1] as DataTable;
             //Обновление элементов на локальной базе
             CreateSyncObject<T>(changesForTsd, skipExists, ref deferredProperty, updId);
             }
@@ -172,7 +172,7 @@ namespace WMS_client
         private void updateObjOnServDb<T>(string tableName) where T : dbObject
             {
             //Штрихкода элементов, которые нужно обновить на "сервере"
-            DataTable changesForServ = Parameters[2] as DataTable;
+            DataTable changesForServ = ResultParameters[2] as DataTable;
             SqlCeCommand query = dbWorker.NewQuery(string.Empty);
             StringBuilder where = new StringBuilder();
 
@@ -422,9 +422,9 @@ namespace WMS_client
 
         private void removeMarkedObject(string tableName)
             {
-            if (Parameters.Length >= 4 && Parameters[3] != null)
+            if (ResultParameters.Length >= 4 && ResultParameters[3] != null)
                 {
-                DataTable table = Parameters[3] as DataTable;
+                DataTable table = ResultParameters[3] as DataTable;
 
                 if (table != null && table.Rows.Count > 0)
                     {
@@ -469,7 +469,7 @@ namespace WMS_client
             if (IsExistParameters)
                 {
                 AcceptanceOfNewComponents.ClearAcceptedDocuments();
-                DataTable table = Parameters[0] as DataTable;
+                DataTable table = ResultParameters[0] as DataTable;
 
                 if (table != null)
                     {
@@ -526,7 +526,7 @@ namespace WMS_client
                                                       });
             PerformQuery("SyncMovement", table);
 
-            if (Parameters != null && (bool)Parameters[0])
+            if (ResultParameters != null && (bool)ResultParameters[0])
                 {
                 //Видалення записів
                 string delCommand = string.Concat("DELETE FROM ", tableName);
@@ -561,7 +561,7 @@ namespace WMS_client
 
             if (IsExistParameters)
                 {
-                DataTable table = Parameters[0] as DataTable;
+                DataTable table = ResultParameters[0] as DataTable;
 
                 if (table != null)
                     {

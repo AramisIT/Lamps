@@ -50,7 +50,7 @@ namespace WMS_client
         {
         #region Public fields
         protected bool IsLoad;
-        public object[] Parameters;
+        public object[] ResultParameters;
         public WMSClient MainProcess;
         public ProcessType BusinessProcessType;
         public string DocumentNumber;
@@ -58,8 +58,8 @@ namespace WMS_client
         public string CellName;
         public int FormNumber = 0;
         public int NextFormNumber = 1;
-        public bool IsExistParameters { get { return Parameters != null && Parameters.Length > 0 && Parameters[0] != null; } }
-        public bool IsAnswerIsTrue { get { return IsExistParameters && Convert.ToBoolean(Parameters[0]); } }
+        public bool IsExistParameters { get { return ResultParameters != null && ResultParameters.Length > 0 && ResultParameters[0] != null; } }
+        public bool IsAnswerIsTrue { get { return IsExistParameters && Convert.ToBoolean(ResultParameters[0]); } }
         #endregion
         #region Public methods
 
@@ -88,14 +88,14 @@ namespace WMS_client
 
         public void PerformQuery(string QueryName, params object[] parameters)
             {
-            Parameters = null;
+            ResultParameters = null;
             if (!MainProcess.OnLine && MainProcess.MainForm.IsMainThread)
                 {
                 ShowMessage("Нет подключения к серверу");
                 return;
                 }
 
-            Parameters = MainProcess.PerformQuery(QueryName, parameters);
+            ResultParameters = MainProcess.PerformQuery(QueryName, parameters);
             }
 
         protected void ClearControls()
@@ -145,6 +145,26 @@ namespace WMS_client
             {
             return MessageBox.Show(msg.ToUpper(), "aramis wms", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes;
             }
+
+        protected bool OnLine
+            {
+            get
+                {
+                return MainProcess.ConnectionAgent.OnLine;
+                }
+            }
+
+        protected bool SuccessQueryResult
+        {
+            get
+            {
+                return ResultParameters != null
+                       && ResultParameters.GetType() == typeof (object[])
+                       && ResultParameters.Length > 0
+                       && ResultParameters[0] is bool
+                       && (bool) ResultParameters[0];
+            }
+        }
         #endregion
 
         #region Private methods

@@ -270,8 +270,8 @@ namespace WMS_client
             else
             {
                 PerformQuery("НайтиКодЕдИзм", Barcode);
-                if (Parameters == null || Parameters[0] == null) return;
-                unitCode = Convert.ToUInt64(Parameters[0] as string);
+                if (ResultParameters == null || ResultParameters[0] == null) return;
+                unitCode = Convert.ToUInt64(ResultParameters[0] as string);
                 if (unitCode == 0)
                 {
                     ShowMessage("Штрих-код не найден среди единиц измерения расходных материалов.");
@@ -336,13 +336,13 @@ namespace WMS_client
                             DocumentNumber = System.Convert.ToInt64(dr["Номер"]).ToString();
 
                             ShortQuery("ПолучитьПланПриходаТары", true);
-                            if (Parameters == null || Parameters[0] == null)
+                            if (ResultParameters == null || ResultParameters[0] == null)
                             {
                                 //ShowMessage("Подойдите в зону беспроводного покрытия и повторите попытку!");                                
                                 return;
                             }
 
-                            var newTable = Parameters[0] as DataTable;
+                            var newTable = ResultParameters[0] as DataTable;
                             if (newTable.Rows.Count == 0)
                             {
                                 MainProcess.ClearControls();
@@ -377,7 +377,7 @@ namespace WMS_client
                             result.Columns.Remove("ЕИПоУмолчанию");
 
                             ShortQuery("ЗавершитьПриемРасхМатериалов", result);
-                            if (Parameters == null) return;
+                            if (ResultParameters == null) return;
 
                             MainProcess.ClearControls();
                             MainProcess.Process = new SelectingProcess(MainProcess);

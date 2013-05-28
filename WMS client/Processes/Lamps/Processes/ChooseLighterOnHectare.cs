@@ -19,7 +19,7 @@ namespace WMS_client
         public ChooseLighterOnHectare(WMSClient MainProcess, object[] parameters, string caseBarcode)
             : base(MainProcess, 1)
             {
-            Parameters = parameters;
+            ResultParameters = parameters;
             FormNumber = 1;
             BusinessProcessType = ProcessType.Registration;
             CaseBarcode = caseBarcode;
@@ -33,7 +33,7 @@ namespace WMS_client
             {
             if (IsLoad)
                 {
-                ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, Parameters);
+                ListOfLabelsConstructor list = new ListOfLabelsConstructor(MainProcess, ResultParameters);
                 list.ListOfLabels = new List<LabelForConstructor>
                                         {
                                             new LabelForConstructor("Корпус", ControlsStyle.LabelH2),

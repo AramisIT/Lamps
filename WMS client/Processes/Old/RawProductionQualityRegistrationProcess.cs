@@ -285,7 +285,7 @@ namespace WMS_client
                             UploadToDT("SELECT NomenclatureId, DepartmentId, PalletNo FROM Pallets ORDER BY NomenclatureId"),
                             UploadToDT("SELECT NomenclatureId, DepartmentId, CriterionsId, ParentCriterionId, Mark FROM Marks"));
 
-                        if (Parameters == null || Parameters[0] == null)
+                        if (ResultParameters == null || ResultParameters[0] == null)
                         {
                             ShowMessage("Подойдите в зону беспроводного покрытия");
                             return;
@@ -382,7 +382,7 @@ namespace WMS_client
         private bool UpdateRules()
         {
             this.PerformQuery("ПолучитьОбновленияПоОцениваниюКачестваНП");
-            if (Parameters == null)
+            if (ResultParameters == null)
                 return false;
 
             DataTable dt;
@@ -393,7 +393,7 @@ namespace WMS_client
 
                 #region Загрузка справочника Номенклатура
 
-                dt = Parameters[0] as DataTable;
+                dt = ResultParameters[0] as DataTable;
                 using (SqlCeCommand SQLCommand = dBConnection.CreateCommand())
                 {
                     // Удаление старых записей номенклатуры
@@ -417,7 +417,7 @@ namespace WMS_client
 
                 #region Загрузка справочника Критерии оценивания
 
-                dt = Parameters[1] as DataTable;
+                dt = ResultParameters[1] as DataTable;
                 using (SqlCeCommand SQLCommand = dBConnection.CreateCommand())
                 {
                     // Удаление старых записей критериев оценивания
@@ -447,7 +447,7 @@ namespace WMS_client
 
                 #region Загрузка правил проверки
 
-                dt = Parameters[2] as DataTable;
+                dt = ResultParameters[2] as DataTable;
                 using (SqlCeCommand SQLCommand = dBConnection.CreateCommand())
                 {
                     // Удаление старых записей 
