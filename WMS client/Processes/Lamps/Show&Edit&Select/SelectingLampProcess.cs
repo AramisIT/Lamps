@@ -11,7 +11,7 @@ namespace WMS_client
     /// <summary>Выбор процесса (для светильников)</summary>
     public class SelectingLampProcess : BusinessProcess
         {
-       
+
         /// <summary>Выбор процесса (для светильников)</summary>
         /// <param name="MainProcess">Основной процесс</param>
         public SelectingLampProcess(WMSClient MainProcess)
@@ -30,34 +30,51 @@ namespace WMS_client
             MainProcess.CreateButton("Регістрація", 20, 225, 200, 45, "registration", registration_Click);
             }
 
-        public override void OnBarcode(string Barcode)
+        public override void OnBarcode(string barcode)
             {
-            if (Barcode.Equals(AcceptingAfterFixing.START_ACCEPTING_AFTER_FIXING_BARCODE))
+            if (barcode.Equals(AcceptingAfterFixing.START_ACCEPTING_AFTER_FIXING_BARCODE))
                 {
                 MainProcess.ClearControls();
                 MainProcess.Process = new AcceptingAfterFixing(MainProcess);
                 }
-            else if (Barcode.IsValidBarcode())
+            else if (barcode.IsValidPositionBarcode())
+                {
+                tryPlacingLight(barcode);
+                }
+            else if (barcode.IsValidBarcode())
                 {
                 //Тип комплектуючого визначений за штрихкодом (якщо ШК відсутній, то тип = None)
-                TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
+                TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(barcode);
 
                 //Перехід на відповідний процес відповідно до типу комплектуючого
                 switch (type)
                     {
                     case TypeOfAccessories.Lamp:
-                        lampProcess(Barcode);
+                        lampProcess(barcode);
                         break;
                     case TypeOfAccessories.ElectronicUnit:
-                        unitProcess(Barcode);
+                        unitProcess(barcode);
                         break;
                     case TypeOfAccessories.Case:
-                        caseProcess(Barcode);
+                        caseProcess(barcode);
                         break;
                     default:
                         ShowMessage("Не існує комплектуюче з таким штрихкодом!");
                         break;
                     }
+                }
+            }
+
+        private void tryPlacingLight(string barcode)
+            {
+
+            long map;
+            int register;
+            int position;
+            if (barcode.GetPositionData(out map, out register, out position))
+                {
+                ClearControls();
+                MainProcess.Process = new PlacingOnMap(MainProcess, map, register, position);
                 }
             }
 

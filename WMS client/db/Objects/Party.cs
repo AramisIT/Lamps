@@ -44,7 +44,7 @@ namespace WMS_client.db
         }
 
         #region Implemention of dbObject
-        public override object Save()
+        public override object Write()
         {
             return base.Save<Party>();
         }

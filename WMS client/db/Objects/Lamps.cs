@@ -7,7 +7,7 @@ namespace WMS_client.db
         [dbFieldAtt(Description = "Корпус", dbObjectType = typeof(Cases), NeedDetailInfo = true)]
         public long Case { get; set; }
 
-        public override object Save()
+        public override object Write()
         {
             return base.Save<Lamps>();
         }

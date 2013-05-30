@@ -138,7 +138,7 @@ namespace WMS_client.Processes.Lamps
 
                 //Збереження змін для документу прийомки
                 acceptanceDoc.Posted = true;
-                acceptanceDoc.Save();
+                acceptanceDoc.Write();
                 }
 
             OnHotKey(KeyAction.Esc);

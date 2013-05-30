@@ -12,7 +12,7 @@ namespace WMS_client.db
             Document = string.Empty;
         }
 
-        public override object Save()
+        public override object Write()
         {
             return base.Save<SubAcceptanceAccessoriesFromExchangeExchange>();
         }

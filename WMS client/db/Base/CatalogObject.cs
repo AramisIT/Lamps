@@ -366,7 +366,7 @@ namespace WMS_client.db
             command.AddParameter(IDENTIFIER_NAME, id);
             object desObj = command.ExecuteScalar();
 
-            return desObj == null ? string.Empty : desObj.ToString();
+            return desObj == null ? string.Empty : desObj.ToString().TrimEnd();
         }
 
         public static string GetSyncRef(string tableName, object id)

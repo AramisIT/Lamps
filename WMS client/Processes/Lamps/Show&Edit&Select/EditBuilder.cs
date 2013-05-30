@@ -341,16 +341,16 @@ namespace WMS_client
                             //if (string.IsNullOrEmpty(accessory.BarCode)){accessory.SetIsNew();}
                             accessory.SetValue(mainType.Name.Substring(0, mainType.Name.Length - 1), linkId);
                             //Сохраняем для того что бы получить accessory.Id
-                            accessory.Save();
+                            accessory.Write();
 
                             dbObject mainObj = (Accessory)Activator.CreateInstance(mainType);
                             mainObj = (Accessory)mainObj.Read(mainType, linkId, dbObject.IDENTIFIER_NAME);
                             mainObj.SetValue(currentType.Name.Substring(0, currentType.Name.Length - 1), accessory.Id);
-                            mainObj.Save();
+                            mainObj.Write();
                             }
 
                         //Запись
-                        accessory.Save();
+                        accessory.Write();
 
                         //Если документ новый - значит был процесс "Регистрация"
                         if (isNewObject)

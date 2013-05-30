@@ -10,7 +10,7 @@ namespace WMS_client.db
         [dbFieldAtt(Description = "IsSynced", NotShowInForm = true)]
         public bool IsSynced { get; set; }
 
-        public override object Save()
+        public override object Write()
         {
             return base.Save<Models>();
         }

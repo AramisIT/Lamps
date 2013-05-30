@@ -22,7 +22,7 @@ namespace WMS_client.db
             return SaveChanges<AcceptanceAccessoriesFromExchangeDetails>(false, updId);
         }
 
-        public override object Save()
+        public override object Write()
         {
             return base.Save<AcceptanceAccessoriesFromExchangeDetails>();
         }

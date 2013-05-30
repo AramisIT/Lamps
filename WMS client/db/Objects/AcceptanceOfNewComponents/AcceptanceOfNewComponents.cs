@@ -81,7 +81,7 @@ namespace WMS_client.db
         #endregion
 
         #region Implemention
-        public override object Save()
+        public override object Write()
         {
             return base.Save<AcceptanceOfNewComponents>();
         }

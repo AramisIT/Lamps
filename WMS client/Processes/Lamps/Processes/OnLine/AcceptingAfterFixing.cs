@@ -11,6 +11,7 @@ namespace WMS_client.Processes.Lamps
     public class AcceptingAfterFixing : BusinessProcess
         {
         public const string START_ACCEPTING_AFTER_FIXING_BARCODE = "SB_ACPT_F_FIX.";
+        private const string SPECIAL_BARCODE_SET_UNIT_STATUS = "2000003023073";
 
         private MobileTextBox dayTextBox;
         private MobileTextBox monthTextBox;
@@ -133,15 +134,24 @@ namespace WMS_client.Processes.Lamps
                 }
 
             PerformQuery("CreateAcceptanceAfterFixing", invoiceDate.ToString("o"), yearsWarranty, contractorId);
+            if (!SuccessQueryResult)
+                {
+                if (ResultParameters.Length > 1 && ResultParameters[1] != null)
+                    {
+                    ShowMessage(string.Format("Err: {0}", ResultParameters[1].ToString()));
+                    }
+                }
             return SuccessQueryResult;
             }
 
         private const string CONTRACTOR_PREFIX = "SB_CONTR.";
+        private const string CONTRACTOR_ALTERNATIVE_PREFIX = "SB.CONTR.";
         private bool tryGetContractorBarcode(string barcode)
             {
             if (string.IsNullOrEmpty(barcode) || barcode.Length <= CONTRACTOR_PREFIX.Length) return false;
 
-            if (barcode.Substring(0, CONTRACTOR_PREFIX.Length).Equals(CONTRACTOR_PREFIX))
+            if (barcode.Substring(0, CONTRACTOR_PREFIX.Length).Equals(CONTRACTOR_PREFIX)
+                || barcode.Substring(0, CONTRACTOR_PREFIX.Length).Equals(CONTRACTOR_ALTERNATIVE_PREFIX))
                 {
                 try
                     {
@@ -155,8 +165,23 @@ namespace WMS_client.Processes.Lamps
             return false;
             }
 
+        private bool setCorrectStatusToUnit;
         public override void OnBarcode(string barcode)
             {
+            // это хак, нужен для запуска, изменяет статус блока на базе ТСД
+            if (barcode.Equals(SPECIAL_BARCODE_SET_UNIT_STATUS))
+                {
+                setCorrectStatusToUnit = true;
+                return;
+                }
+            else if (setCorrectStatusToUnit)
+                {
+                setCorrectStatusToUnit = false;
+                Accessory.SetNewState(TypeOfAccessories.ElectronicUnit, barcode, TypesOfLampsStatus.ToRepair);
+                ShowMessage("");
+                return;
+                }
+
             if (barcode.Equals(START_ACCEPTING_AFTER_FIXING_BARCODE))
                 {
                 leaveProcess();
@@ -201,7 +226,7 @@ namespace WMS_client.Processes.Lamps
                 {
                 return false;
                 }
-           
+
             if (correctAccessoryStatus(barcode) && addToDocumentRemotely(barcode))
                 {
                 Accessory.SetState(TypeOfAccessories.ElectronicUnit, TypesOfLampsStatus.Storage, barcode);

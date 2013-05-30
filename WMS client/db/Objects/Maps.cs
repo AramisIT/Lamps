@@ -25,7 +25,7 @@ namespace WMS_client.db
         [dbFieldAtt(Description = "Статус синхронизации с сервером", NotShowInForm = true)]
         public bool IsSynced { get; set; }
 
-        public override object Save()
+        public override object Write()
         {
             return base.Save<Maps>();
         }

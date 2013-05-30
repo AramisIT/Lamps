@@ -3,11 +3,11 @@ using System.Data.SqlServerCe;
 using WMS_client.Enums;
 
 namespace WMS_client.db
-{
+    {
     /// <summary>Штрих код рабочий</summary>
     public static class BarcodeWorker
-    {
-        const char POSITION_SEPARATOR = '_';
+        {
+        const char POSITION_SEPARATOR = '.';
         /// <summary>Запрос для определения типа комплектующего и Id документа по штрихкоду (или наличия такого документа в системе)</summary>
         private const string ACCESSORY_QUERY_COMMAND = @"
 SELECT {0}
@@ -22,20 +22,21 @@ FROM(
         /// <summary>Чи являється строка валідним штрихкодом комплектуючого</summary>
         /// <param name="barcode">Строка</param>
         public static bool IsValidBarcode(this string barcode)
-        {
+            {
             string trimBarcode = barcode.Trim();
             return trimBarcode.Length == 0 || trimBarcode[0] == 'L';
-        }
+            }
 
         /// <summary>Чи являється строка валідним штрих-кодом позиції</summary>
         /// <param name="barcode">Штрих-код</param>
         public static bool IsValidPositionBarcode(this string barcode)
-        {
+            {
             string trimBarcode = barcode.Trim();
-            return trimBarcode.Length > 0 &&
-                   trimBarcode[0] == 'P' &&
-                   trimBarcode.Split(POSITION_SEPARATOR).Length == 4;
-        }
+            return trimBarcode.Length > 2
+                    && trimBarcode[0] == 'P'
+                    && trimBarcode[1] == '_'
+                    && trimBarcode.Substring(2, trimBarcode.Length - 2).Split(POSITION_SEPARATOR).Length == 3;
+            }
 
         /// <summary>Отримати дані позиції розміщення зі штрих-коду</summary>
         /// <param name="barcode">Штрих-код</param>
@@ -43,18 +44,17 @@ FROM(
         /// <param name="register">№ регістру</param>
         /// <param name="position">№ позиції</param>
         /// <returns>Чи були отримані данні з штрих-коду</returns>
-        public static bool GetPositionData(string barcode, out long map, out int register, out int position)
+        public static bool GetPositionData(this string barcode, out long map, out int register, out int position)
             {
-            const char SEPARATOR = '_';
-            string[] parts = barcode.Split(SEPARATOR);
+            string[] parts = barcode.Substring(2, barcode.Length - 2).Split(POSITION_SEPARATOR);
 
-            if (parts.Length == 4)
+            if (parts.Length == 3)
                 {
                 try
                     {
-                    map = Convert.ToInt64(parts[1]);
-                    register = Convert.ToInt32(parts[2]);
-                    position = Convert.ToInt32(parts[3]);
+                    map = Convert.ToInt64(parts[0]);
+                    register = Convert.ToInt32(parts[1]);
+                    position = Convert.ToInt32(parts[2]);
                     return true;
                     }
                 catch (Exception exc)
@@ -73,37 +73,37 @@ FROM(
         /// <param name="barcode">Штрих-код</param>
         /// <returns>Тип комплектующего</returns>
         public static TypeOfAccessories GetTypeOfAccessoriesByBarcode(string barcode)
-        {
+            {
             SqlCeCommand query = dbWorker.NewQuery(string.Format(ACCESSORY_QUERY_COMMAND, "Type"));
             query.AddParameter("Barcode", barcode);
             object result = query.ExecuteScalar();
 
             if (result != null)
-            {
+                {
                 TypeOfAccessories type = (TypeOfAccessories)Convert.ToInt32(result);
 
                 return type;
-            }
+                }
 
             return TypeOfAccessories.None;
-        } 
+            }
 
         /// <summary>Чи вже існує штрихкод?</summary>
         /// <param name="barcode">Штрихкод</param>
         public static bool IsBarcodeExist(string barcode)
-        {
+            {
             SqlCeCommand query = dbWorker.NewQuery(string.Format(ACCESSORY_QUERY_COMMAND, "1"));
             query.AddParameter("Barcode", barcode);
             object result = query.ExecuteScalar();
 
             return result != null;
-        }
+            }
 
         /// <summary>Чи існує посилання</summary>
         /// <param name="type">Тип об'єкту</param>
         /// <param name="syncRef">Посилання</param>
         public static bool IsRefExist(Type type, string syncRef)
-        {
+            {
             string command = string.Format(@"SELECT 1 FROM {0} WHERE RTRIM({1})=RTRIM(@{2})",
                                            type.Name,
                                            dbObject.SYNCREF_NAME,
@@ -113,31 +113,31 @@ FROM(
             object result = query.ExecuteScalar();
 
             return result != null;
-        }
+            }
 
         /// <summary>Чи вже існує штрихкод?</summary>
         /// <param name="barcode">Штрихкод</param>
         public static object GetIdByBarcode(object barcode)
-        {
+            {
             return GetIdByBarcode(barcode.ToString());
-        }
+            }
 
         /// <summary>Чи вже існує штрихкод?</summary>
         /// <param name="barcode">Штрихкод</param>
         public static object GetIdByBarcode(string barcode)
-        {
+            {
             SqlCeCommand query = dbWorker.NewQuery(string.Format(ACCESSORY_QUERY_COMMAND, dbObject.IDENTIFIER_NAME));
             query.AddParameter("Barcode", barcode);
             object result = query.ExecuteScalar();
 
             return result ?? 0;
-        }
+            }
 
         /// <summary>Чи вже існує штрихкод?</summary>
         /// <param name="type"> </param>
         /// <param name="syncRef">Штрихкод</param>
         public static object GetIdByRef(Type type, string syncRef)
-        {
+            {
             string command = string.Format(@"SELECT {0} FROM {1} WHERE RTRIM({2})=RTRIM(@{3})",
                                            dbObject.IDENTIFIER_NAME,
                                            type.Name,
@@ -148,38 +148,38 @@ FROM(
             object result = query.ExecuteScalar();
 
             return result ?? 0;
-        }
+            }
 
         /// <summary>Чи вже існує штрихкод?</summary>
         /// <param name="type"> </param>
         /// <param name="barcode">Штрихкод</param>
         public static object GetIdByBarcode(Type type, string barcode)
-        {
+            {
             SqlCeCommand query = dbWorker.NewQuery(string.Format(DEFAULT_QUERY_COMMAND, dbObject.IDENTIFIER_NAME, type.Name));
             query.AddParameter("Barcode", barcode);
             object result = query.ExecuteScalar();
 
             return result ?? 0;
-        }
+            }
 
         /// <summary>Чи вже існує штрихкод?</summary>
         /// <param name="type"> </param>
         /// <param name="barcode">Штрихкод</param>
         public static string GetRefByBarcode(Type type, string barcode)
-        {
+            {
             return GetRefByBarcode(type.Name, barcode);
-        }
+            }
 
         /// <summary>Чи вже існує штрихкод?</summary>
         /// <param name="tableName"> </param>
         /// <param name="barcode">Штрихкод</param>
         public static string GetRefByBarcode(string tableName, string barcode)
-        {
+            {
             SqlCeCommand query = dbWorker.NewQuery(string.Format(DEFAULT_QUERY_COMMAND, dbObject.SYNCREF_NAME, tableName));
             query.AddParameter("Barcode", barcode);
             object result = query.ExecuteScalar();
 
             return result == null ? string.Empty : result.ToString();
+            }
         }
     }
-}

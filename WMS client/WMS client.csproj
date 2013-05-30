@@ -134,6 +134,7 @@
     <Compile Include="Processes\Lamps\Processes\AcceptanceFrom.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptanceFromExchange.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptanceOfNewAccessory.cs" />
+    <Compile Include="Processes\Lamps\Processes\PlacingOnMap.cs" />
     <Compile Include="Processes\Lamps\Processes\ChooseLamp.cs" />
     <Compile Include="Processes\Lamps\Processes\ChooseLighterPerHectare.cs" />
     <Compile Include="Processes\Lamps\Processes\ChooseUnit.cs" />

@@ -43,7 +43,7 @@ namespace WMS_client.db
         }
 
         #region Implemention of dbObject
-        public override object Save()
+        public override object Write()
         {
             return base.Save<Movement>();
         }
@@ -80,20 +80,20 @@ namespace WMS_client.db
 
             //Корпус
             Movement caseMovement = new Movement(barcode, syncRef, operation, map, register, position);
-            caseMovement.Save();
+            caseMovement.Write();
 
             //Лампа
             if (Cases.GetMovementInfo(TypeOfAccessories.Lamp, barcode, out lampBarcode, out lampRef))
             {
                 Movement lampMovement = new Movement(lampBarcode, lampRef, operation, map, register, position);
-                lampMovement.Save();
+                lampMovement.Write();
             }
 
             //Эл.блок
             if (Cases.GetMovementInfo(TypeOfAccessories.ElectronicUnit, barcode, out unitBarcode, out unitRef))
             {
                 Movement unitMovement = new Movement(unitBarcode, unitRef, operation, map, register, position);
-                unitMovement.Save();
+                unitMovement.Write();
             }
         }
         #endregion

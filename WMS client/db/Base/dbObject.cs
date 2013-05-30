@@ -24,7 +24,7 @@ namespace WMS_client.db
 
         /// <summary>Сохранить</summary>
         /// <returns>Id</returns>
-        public abstract object Save();
+        public abstract object Write();
         /// <summary>Сохранить</summary>
         /// <returns>Id</returns>
         public abstract object Sync();
