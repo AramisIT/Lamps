@@ -11,6 +11,29 @@ namespace WMS_client
     /// <summary>"Строитель редактирования"</summary>
     public class EditBuilder : BusinessProcess
         {
+
+        private int groupSizeValue;
+        private int groupSize
+            {
+            get
+                {
+                return groupSizeValue;
+                }
+            set
+                {
+                groupSizeValue = value;
+                groupSizeLabel.Text = string.Format("Зареєстровано: {0} шт.", groupSizeValue);
+                }
+            }
+
+        private MobileButton groupRegistrationButton;
+        private bool groupRegistration;
+        private MobileLabel groupSizeLabel;
+
+        private Lamps currentLamp;
+        private ElectronicUnits currentUnit;
+        private Cases currentCase;
+
         #region Fields
         /// <summary>Комплектующее</summary>
         private static Accessory accessory;
@@ -112,6 +135,7 @@ namespace WMS_client
 
             IsLoad = true;
             existMode = true;
+
             OnBarcode(barcode);
             }
 
@@ -135,20 +159,25 @@ namespace WMS_client
 
         /// <summary>Комплектующее отсканировано, нужно начать редактирование</summary>
         /// <param name="Barcode">ШтрихКод</param>
-        public override sealed void OnBarcode(string Barcode)
+        public override sealed void OnBarcode(string barcode)
             {
             //Если это штрих-код комплектующего
-            if (Barcode.IsValidBarcode())
+            if (barcode.IsValidBarcode())
                 {
+                if (groupRegistration)
+                    {
+                    groupRegistrationOnBarcode(barcode);
+                    return;
+                    }
                 MainProcess.ClearControls();
-                barcode = Barcode;
-                bool accesoryIsExist = !string.IsNullOrEmpty(Barcode) && BarcodeWorker.IsBarcodeExist(Barcode);
+                this.barcode = barcode;
+                bool accesoryIsExist = !string.IsNullOrEmpty(barcode) && BarcodeWorker.IsBarcodeExist(barcode);
 
                 //Если в системе уже существует штрихкод
                 if (!existMode && accesoryIsExist)
                     {
                     //Тип комплектующего штрихкода
-                    TypeOfAccessories typesOfAccessories = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);
+                    TypeOfAccessories typesOfAccessories = BarcodeWorker.GetTypeOfAccessoriesByBarcode(barcode);
                     //Является ли тип комплектующего (существующий) = типу который нужно отредактировать (отсканированный)
                     bool isTypeLikeCurrent = typesOfAccessories.ToString() + 's' != currentType.Name;
 
@@ -161,10 +190,10 @@ namespace WMS_client
                         }
                     }
 
-                showData(accesoryIsExist, Barcode);
+                showData(accesoryIsExist, barcode);
                 }
             //Если это штрих-код позиции
-            else if (Barcode.IsValidPositionBarcode())
+            else if (barcode.IsValidPositionBarcode())
                 {
                 Cases cases = accessory as Cases;
 
@@ -173,7 +202,7 @@ namespace WMS_client
                     long map;
                     int register;
                     int position;
-                    BarcodeWorker.GetPositionData(Barcode, out map, out register, out position);
+                    BarcodeWorker.GetPositionData(barcode, out map, out register, out position);
 
                     cases.Map = map;
                     cases.Register = register;
@@ -218,8 +247,12 @@ namespace WMS_client
             drawEditableProperties(listOfLabels);
             //Отобразить кнопоки переходов
             drawButtons(listOfDetail);
-            //Кнопка "Заповнити як попередній"
-            MainProcess.CreateButton("Заповнити як попередній", 5, 275, 230, 35, string.Empty, fillFromPrev);
+
+            if (currentType == typeof(Cases))
+                {
+                groupRegistrationButton = MainProcess.CreateButton("Групова реєстрація", 5, 275, 230, 35, string.Empty, startGroupRegistration);
+                }
+            //MainProcess.CreateButton("Заповнити як попередній", 5, 275, 230, 35, string.Empty, fillFromPrev);
             }
 
         public override void OnHotKey(KeyAction TypeOfAction)
@@ -229,8 +262,18 @@ namespace WMS_client
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
                     MainProcess.Process = new EditSelector(MainProcess);
+
+                    clearStaticFields();
                     break;
                 }
+            }
+
+        private static void clearStaticFields()
+            {
+            accessory = null;
+            linkId = -1;
+            mainType = null;
+            mainTopic = null;
             }
         #endregion
 
@@ -279,6 +322,11 @@ namespace WMS_client
         /// <param name="sender">Выбранное поле для редактирования</param>
         private void button_Click(object sender)
             {
+            if (groupRegistration)
+                {
+                return;
+                }
+
             Button button = sender as Button;
 
             if (button != null)
@@ -338,7 +386,6 @@ namespace WMS_client
                         //Если выбранный тип совпадает с основным типом - "Сохранение перекрестных ссылок"
                         if (mainType == type && linkId != -1)
                             {
-                            //if (string.IsNullOrEmpty(accessory.BarCode)){accessory.SetIsNew();}
                             accessory.SetValue(mainType.Name.Substring(0, mainType.Name.Length - 1), linkId);
                             //Сохраняем для того что бы получить accessory.Id
                             accessory.Write();
@@ -409,14 +456,19 @@ namespace WMS_client
                 }
             else
                 {
-                //Для того щоб не зберігали "пусті" документи
-                MessageBox.Show(
-                    "Комплектуюче без моделі збережено не буде!\r\nВідредагуйте дані!",
-                    "Збереження..",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Asterisk,
-                    MessageBoxDefaultButton.Button1);
+                showWriteErrorMessage();
                 }
+            }
+
+        private static void showWriteErrorMessage()
+            {
+            //Для того щоб не зберігали "пусті" документи
+            MessageBox.Show(
+                "Комплектуюче без моделі збережено не буде!\r\nВідредагуйте дані!",
+                "Збереження..",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Asterisk,
+                MessageBoxDefaultButton.Button1);
             }
 
         /// <summary>Чи вірні дані про гарантію?</summary>
@@ -514,6 +566,80 @@ namespace WMS_client
 
                 accessory.Status = TypesOfLampsStatus.Storage;
                 }
+            }
+
+        private void startGroupRegistration()
+            {
+            currentCase = accessory as Cases;
+
+            if (currentCase.Lamp == 0 || currentCase.ElectronicUnit == 0)
+                {
+                ShowMessage("Нужно заполнить лампу и эл. блок!");
+                return;
+                }
+
+            if (!(accessory is Cases))
+                {
+                return;
+                }
+
+            currentLamp = new Lamps();
+            currentLamp.Read(currentCase.Lamp);
+
+            currentUnit = new ElectronicUnits();
+            currentUnit.Read(currentCase.ElectronicUnit);
+
+            if (!string.IsNullOrEmpty(currentLamp.BarCode) || !string.IsNullOrEmpty(currentUnit.BarCode))
+                {
+                ShowMessage("Для групової реєстрації лампа та блок мають бути без штрих-коду");
+                return;
+                }
+
+            if (isMainDataEntered && warrantlyDataIsValid())
+                {
+                accessory.Write();
+                }
+            else
+                {
+                showWriteErrorMessage();
+                return;
+                }
+
+            groupRegistration = true;
+
+            currentCase = new Cases();
+            currentCase.Read(accessory.Id);
+
+            groupRegistrationButton.Hide();
+            groupSizeLabel = MainProcess.CreateLabel("", 5, 283, 230,
+                                        MobileFontSize.Normal, MobileFontPosition.Left, MobileFontColors.Info, FontStyle.Bold);
+            groupSize = 0;
+            }
+
+        private void groupRegistrationOnBarcode(string barcode)
+            {
+            if (BarcodeWorker.IsBarcodeExist(barcode))
+                {
+                ShowMessage("Даний штрих-код вже використовується");
+                return;
+                }
+
+
+            Lamps newLamp = currentLamp.CopyWithoutLinks() as Lamps;
+            newLamp.Write();
+
+            ElectronicUnits newElectronicUnit = currentUnit.CopyWithoutLinks() as ElectronicUnits;
+            newElectronicUnit.Write();
+
+            Cases newCase = currentCase.CopyWithoutLinks() as Cases;
+            newCase.BarCode = barcode;
+            newCase.Lamp = newLamp.Id;
+            newCase.ElectronicUnit = newElectronicUnit.Id;
+            newCase.Write();
+
+            Movement.RegisterLighter(newCase.BarCode, newCase.SyncRef, OperationsWithLighters.Registration);
+
+            groupSize++;
             }
         }
     }

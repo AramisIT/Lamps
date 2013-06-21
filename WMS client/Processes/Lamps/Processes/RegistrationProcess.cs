@@ -6,6 +6,8 @@ namespace WMS_client
     /// <summary>Регистрация при входе</summary>
     public class RegistrationProcess : BusinessProcess
         {
+        private MobileButton wifiOffButton;
+
         #region Public methods
         /// <summary>Регистрация при входе</summary>
         public RegistrationProcess(WMSClient MainProcess)
@@ -21,6 +23,26 @@ namespace WMS_client
 
             //todo: заглушка
             MainProcess.CreateButton("Enter", 10, 275, 220, 35, "enter", () => OnBarcode("L9786175660690"));
+
+            wifiOffButton = MainProcess.CreateButton("Wifi on/off", 10, 65, 220, 35, "WifiOff", () =>
+                {
+                    bool startStatus = MainProcess.ConnectionAgent.WifiEnabled;
+                    if (startStatus)
+                        {
+                        MainProcess.ConnectionAgent.StopConnection();
+                        }
+                    else
+                        {
+                        MainProcess.StartConnectionAgent();
+                        }
+                    updateWifiOnOffButtonState(!startStatus);
+                });
+            updateWifiOnOffButtonState(MainProcess.ConnectionAgent.WifiEnabled);
+            }
+
+        private void updateWifiOnOffButtonState(bool wifiEnabled)
+            {
+            wifiOffButton.Text = wifiEnabled ? "ВКЛЮЧ нажмите чтобы ВЫКЛ" : "ВЫКЛ нажмите чтобы ВКЛЮЧ";
             }
 
         public override void OnBarcode(string Barcode)

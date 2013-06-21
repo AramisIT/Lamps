@@ -355,6 +355,10 @@ namespace WMS_client.db
                             {
                             value = Convert.ToDouble(value);
                             }
+                        else if (property.PropertyType == typeof(string))
+                            {
+                            value = value.ToString().TrimEnd();
+                            }
 
                         property.SetValue(this, value, null);
                         }
@@ -362,7 +366,7 @@ namespace WMS_client.db
                 }
 
             //Если Id=0, значит такой обьект не найден -> он новый
-            IsNew = Id == 0;            
+            IsNew = Id == 0;
 
             return this;
             }

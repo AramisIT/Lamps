@@ -4,10 +4,10 @@ using System.Data.SqlTypes;
 using System.Data.SqlServerCe;
 
 namespace WMS_client.db
-{
+    {
     /// <summary>Комплектующее</summary>
     public abstract class Accessory : DocumentObject, IBarcodeOwner
-    {
+        {
         #region Properties
         /// <summary>Штрихкод</summary>
         [dbFieldAtt(Description = "Штрихкод", NotShowInForm = true)]
@@ -49,22 +49,22 @@ namespace WMS_client.db
 
         /// <summary>Комплектующее</summary>
         protected Accessory()
-        {
+            {
             BarCode = string.Empty;
             Marking = string.Empty;
             DateOfActuality = DateTime.Now;
             DrawdownDate = SqlDateTime.MinValue.Value;
             DateOfWarrantyEnd = SqlDateTime.MinValue.Value;
-        }
+            }
 
         /// <summary>Прочитати дані по комплектуючому за штрихкодом</summary>
         /// <typeparam name="T">Тип комплектуючого</typeparam>
         /// <param name="barcode">Штрихкод</param>
         /// <returns>Комплектуюче</returns>
         public virtual T Read<T>(string barcode) where T : dbObject
-        {
+            {
             return Read<T>(barcode, BARCODE_NAME);
-        }
+            }
 
         public void ClearPosition()
             {
@@ -83,48 +83,56 @@ namespace WMS_client.db
         /// <summary>Копіювати без посилань на комплектуюче</summary>
         /// <returns>Нове комплектуюче (ще без ІД)</returns>
         public Accessory CopyWithoutLinks()
-        {
+            {
             dbObject copyObj = base.Copy();
+
+            Accessory accessoryCopy = (copyObj as Accessory);
+            if (accessoryCopy != null)
+                {
+                accessoryCopy.Id = 0;
+                accessoryCopy.BarCode = string.Empty;
+                }
+
             Cases caseObj = copyObj as Cases;
             //BarCode = string.Empty;
 
             if (caseObj != null)
-            {
+                {
                 caseObj.Lamp = 0;
                 caseObj.ElectronicUnit = 0;
 
                 return caseObj;
-            }
+                }
 
             ElectronicUnits unitObj = copyObj as ElectronicUnits;
 
             if (unitObj != null)
-            {
+                {
                 unitObj.Case = 0;
                 return unitObj;
-            }
+                }
 
             Lamps lampObj = copyObj as Lamps;
 
             if (lampObj != null)
-            {
+                {
                 lampObj.Case = 0;
                 return lampObj;
-            }
+                }
 
             return (Accessory)copyObj;
-        }
+            }
 
         /// <summary>ВСтановити статус комплектующего</summary>
         /// <param name="accessory">Тип комплектуючого</param>
         /// <param name="barcode">Штихкод</param>
         /// <param name="state">Новий статус</param>
         public static void SetNewState(TypeOfAccessories accessory, string barcode, TypesOfLampsStatus state)
-        {
-            if(accessory == TypeOfAccessories.Case)
             {
+            if (accessory == TypeOfAccessories.Case)
+                {
                 Cases.ChangeLighterState(barcode, state, true);
-            }
+                }
 
             string command = string.Format(
                 "UPDATE {0}s SET Status=@{1} WHERE RTRIM({2})=RTRIM(@{2})",
@@ -133,14 +141,14 @@ namespace WMS_client.db
             query.AddParameter(BARCODE_NAME, barcode);
             query.AddParameter(dbSynchronizer.PARAMETER, state);
             query.ExecuteNonQuery();
-        }
+            }
 
         /// <summary>Получить статус комплектующего</summary>
         /// <param name="accessory">Тип комплектующего</param>
         /// <param name="barcode">Штихкод</param>
         /// <returns>Статус комплектующего</returns>
         public static TypesOfLampsStatus GetState(TypeOfAccessories accessory, string barcode)
-        {
+            {
             string command = string.Format("SELECT Status FROM {0}s WHERE RTRIM({1})=RTRIM(@{1})",
                                            accessory, BARCODE_NAME);
             SqlCeCommand query = dbWorker.NewQuery(command);
@@ -149,43 +157,43 @@ namespace WMS_client.db
             int statusNumber = statusObj == null ? 0 : Convert.ToInt32(statusObj);
 
             return (TypesOfLampsStatus)statusNumber;
-        }
+            }
 
         /// <summary>Встановити новий статус</summary>
         /// <param name="accessory">Тип комплектуючого</param>
         /// <param name="newState">Новий статус</param>
         /// <param name="barcode">Штрихкод комплектуючого</param>
         public static void SetState(TypeOfAccessories accessory, TypesOfLampsStatus newState, string barcode)
-        {
+            {
             string command = string.Format("UPDATE {0}s SET Status=@State WHERE RTRIM({1})=RTRIM(@{1})",
                                            accessory, BARCODE_NAME);
             SqlCeCommand query = dbWorker.NewQuery(command);
             query.AddParameter("State", newState);
             query.AddParameter(BARCODE_NAME, barcode);
             query.ExecuteNonQuery();
-        }
+            }
 
         /// <summary>Получить последний созданный объект комлектующего заданого типа</summary>
         /// <param name="accessoryType">Тип</param>
         /// <param name="accessory">Последний созданный объект комлектующего</param>
         /// <returns>Вернули ли значение?</returns>
         public static bool GetLastAccesory(Type accessoryType, out Accessory accessory)
-        {
+            {
             accessory = (Accessory)Activator.CreateInstance(accessoryType);
             string command = string.Format("SELECT ID FROM {0} ORDER BY Date,Id DESC", accessoryType.Name);
             SqlCeCommand query = dbWorker.NewQuery(command);
             object idOfLastAccesory = query.ExecuteScalar();
 
             if (idOfLastAccesory != null)
-            {
+                {
                 accessory.Read(accessoryType, idOfLastAccesory, IDENTIFIER_NAME);
                 return true;
-            }
+                }
 
             return false;
-        } 
+            }
         #endregion
 
-        
+
+        }
     }
-}

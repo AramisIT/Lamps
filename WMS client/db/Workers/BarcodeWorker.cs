@@ -22,7 +22,7 @@ FROM(
         /// <summary>Чи являється строка валідним штрихкодом комплектуючого</summary>
         /// <param name="barcode">Строка</param>
         public static bool IsValidBarcode(this string barcode)
-            {
+            {           
             string trimBarcode = barcode.Trim();
             return trimBarcode.Length == 0 || trimBarcode[0] == 'L';
             }

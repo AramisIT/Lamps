@@ -145,13 +145,18 @@ namespace WMS_client
             }
             MainForm.ServerIP = ServerIP;
 
+            StartConnectionAgent();
+
+            Welcome();
+        }
+
+        public void StartConnectionAgent()
+            {            
             AgentThread = new Thread(ConnectionAgent.Start);
             AgentThread.Name = "Server Agent";
             AgentThread.IsBackground = true;
             AgentThread.Start();
-
-            Welcome();
-        }
+            }        
 
         public void Updating()
         {
