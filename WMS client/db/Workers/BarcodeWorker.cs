@@ -7,7 +7,7 @@ namespace WMS_client.db
     /// <summary>Штрих код рабочий</summary>
     public static class BarcodeWorker
         {
-        const char POSITION_SEPARATOR = '.';
+        const char POSITION_SEPARATOR = '_';
         /// <summary>Запрос для определения типа комплектующего и Id документа по штрихкоду (или наличия такого документа в системе)</summary>
         private const string ACCESSORY_QUERY_COMMAND = @"
 SELECT {0}

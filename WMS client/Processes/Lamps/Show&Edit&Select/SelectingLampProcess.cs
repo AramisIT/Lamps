@@ -5,18 +5,24 @@ using System.Windows.Forms;
 using System.Data.SqlServerCe;
 using WMS_client.Processes.Lamps;
 using WMS_client.db;
+using WMS_client.Processes.Lamps.Sync;
 
 namespace WMS_client
     {
     /// <summary>Выбор процесса (для светильников)</summary>
     public class SelectingLampProcess : BusinessProcess
         {
-
+        IServerIdProvider serverIdProvider = null;
         /// <summary>Выбор процесса (для светильников)</summary>
         /// <param name="MainProcess">Основной процесс</param>
-        public SelectingLampProcess(WMSClient MainProcess)
+        public SelectingLampProcess(WMSClient MainProcess)//, IServerIdProvider serverIdProvider)
             : base(MainProcess, 1)
             {
+            //if (serverIdProvider == null)
+            //    {
+            //    throw new ArgumentException("ServerIdProvider");
+            //    }
+            this.serverIdProvider = new ServerIdProvider(); //serverIdProvider;
             BusinessProcessType = ProcessType.Selecting;
             FormNumber = 1;
             }
@@ -27,7 +33,8 @@ namespace WMS_client
             MainProcess.ToDoCommand = "Оберіть процес";
             MainProcess.CreateButton("Інфо", 20, 75, 200, 45, "info", info_Click);
             MainProcess.CreateButton("Процеси", 20, 150, 200, 45, "process", process_Click);
-            MainProcess.CreateButton("Регістрація", 20, 225, 200, 45, "registration", registration_Click);
+            MainProcess.CreateButton("Реєстрація", 20, 225, 200, 45, "registration", registration_Click);
+            MainProcess.CreateLabel("Синхронізація - F5", 25, 280, 230, MobileFontSize.Large);
             }
 
         public override void OnBarcode(string barcode)
@@ -101,7 +108,7 @@ namespace WMS_client
                     break;
                 //Синхронізація
                 case KeyAction.Proceed:
-                    new dbSynchronizer(MainProcess);
+                    new dbSynchronizer(MainProcess, serverIdProvider);
                     break;
                 }
             }

@@ -7,12 +7,19 @@ using System.Reflection;
 using System.Text;
 using WMS_client.Enums;
 using WMS_client.db;
+using WMS_client.Processes.Lamps.Sync;
 
 namespace WMS_client
     {
     /// <summary>Синхронизация данных между ТСД и сервером</summary>
     public class dbSynchronizer : BusinessProcess
         {
+        /// <summary>
+        /// Использовать для синхронизации ламп механизм логирования на сервере
+        /// </summary>
+        public bool useLoggingSyncronization = true;
+
+        private IServerIdProvider serverIdProvider = null;
         /// <summary>Информационная метка для уведомления текущего процессе синхронизации</summary>
         private MobileLabel infoLabel;
         /// <summary>Список отложенных свойств</summary>
@@ -22,9 +29,15 @@ namespace WMS_client
 
         /// <summary>Синхронизация данных между ТСД и сервером</summary>
         /// <param name="MainProcess"></param>
-        public dbSynchronizer(WMSClient MainProcess)
+        public dbSynchronizer(WMSClient MainProcess, IServerIdProvider serverIdProvider)
             : base(MainProcess, 1)
             {
+            if (serverIdProvider == null)
+                {
+                throw new ArgumentException("ServerIdProvider");
+                }
+            this.serverIdProvider = serverIdProvider;
+
             deferredProperty = new List<DataAboutDeferredProperty>();
 
             //Документи
@@ -116,6 +129,8 @@ namespace WMS_client
             SyncObjects<T>(typeof(T).Name, wayOfSync, filter, skipExists, true);
             }
 
+
+
         /// <summary>Синхронизация объекта</summary>
         /// <param name="tableName">Имя таблицы</param>
         /// <param name="wayOfSync">Способ синхронизации</param>
@@ -124,23 +139,36 @@ namespace WMS_client
         /// <param name="updId">Нужно обновить ID</param>
         public void SyncObjects<T>(string tableName, WaysOfSync wayOfSync, FilterSettings filter, bool skipExists, bool updId) where T : dbObject
             {
-            //Выбрать (Признак синхронизации, Штрих-код) всех не удаленных элементов с таблицы tableName
-            string command = string.Format("SELECT RTRIM({0}){0},RTRIM({1}){1},RTRIM({2}) {2} FROM {3} WHERE {4}=0",
+            string forWarehousesAndMapsSelect = string.Format(@"SELECT RTRIM({0}){0},RTRIM({1}){1},RTRIM({2}) {2} FROM {3} WHERE {4}=0",
                                            dbObject.IS_SYNCED,
                                            dbObject.BARCODE_NAME,
                                            dbObject.SYNCREF_NAME,
                                            tableName,
                                            CatalogObject.MARK_FOR_DELETING);
+
+            string forByLogProcessedSelect = string.Format(@"SELECT RTRIM({0}){0},RTRIM({1}){1},RTRIM({2}) {2} FROM {3} WHERE {4}=0 AND {5} = 0",
+                                           dbObject.IS_SYNCED,
+                                           dbObject.BARCODE_NAME,
+                                           dbObject.SYNCREF_NAME,
+                                           tableName,
+                                           CatalogObject.MARK_FOR_DELETING, CatalogObject.IS_SYNCED);
+
+            bool isWarehouseTable = tableName.Equals("Contractors") || tableName.Equals("Maps");
+
+            //Выбрать (Признак синхронизации, Штрих-код) всех не удаленных элементов с таблицы tableName
+            string command = (useLoggingSyncronization & !isWarehouseTable) ?
+                forByLogProcessedSelect :
+                forWarehousesAndMapsSelect;
             SqlCeCommand query = dbWorker.NewQuery(command);
             DataTable table = query.SelectToTable();
 
             if (filter == FilterSettings.None)
                 {
-                PerformQuery("StartSyncProcess", tableName, table, (int)FilterSettings.NotMarkForDelete);
+                PerformQuery("StartSyncProcess", this.serverIdProvider.ServerId, tableName, table, (int)FilterSettings.NotMarkForDelete);
                 }
             else
                 {
-                PerformQuery("StartSyncProcess", tableName, table, (int)FilterSettings.NotMarkForDelete, (int)filter);
+                PerformQuery("StartSyncProcess", this.serverIdProvider.ServerId, tableName, table, (int)FilterSettings.NotMarkForDelete, (int)filter);
                 }
 
             if (IsAnswerIsTrue)
