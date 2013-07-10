@@ -86,6 +86,25 @@ namespace WMS_client
             }
         #endregion
 
+        protected void StopNetworkConnection()
+            {
+            bool startStatus = MainProcess.ConnectionAgent.WifiEnabled;
+            if (startStatus)
+                {
+                MainProcess.ConnectionAgent.StopConnection();
+                }
+            }
+
+        protected void StartNetworkConnection()
+            {
+            bool startStatus = MainProcess.ConnectionAgent.WifiEnabled;
+            if (!startStatus)
+                {
+                MainProcess.StartConnectionAgent();
+                System.Threading.Thread.Sleep(1500);
+                }
+            }
+
         public void PerformQuery(string QueryName, params object[] parameters)
             {
             ResultParameters = null;
@@ -155,16 +174,16 @@ namespace WMS_client
             }
 
         protected bool SuccessQueryResult
-        {
-            get
             {
+            get
+                {
                 return ResultParameters != null
-                       && ResultParameters.GetType() == typeof (object[])
+                       && ResultParameters.GetType() == typeof(object[])
                        && ResultParameters.Length > 0
                        && ResultParameters[0] is bool
-                       && (bool) ResultParameters[0];
+                       && (bool)ResultParameters[0];
+                }
             }
-        }
         #endregion
 
         #region Private methods

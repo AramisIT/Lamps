@@ -32,6 +32,8 @@ namespace WMS_client.Processes.Lamps
         public PlacingOnMap(WMSClient wmsClient, long map, int register, int position)
             : base(wmsClient, 1)
             {
+            StopNetworkConnection();
+
             this.map = map;
             this.register = register;
             this.position = position;

@@ -205,6 +205,7 @@
     </Compile>
     <Compile Include="Processes\Lamps\Processes\RegistrationProcess.cs" />
     <Compile Include="Base\ServerAgent.cs" />
+    <Compile Include="WinProcessesManagement\ProcessInfo.cs" />
     <Compile Include="WMSClient.cs" />
   </ItemGroup>
   <ItemGroup>

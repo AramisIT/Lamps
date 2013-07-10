@@ -32,6 +32,8 @@ namespace WMS_client
         public dbSynchronizer(WMSClient MainProcess, IServerIdProvider serverIdProvider)
             : base(MainProcess, 1)
             {
+            StartNetworkConnection();
+
             if (serverIdProvider == null)
                 {
                 throw new ArgumentException("ServerIdProvider");
