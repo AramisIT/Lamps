@@ -10,10 +10,10 @@ using System.Data.SqlServerCe;
 namespace WMS_client
     {
     /// <summary>Демонстратор (Инфо)</summary>
-    public class VisualPresenter : BusinessProcess
+    public class Info : BusinessProcess
         {
         /// <summary>Демонстратор (Инфо)</summary>
-        public VisualPresenter(WMSClient MainProcess)
+        public Info(WMSClient MainProcess)
             : base(MainProcess, 1)
             {
             }

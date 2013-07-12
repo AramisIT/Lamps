@@ -149,9 +149,10 @@
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\ValueEditor.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\EditBuilder.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\EditSelector.cs" />
+    <Compile Include="Processes\Lamps\Sync\CatalogSynchronizer.cs" />
     <Compile Include="Processes\Lamps\Sync\dbSynchronizer.cs" />
     <Compile Include="Processes\Lamps\Sync\DeferredPropertyData.cs" />
-    <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\VisualPresenter.cs" />
+    <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\Info.cs" />
     <Compile Include="Processes\Lamps\Processes\ReplacingAccessory.cs" />
     <Compile Include="InfoObjects\MapInfo.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\SelectPosition.cs" />
@@ -205,6 +206,8 @@
     </Compile>
     <Compile Include="Processes\Lamps\Processes\RegistrationProcess.cs" />
     <Compile Include="Base\ServerAgent.cs" />
+    <Compile Include="Utils\CatalogHelper.cs" />
+    <Compile Include="Utils\StringParser.cs" />
     <Compile Include="WinProcessesManagement\ProcessInfo.cs" />
     <Compile Include="WMSClient.cs" />
   </ItemGroup>

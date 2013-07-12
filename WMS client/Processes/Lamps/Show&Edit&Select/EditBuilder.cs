@@ -126,6 +126,8 @@ namespace WMS_client
         public EditBuilder(WMSClient MainProcess, Type mainType, string mainTopic, Type currentType, string currentTopic, Accessory accessory, string barcode)
             : base(MainProcess, 1)
             {
+            StopNetworkConnection();
+
             EditBuilder.accessory = accessory;
             EditBuilder.mainType = mainType;
             EditBuilder.mainTopic = mainTopic;
@@ -618,7 +620,9 @@ namespace WMS_client
 
         private void groupRegistrationOnBarcode(string barcode)
             {
-            if (BarcodeWorker.IsBarcodeExist(barcode))
+            bool barcodeExists = BarcodeWorker.IsBarcodeExist(barcode);
+           
+            if (barcodeExists)
                 {
                 ShowMessage("Даний штрих-код вже використовується");
                 return;

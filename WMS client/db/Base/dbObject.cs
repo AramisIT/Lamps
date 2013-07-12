@@ -257,13 +257,18 @@ namespace WMS_client.db
         /// <returns>Новый Id</returns>
         protected object GetNewId()
             {
-            Type type = GetType();
-            string command = string.Format("SELECT [{0}]+1 Id FROM {1} ORDER BY [{0}] DESC", IDENTIFIER_NAME, type.Name);
+            return GetNewId(GetType().Name);
+            }
+
+        public static long GetNewId(string tableName)
+            {
+            string command = string.Format("SELECT [{0}]+1 Id FROM {1} ORDER BY [{0}] DESC", IDENTIFIER_NAME, tableName);
             SqlCeCommand query = dbWorker.NewQuery(command);
             object newId = query.ExecuteScalar();
 
-            return newId ?? 1;
+            return Convert.ToInt64((newId ?? 1));
             }
+
         #endregion
 
         #region Чтение из БД

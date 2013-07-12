@@ -109,6 +109,8 @@ namespace WMS_client
                 //Синхронізація
                 case KeyAction.Proceed:
                     new dbSynchronizer(MainProcess, serverIdProvider);
+                    MainProcess.ClearControls();
+                    MainProcess.Process = new SelectingLampProcess(MainProcess);
                     break;
                 }
             }
@@ -167,7 +169,7 @@ namespace WMS_client
         private void info_Click()
             {
             MainProcess.ClearControls();
-            MainProcess.Process = new VisualPresenter(MainProcess);
+            MainProcess.Process = new Info(MainProcess);
             }
 
         /// <summary>Перехід для вибору процесу</summary>

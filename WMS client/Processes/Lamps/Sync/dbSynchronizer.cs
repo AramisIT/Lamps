@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlServerCe;
 using System.Drawing;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using WMS_client.Enums;
 using WMS_client.db;
 using WMS_client.Processes.Lamps.Sync;
+using System.Diagnostics;
+using WMS_client.Utils;
 
 namespace WMS_client
     {
@@ -24,6 +27,9 @@ namespace WMS_client
         private MobileLabel infoLabel;
         /// <summary>Список отложенных свойств</summary>
         private List<DataAboutDeferredProperty> deferredProperty;
+
+        private StringBuilder logBuilder;
+
         /// <summary>Константная часть имени параметра</summary>
         public const string PARAMETER = "Parameter";
 
@@ -42,94 +48,142 @@ namespace WMS_client
 
             deferredProperty = new List<DataAboutDeferredProperty>();
 
+            SynchronizeWithGreenhouse(serverIdProvider);
+            }
+
+        private void SynchronizeWithGreenhouse(IServerIdProvider serverIdProvider)
+            {
+            logBuilder = new StringBuilder(string.Format("Synchronizing start: {0}", DateTime.Now.ToString("HH:mm:ss dd.MM.yyyy")));
+            logBuilder.AppendLine();
+            Stopwatch totalTime = new Stopwatch();
+            totalTime.Start();
             //Документи
             infoLabel.Text = "Контрагенти";
-            SyncObjects<Contractors>(WaysOfSync.OneWay, FilterSettings.CanSynced);
+            if (!SyncObjects<Contractors>(WaysOfSync.OneWay, FilterSettings.CanSynced))
+                {
+                return;
+                }
+
             infoLabel.Text = "Карти";
-            SyncObjects<Maps>(false);
+            if (!SyncObjects<Maps>(false))
+                {
+                return;
+                }
+
             infoLabel.Text = "Партії";
-            SyncObjects<Party>(WaysOfSync.OneWay);
+            if (!SyncObjects<Party>(WaysOfSync.OneWay))
+                {
+                return;
+                }
+
             infoLabel.Text = "Моделі";
-            SyncObjects<Models>(WaysOfSync.TwoWay);
+            if (!SyncObjects<Models>(WaysOfSync.TwoWay))
+                {
+                return;
+                }
+
             //Прийомка нового
             infoLabel.Text = "Документи прийомки нового комплектучого";
             SyncAccepmentsDocWithServer();
             SyncAccepmentsDocFromServer();
+
             //Комплектуюче
             infoLabel.Text = "Лампи";
-            SyncObjects<Lamps>(WaysOfSync.TwoWay);
+            if (!SyncObjects<Lamps>(WaysOfSync.TwoWay))
+                {
+                return;
+                }
+
             infoLabel.Text = "Ел.блоки";
-            SyncObjects<ElectronicUnits>(WaysOfSync.TwoWay);
+            if (!SyncObjects<ElectronicUnits>(WaysOfSync.TwoWay))
+                {
+                return;
+                }
+
             infoLabel.Text = "Корпуси";
-            SyncObjects<Cases>(WaysOfSync.TwoWay);
+            if (!SyncObjects<Cases>(WaysOfSync.TwoWay))
+                {
+                return;
+                }
+
             //Оновлення посилань
             infoLabel.Text = "Оновлення посилань";
             updateDeferredProperties();
+
             PerformQuery("EndOfSync");
             //Відправка на ...
             infoLabel.Text = "Відправка на списання";
             SyncOutSending<SendingToCharge, SubSendingToChargeChargeTable>();
             SyncInSending<SendingToCharge, SubSendingToChargeChargeTable>();
+
             infoLabel.Text = "Відправка на обмін";
             SyncOutSending<SendingToExchange, SubSendingToExchangeUploadTable>();
             SyncInSending<SendingToExchange, SubSendingToExchangeUploadTable>();
+
             infoLabel.Text = "Відправка на ремонт";
             SyncOutSending<SendingToRepair, SubSendingToRepairRepairTable>();
             SyncInSending<SendingToRepair, SubSendingToRepairRepairTable>();
+
             //Приймання комплектуючого з ...
             infoLabel.Text = "Приймання з ремонту";
-            SyncOutSending<AcceptanceAccessoriesFromRepair, SubAcceptanceAccessoriesFromRepairRepairTable>(SyncModes.AcceptanceFromRepair);
+            SyncOutSending<AcceptanceAccessoriesFromRepair, SubAcceptanceAccessoriesFromRepairRepairTable>(
+                SyncModes.AcceptanceFromRepair);
             SyncInSending<AcceptanceAccessoriesFromRepair, SubAcceptanceAccessoriesFromRepairRepairTable>();
+
             infoLabel.Text = "Приймання з обміну";
             SyncOutAcceptanceFromExchange();
-            SyncInSending<AcceptanceAccessoriesFromExchange, SubAcceptanceAccessoriesFromExchangeExchange>(SyncModes.SendingToExchange);
+            SyncInSending<AcceptanceAccessoriesFromExchange, SubAcceptanceAccessoriesFromExchangeExchange>(
+                SyncModes.SendingToExchange);
+
             //Переміщення
             infoLabel.Text = "Переміщення";
             SyncMovement();
 
-            MainProcess.ClearControls();
-            MainProcess.Process = new SelectingLampProcess(MainProcess);
+            logBuilder.AppendLine();
+            logBuilder.AppendLine(string.Format("Total: {0}", (int)(totalTime.ElapsedMilliseconds * 0.001)));
+            logToFile("SynchLog.txt", logBuilder);
+            }
+
+        private void logToFile(string fileName, StringBuilder logBuilder)
+            {
+            string PathToFile = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase);
+            try
+                {
+                using (StreamWriter myFile = File.CreateText(PathToFile + "\\" + fileName))
+                    {
+                    myFile.Write(logBuilder.ToString());
+                    myFile.Close();
+                    }
+                }
+            catch (Exception e)
+                {
+                string s = e.Message;
+                }
             }
 
         #region Sync.Objects
         /// <summary>Синхронизация объекта</summary>
         /// <param name="updId">Нужно обновить ID</param>
-        public void SyncObjects<T>(bool updId) where T : dbObject
+        private bool SyncObjects<T>(bool updId) where T : dbObject
             {
-            SyncObjects<T>(typeof(T).Name, WaysOfSync.OneWay, FilterSettings.None, false, false);
+            return SyncObjects<T>(typeof(T).Name, WaysOfSync.OneWay, FilterSettings.None, false, false);
             }
 
         /// <summary>Синхронизация объекта</summary>
         /// <param name="wayOfSync">Способ синхронизации</param>
-        public void SyncObjects<T>(WaysOfSync wayOfSync) where T : dbObject
+        private bool SyncObjects<T>(WaysOfSync wayOfSync) where T : dbObject
             {
-            SyncObjects<T>(typeof(T).Name, wayOfSync, FilterSettings.None, false, true);
-            }
-
-        /// <summary>Синхронизация объекта</summary>
-        /// <param name="wayOfSync">Способ синхронизации</param>
-        /// <param name="skipExists">Пропустить существующие</param>
-        public void SyncObjects<T>(WaysOfSync wayOfSync, bool skipExists) where T : dbObject
-            {
-            SyncObjects<T>(typeof(T).Name, wayOfSync, FilterSettings.None, skipExists, true);
+            return SyncObjects<T>(typeof(T).Name, wayOfSync, FilterSettings.None, false, true);
             }
 
         /// <summary>Синхронизация объекта</summary>
         /// <param name="wayOfSync">Способ синхронизации</param>
         /// <param name="filter">Фильтры</param>
-        public void SyncObjects<T>(WaysOfSync wayOfSync, FilterSettings filter) where T : dbObject
+        private bool SyncObjects<T>(WaysOfSync wayOfSync, FilterSettings filter) where T : dbObject
             {
-            SyncObjects<T>(typeof(T).Name, wayOfSync, filter, false, true);
+            return SyncObjects<T>(typeof(T).Name, wayOfSync, filter, false, true);
             }
 
-        /// <summary>Синхронизация объекта</summary>
-        /// <param name="wayOfSync">Способ синхронизации</param>
-        /// <param name="filter">Фильтры</param>
-        /// <param name="skipExists">Пропустить существующие</param>
-        public void SyncObjects<T>(WaysOfSync wayOfSync, FilterSettings filter, bool skipExists) where T : dbObject
-            {
-            SyncObjects<T>(typeof(T).Name, wayOfSync, filter, skipExists, true);
-            }
 
 
 
@@ -139,8 +193,19 @@ namespace WMS_client
         /// <param name="filter">Фильтры</param>
         /// <param name="skipExists">Пропустить существующие</param>
         /// <param name="updId">Нужно обновить ID</param>
-        public void SyncObjects<T>(string tableName, WaysOfSync wayOfSync, FilterSettings filter, bool skipExists, bool updId) where T : dbObject
+        private bool SyncObjects<T>(string tableName, WaysOfSync wayOfSync, FilterSettings filter, bool skipExists, bool updId) where T : dbObject
             {
+            CatalogSynchronizer synchronizer = null;
+            synchronizer = this.getCatalogSynchronizer(tableName);
+            logBuilder.AppendLine();
+            logBuilder.AppendLine();
+            logBuilder.AppendLine(string.Format("{0}:", typeof(T).Name));
+
+            Stopwatch totalWatch = new Stopwatch();
+            totalWatch.Start();
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+
             string forWarehousesAndMapsSelect = string.Format(@"SELECT RTRIM({0}){0},RTRIM({1}){1},RTRIM({2}) {2} FROM {3} WHERE {4}=0",
                                            dbObject.IS_SYNCED,
                                            dbObject.BARCODE_NAME,
@@ -164,6 +229,12 @@ namespace WMS_client
             SqlCeCommand query = dbWorker.NewQuery(command);
             DataTable table = query.SelectToTable();
 
+            int rowsCount = (table ?? new DataTable()).Rows.Count;
+            logBuilder.AppendLine(string.Format("init pdt query: {0} msec; rows: {1}", stopWatch.ElapsedMilliseconds, rowsCount));
+
+            stopWatch.Reset();
+            stopWatch.Start();
+
             if (filter == FilterSettings.None)
                 {
                 PerformQuery("StartSyncProcess", this.serverIdProvider.ServerId, tableName, table, (int)FilterSettings.NotMarkForDelete);
@@ -173,15 +244,64 @@ namespace WMS_client
                 PerformQuery("StartSyncProcess", this.serverIdProvider.ServerId, tableName, table, (int)FilterSettings.NotMarkForDelete, (int)filter);
                 }
 
+            logBuilder.AppendLine(string.Format("StartSyncProcess: {0} msec; rows: {1}", stopWatch.ElapsedMilliseconds, rowsCount));
+
+            stopWatch.Reset();
+            stopWatch.Start();
+
             if (IsAnswerIsTrue)
                 {
                 removeMarkedObject(tableName);
-                updateObjOnLocalDb<T>(skipExists, updId);
+                logBuilder.AppendLine(string.Format("removeMarkedObject: {0} msec", stopWatch.ElapsedMilliseconds));
+
+                stopWatch.Reset();
+                stopWatch.Start();
+
+                updateObjOnLocalDb<T>(synchronizer, skipExists, updId);
+
+                int localRowsCount = ((ResultParameters[1] as DataTable) ?? new DataTable()).Rows.Count;
+                logBuilder.AppendLine(string.Format("updateObjOnLocalDb: {0} msec; rows: {1}", stopWatch.ElapsedMilliseconds, localRowsCount));
+
+                stopWatch.Reset();
+                stopWatch.Start();
 
                 if (wayOfSync == WaysOfSync.TwoWay)
                     {
+                    int remoteTableRows = ((ResultParameters[2] as DataTable) ?? new DataTable()).Rows.Count;
+
                     updateObjOnServDb<T>(tableName);
+
+                    logBuilder.AppendLine(string.Format("update greenhouse: {0} msec; rows:{1}", stopWatch.ElapsedMilliseconds, remoteTableRows));
+
+                    stopWatch.Reset();
+                    stopWatch.Start();
                     }
+
+                logBuilder.AppendLine(string.Format("{0} total: {1} msec", typeof(T).Name, totalWatch.ElapsedMilliseconds));
+
+                return true;
+                }
+            else
+                {
+                return false;
+                }
+            }
+
+        private CatalogSynchronizer getCatalogSynchronizer(string tableName)
+            {
+            switch (tableName)
+                {
+                case "Cases":
+                    return new CasesSynchronizer();
+
+                case "Lamps":
+                    return new AccessorySynchronizer("Lamps");
+
+                case "ElectronicUnits":
+                    return new AccessorySynchronizer("ElectronicUnits");
+
+                default:
+                    return null;
                 }
             }
 
@@ -189,12 +309,15 @@ namespace WMS_client
         /// <typeparam name="T"></typeparam>
         /// <param name="skipExists">Пропустить существующие</param>
         /// <param name="updId">Нужно обновить ID</param>
-        private void updateObjOnLocalDb<T>(bool skipExists, bool updId) where T : dbObject
+        private void updateObjOnLocalDb<T>(CatalogSynchronizer synchronizer, bool skipExists, bool updId) where T : dbObject
             {
             //Данные только по измененным элементам с "сервера"
             DataTable changesForTsd = ResultParameters[1] as DataTable;
-            //Обновление элементов на локальной базе
-            CreateSyncObject<T>(changesForTsd, skipExists, ref deferredProperty, updId);
+            if (changesForTsd != null)
+                {
+                //Обновление элементов на локальной базе
+                CreateSyncObject<T>(synchronizer, changesForTsd, skipExists, ref deferredProperty, updId);
+                }
             }
 
         /// <summary>Выборка данных для обновления сервера после синхронизации</summary>
@@ -289,165 +412,158 @@ namespace WMS_client
         /// <param name="skipExists">Пропустить существующие</param>
         /// <param name="deferredProperty">Список отложеных свойств</param>
         /// <param name="updId">Нужно обновить ID</param>
-        public static void CreateSyncObject<T>(DataTable table, bool skipExists, ref List<DataAboutDeferredProperty> deferredProperty, bool updId) where T : dbObject
+        private static void CreateSyncObject<T>(CatalogSynchronizer synchronizer, DataTable table, bool skipExists, ref List<DataAboutDeferredProperty> deferredProperty, bool updId) where T : dbObject
             {
-            if (table != null)
+            if (synchronizer != null)
                 {
-                Type type = typeof(T);
-                PropertyInfo[] properties = type.GetProperties();
-                string syncRef = string.Empty;
-                string syncRefName = dbObject.SYNCREF_NAME.ToLower();
-                int lastDeferredIndex = deferredProperty.Count;
-
                 foreach (DataRow row in table.Rows)
                     {
-                    object newObj = Activator.CreateInstance(typeof(T));
-                    T newObject = (T)newObj;
-                    bool needDeferred = false;
+                    synchronizer.Merge(row);
+                    }
+                return;
+                }
 
-                    foreach (PropertyInfo property in properties)
+            Type type = typeof(T);
+            PropertyInfo[] properties = type.GetProperties();
+            string syncRef = string.Empty;
+            string syncRefName = dbObject.SYNCREF_NAME.ToLower();
+            int lastDeferredIndex = deferredProperty.Count;
+
+            foreach (DataRow row in table.Rows)
+                {
+
+                object newObj = Activator.CreateInstance(typeof(T));
+                T newObject = (T)newObj;
+                bool needDeferred = false;
+
+                foreach (PropertyInfo property in properties)
+                    {
+                    dbFieldAtt attribute = Attribute.GetCustomAttribute(property, typeof(dbFieldAtt)) as dbFieldAtt;
+
+                    if (attribute != null && table.Columns.Contains(property.Name))
                         {
-                        dbFieldAtt attribute = Attribute.GetCustomAttribute(property, typeof(dbFieldAtt)) as dbFieldAtt;
+                        object value = row[property.Name];
 
-                        if (attribute != null && table.Columns.Contains(property.Name))
+                        //Не существует ли елемент с такой ссылкой?
+                        if (property.Name.ToLower().Equals(syncRefName))
                             {
-                            object value = row[property.Name];
-
-                            //Не существует ли елемент с такой ссылкой?
-                            if (property.Name.ToLower().Equals(syncRefName))
+                            if (BarcodeWorker.IsRefExist(type, value.ToString()))
                                 {
-                                if (BarcodeWorker.IsRefExist(type, value.ToString()))
+                                if (skipExists)
                                     {
-                                    if (skipExists)
-                                        {
-                                        break;
-                                        }
-
-                                    newObject.SetNotNew();
+                                    break;
                                     }
 
-                                syncRef = value.ToString();
-                                }
-                            else if (updId && property.Name.ToLower().Equals(dbObject.IDENTIFIER_NAME))
-                                {
-                                continue;
+                                newObject.SetNotNew();
                                 }
 
-                            if (property.PropertyType == typeof(int))
-                                {
-                                value = string.IsNullOrEmpty(value.ToString()) ? 0 : Convert.ToInt32(value);
-                                }
-                            else if (property.PropertyType == typeof(double))
-                                {
-                                value = string.IsNullOrEmpty(value.ToString()) ? 0D : Convert.ToDouble(value);
-                                }
-                            else if (property.PropertyType == typeof(long))
-                                {
-                                if (attribute.dbObjectType == null)
-                                    {
-                                    value = string.IsNullOrEmpty(value.ToString()) ? 0L : Convert.ToInt64(value);
-                                    }
-                                else
-                                    {
-                                    if (value != null && !string.IsNullOrEmpty(value.ToString()))
-                                        {
-                                        DataAboutDeferredProperty data = new DataAboutDeferredProperty(type, attribute.dbObjectType, property.Name, value);
-                                        deferredProperty.Add(data);
-                                        needDeferred = true;
-                                        }
-
-                                    value = 0L;
-                                    }
-                                }
-                            else if (property.PropertyType == typeof(bool))
-                                {
-                                value = Convert.ToBoolean(value);
-                                }
-                            else if (property.PropertyType == typeof(DateTime))
-                                {
-                                const char separator = '.';
-                                string[] parts = value.ToString().Substring(0, 10).Split(separator);
-
-                                if (parts.Length == 3)
-                                    {
-                                    value = Convert.ToDateTime(string.Concat(
-                                        parts[1],
-                                        separator,
-                                        parts[0],
-                                        separator,
-                                        parts[2]));
-                                    }
-                                else
-                                    {
-                                    value = new DateTime();
-                                    }
-                                }
-                            else if (property.PropertyType.IsEnum)
-                                {
-                                value = Enum.Parse(property.PropertyType, value.ToString(), false);
-                                }
-                            else if (property.PropertyType == typeof(string))
-                                {
-                                string fullValue = value.ToString();
-                                value = value.ToString();
-
-                                if (property.Name != CatalogObject.DESCRIPTION)
-                                    {
-                                    int length = attribute.StrLength == 0
-                                                     ? dbFieldAtt.DEFAULT_STR_LENGTH
-                                                     : attribute.StrLength;
-
-                                    if (fullValue.Length > length)
-                                        {
-                                        value = fullValue.Substring(0, length);
-                                        }
-                                    }
-                                }
-
-                            property.SetValue(newObject, value, null);
+                            syncRef = value.ToString();
                             }
-                        }
-
-                    ISynced syncObject = newObject as ISynced;
-
-                    if (syncObject != null)
-                        {
-                        syncObject.IsSynced = true;
-                        }
-
-                    if (updId && !skipExists && !string.IsNullOrEmpty(syncRef))
-                        {
-                        newObject.Id = Convert.ToInt64(BarcodeWorker.GetIdByRef(type, syncRef));
-                        }
-
-                    CatalogObject catalog = newObject as CatalogObject;
-
-                    if (catalog != null)
-                        {
-                        dbElementAtt attribute = Attribute.GetCustomAttribute(newObject.GetType(), typeof(dbElementAtt)) as dbElementAtt;
-                        int length = attribute == null || attribute.DescriptionLength == 0
-                                         ? dbElementAtt.DEFAULT_DES_LENGTH
-                                         : attribute.DescriptionLength;
-
-                        if (catalog.Description.Length > length)
+                        else if (updId && property.Name.ToLower().Equals(dbObject.IDENTIFIER_NAME))
                             {
-                            catalog.Description = catalog.Description.Substring(0, length);
-                            }
-                        }
-
-                    newObject.Sync<T>(updId);
-
-                    if (needDeferred)
-                        {
-                        for (int i = lastDeferredIndex; i < deferredProperty.Count; i++)
-                            {
-                            deferredProperty[i].Id = newObject.Id;
+                            continue;
                             }
 
-                        lastDeferredIndex = deferredProperty.Count;
+                        if (property.PropertyType == typeof(int))
+                            {
+                            value = string.IsNullOrEmpty(value.ToString()) ? 0 : Convert.ToInt32(value);
+                            }
+                        else if (property.PropertyType == typeof(double))
+                            {
+                            value = string.IsNullOrEmpty(value.ToString()) ? 0D : Convert.ToDouble(value);
+                            }
+                        else if (property.PropertyType == typeof(long))
+                            {
+                            if (attribute.dbObjectType == null)
+                                {
+                                value = string.IsNullOrEmpty(value.ToString()) ? 0L : Convert.ToInt64(value);
+                                }
+                            else
+                                {
+                                if (value != null && !string.IsNullOrEmpty(value.ToString()))
+                                    {
+                                    DataAboutDeferredProperty data = new DataAboutDeferredProperty(type, attribute.dbObjectType, property.Name, value);
+                                    deferredProperty.Add(data);
+                                    needDeferred = true;
+                                    }
+
+                                value = 0L;
+                                }
+                            }
+                        else if (property.PropertyType == typeof(bool))
+                            {
+                            value = Convert.ToBoolean(value);
+                            }
+                        else if (property.PropertyType == typeof(DateTime))
+                            {
+                            value = StringParser.ParseDateTime(value);
+                            }
+                        else if (property.PropertyType.IsEnum)
+                            {
+                            value = Enum.Parse(property.PropertyType, value.ToString(), false);
+                            }
+                        else if (property.PropertyType == typeof(string))
+                            {
+                            string fullValue = value.ToString();
+                            value = value.ToString();
+
+                            if (property.Name != CatalogObject.DESCRIPTION)
+                                {
+                                int length = attribute.StrLength == 0
+                                                 ? dbFieldAtt.DEFAULT_STR_LENGTH
+                                                 : attribute.StrLength;
+
+                                if (fullValue.Length > length)
+                                    {
+                                    value = fullValue.Substring(0, length);
+                                    }
+                                }
+                            }
+
+                        property.SetValue(newObject, value, null);
                         }
                     }
+
+                ISynced syncObject = newObject as ISynced;
+
+                if (syncObject != null)
+                    {
+                    syncObject.IsSynced = true;
+                    }
+
+                if (updId && !skipExists && !string.IsNullOrEmpty(syncRef))
+                    {
+                    newObject.Id = Convert.ToInt64(BarcodeWorker.GetIdByRef(type, syncRef));
+                    }
+
+                CatalogObject catalog = newObject as CatalogObject;
+
+                if (catalog != null)
+                    {
+                    dbElementAtt attribute = Attribute.GetCustomAttribute(newObject.GetType(), typeof(dbElementAtt)) as dbElementAtt;
+                    int length = attribute == null || attribute.DescriptionLength == 0
+                                     ? dbElementAtt.DEFAULT_DES_LENGTH
+                                     : attribute.DescriptionLength;
+
+                    if (catalog.Description.Length > length)
+                        {
+                        catalog.Description = catalog.Description.Substring(0, length);
+                        }
+                    }
+
+                newObject.Sync<T>(updId);
+
+                if (needDeferred)
+                    {
+                    for (int i = lastDeferredIndex; i < deferredProperty.Count; i++)
+                        {
+                        deferredProperty[i].Id = newObject.Id;
+                        }
+
+                    lastDeferredIndex = deferredProperty.Count;
+                    }
                 }
+
             }
 
         private void removeMarkedObject(string tableName)
@@ -797,4 +913,6 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
             }
         #endregion
         }
+
+
     }

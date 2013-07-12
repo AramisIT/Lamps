@@ -504,11 +504,11 @@ namespace WMS_client
 #if DEBUG
             IsDebugMode = true;
 #endif
-            if (IsDebugMode)
-            {
-                Process = new FormDesignProcess(this);
-            }
-            else
+            //if (IsDebugMode)
+            //{
+            //    Process = new FormDesignProcess(this);
+            //}
+            //else
             {
                 User = 12;
                 //Process = new SelectingProcess(this);

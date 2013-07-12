@@ -133,7 +133,7 @@ FROM(
             return result ?? 0;
             }
 
-        /// <summary>Чи вже існує штрихкод?</summary>
+        /// <summary>Get catalog id by syncRef</summary>
         /// <param name="type"> </param>
         /// <param name="syncRef">Штрихкод</param>
         public static object GetIdByRef(Type type, string syncRef)
