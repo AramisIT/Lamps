@@ -621,14 +621,13 @@ namespace WMS_client
         private void groupRegistrationOnBarcode(string barcode)
             {
             bool barcodeExists = BarcodeWorker.IsBarcodeExist(barcode);
-           
+
             if (barcodeExists)
                 {
                 ShowMessage("Даний штрих-код вже використовується");
                 return;
                 }
-
-
+          
             Lamps newLamp = currentLamp.CopyWithoutLinks() as Lamps;
             newLamp.Write();
 

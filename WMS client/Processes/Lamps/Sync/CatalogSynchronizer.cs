@@ -51,7 +51,7 @@ SET
 WHERE [Id]=@Id", tableName);
 
             SqlCeCommand query = dbWorker.NewQuery(sql);
-         
+
             return query;
             }
 
@@ -63,7 +63,7 @@ WHERE [Id]=@Id", tableName);
                         [Status],[TypeOfWarrantly],[DateOfWarrantyEnd],[IsSynced],[Location],[Posted],[Number],[Responsible],[Date],
                         [MarkForDeleting],[Description],[SyncRef],[Id],[LastModified])
  
-                        VALUESb(@BarCode,@DateOfActuality,@DrawdownDate,@HoursOfWork,@Marking,@Model,
+                        VALUES(@BarCode,@DateOfActuality,@DrawdownDate,@HoursOfWork,@Marking,@Model,
                         @Party,@Status,@TypeOfWarrantly,@DateOfWarrantyEnd,@IsSynced,@Location,@Posted,@Number,
                         @Responsible,@Date,@MarkForDeleting,@Description,@SyncRef, @Id, @LastModified)",
                     tableName);
@@ -164,11 +164,40 @@ WHERE [Id]=@Id";
 
             string sql = string.Format("select Id from {0} where SyncRef=@SyncRef", TableName);
 
-            SqlCeCommand selectQuery = dbWorker.NewQuery(sql);
-            selectQuery.AddParameter(SYNCREF_NAME, syncRef);
+            object statusObj = null;
 
-            object statusObj = selectQuery.ExecuteScalar();
+            using (SqlCeCommand selectQuery = dbWorker.NewQuery(sql))
+                {
+                selectQuery.AddParameter(SYNCREF_NAME, syncRef);
 
+                statusObj = selectQuery.ExecuteScalar();
+                }
+
+            using (SqlCeCommand query = getMergeQuery(row, statusObj))
+                {
+                try
+                    {
+                    addDefaultParameters(query, row);
+                    }
+                catch (Exception)
+                    {
+
+                    }
+
+                try
+                    {
+                    query.ExecuteNonQuery();
+                    }
+                catch (Exception exp)
+                    {
+                    string errorMessage = exp.Message;
+                    Trace.WriteLine(errorMessage);
+                    }
+                }
+            }
+
+        private SqlCeCommand getMergeQuery(DataRow row, object statusObj)
+            {
             SqlCeCommand query;
             if (statusObj == null)
                 {
@@ -180,25 +209,7 @@ WHERE [Id]=@Id";
                 query = GetUpdateQuery(row);
                 query.AddParameter("Id", Convert.ToInt64(statusObj));
                 }
-            try
-                {
-                addDefaultParameters(query, row);
-                }
-            catch (Exception)
-                {
-
-                }
-
-
-            try
-                {
-                query.ExecuteNonQuery();
-                }
-            catch (Exception exp)
-                {
-                string errorMessage = exp.Message;
-                Trace.WriteLine(errorMessage);
-                }
+            return query;
             }
 
         private void addDefaultParameters(SqlCeCommand query, DataRow row)

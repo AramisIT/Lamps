@@ -226,9 +226,11 @@ namespace WMS_client
             string command = (useLoggingSyncronization & !isWarehouseTable) ?
                 forByLogProcessedSelect :
                 forWarehousesAndMapsSelect;
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            DataTable table = query.SelectToTable();
-
+            DataTable table = null;
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                table = query.SelectToTable();
+                }
             int rowsCount = (table ?? new DataTable()).Rows.Count;
             logBuilder.AppendLine(string.Format("init pdt query: {0} msec; rows: {1}", stopWatch.ElapsedMilliseconds, rowsCount));
 
@@ -326,43 +328,45 @@ namespace WMS_client
             {
             //Штрихкода элементов, которые нужно обновить на "сервере"
             DataTable changesForServ = ResultParameters[2] as DataTable;
-            SqlCeCommand query = dbWorker.NewQuery(string.Empty);
-            StringBuilder where = new StringBuilder();
-
-            if (changesForServ != null && changesForServ.Rows.Count != 0)
+            using (SqlCeCommand query = dbWorker.NewQuery(string.Empty))
                 {
-                //Формирование комманды для выбора данных по всем элементам 
-                //из таблицы tableName, которые необходимо обновить на "сервере" 
-                int index = 0;
+                StringBuilder where = new StringBuilder();
 
-                foreach (DataRow row in changesForServ.Rows)
+                if (changesForServ != null && changesForServ.Rows.Count != 0)
                     {
-                    //Добавление параметров
-                    query.AddParameter(string.Concat(PARAMETER, index), row[dbObject.SYNCREF_NAME]);
-                    @where.AppendFormat(" RTRIM([{0}].[{1}])=RTRIM(@{2}{3}) OR",
-                                       tableName, dbObject.SYNCREF_NAME, PARAMETER, index);
-                    index++;
-                    }
+                    //Формирование комманды для выбора данных по всем элементам 
+                    //из таблицы tableName, которые необходимо обновить на "сервере" 
+                    int index = 0;
+
+                    foreach (DataRow row in changesForServ.Rows)
+                        {
+                        //Добавление параметров
+                        query.AddParameter(string.Concat(PARAMETER, index), row[dbObject.SYNCREF_NAME]);
+                        @where.AppendFormat(" RTRIM([{0}].[{1}])=RTRIM(@{2}{3}) OR",
+                                            tableName, dbObject.SYNCREF_NAME, PARAMETER, index);
+                        index++;
+                        }
 
 
-                string whereStr = @where.ToString(0, @where.Length - 3);
-                //Обновление статуса синхронизации для локальной базы
-                query.CommandText = string.Format("UPDATE {0} SET {1}=1 WHERE {2}",
-                                                  tableName,
-                                                  dbObject.IS_SYNCED,
-                                                  whereStr);
-                query.ExecuteNonQuery();
+                    string whereStr = @where.ToString(0, @where.Length - 3);
+                    //Обновление статуса синхронизации для локальной базы
+                    query.CommandText = string.Format("UPDATE {0} SET {1}=1 WHERE {2}",
+                                                      tableName,
+                                                      dbObject.IS_SYNCED,
+                                                      whereStr);
+                    query.ExecuteNonQuery();
 
-                if (changesForServ.Rows.Count > 0)
-                    {
-                    //Выборка данных
-                    query.CommandText = getUnsyncLinkedData(typeof(T), whereStr);
-                    DataTable changes = query.SelectToTable(new Dictionary<string, Enum>
-                                                                {
-                                                                    {BaseFormatName.DateTime, DateTimeFormat.OnlyDate}
-                                                                });
+                    if (changesForServ.Rows.Count > 0)
+                        {
+                        //Выборка данных
+                        query.CommandText = getUnsyncLinkedData(typeof(T), whereStr);
+                        DataTable changes = query.SelectToTable(new Dictionary<string, Enum>
+                                {
+                                    {BaseFormatName.DateTime, DateTimeFormat.OnlyDate}
+                                });
 
-                    PerformQuery("SyncChangesForServer", tableName, changes);
+                        PerformQuery("SyncChangesForServer", tableName, changes);
+                        }
                     }
                 }
             }
@@ -416,9 +420,22 @@ namespace WMS_client
             {
             if (synchronizer != null)
                 {
-                foreach (DataRow row in table.Rows)
+                int rowsCount = table.Rows.Count;
+                for (int rowIndex = 0; rowIndex < rowsCount; rowIndex++)
                     {
+                    DataRow row = table.Rows[rowIndex];
                     synchronizer.Merge(row);
+
+                    //if (rowIndex % 10 == 0)
+                        {
+                        Trace.WriteLine(string.Format("{1} %, rowIndex = {0} from {2}", rowIndex, (int)(100 * rowIndex / rowsCount), rowsCount));
+                        }
+
+                    //if (rowIndex % 500 == 0)
+                    //    {
+                    //    GC.Collect();
+                    //    GC.WaitForPendingFinalizers();
+                    //    }
                     }
                 return;
                 }
@@ -587,9 +604,11 @@ namespace WMS_client
                         parameters.Add(currParameter, row[dbObject.SYNCREF_NAME]);
                         }
 
-                    SqlCeCommand query = dbWorker.NewQuery(command.ToString());
-                    query.AddParameters(parameters);
-                    query.ExecuteNonQuery();
+                    using (SqlCeCommand query = dbWorker.NewQuery(command.ToString()))
+                        {
+                        query.AddParameters(parameters);
+                        query.ExecuteNonQuery();
+                        }
                     }
                 }
             }
@@ -665,21 +684,27 @@ namespace WMS_client
             //sync
             string docCommand = string.Format("SELECT {0},{1},Date,Operation,Map,Register,Position FROM {2}",
                                               dbObject.BARCODE_NAME, dbObject.SYNCREF_NAME, tableName);
-            SqlCeCommand query = dbWorker.NewQuery(docCommand);
-            DataTable table = query.SelectToTable(new Dictionary<string, Enum>
-                                                      {
-                                                          {BaseFormatName.DateTime, DateTimeFormat.OnlyDate}
-                                                      });
+            DataTable table = null;
+            using (SqlCeCommand query = dbWorker.NewQuery(docCommand))
+                {
+                table = query.SelectToTable(new Dictionary<string, Enum>
+                    {
+                        {BaseFormatName.DateTime, DateTimeFormat.OnlyDate}
+                    });
+                }
             PerformQuery("SyncMovement", table);
 
             if (ResultParameters != null && (bool)ResultParameters[0])
                 {
                 //Видалення записів
                 string delCommand = string.Concat("DELETE FROM ", tableName);
-                query = dbWorker.NewQuery(delCommand);
-                query.ExecuteNonQuery();
+                using (SqlCeCommand query = dbWorker.NewQuery(delCommand))
+                    {
+                    query.ExecuteNonQuery();
+                    }
                 }
             }
+
         #endregion
 
         #region Sync.Sending
@@ -775,8 +800,11 @@ namespace WMS_client
 
             //1. Обновление на сервере
             string command = string.Format("SELECT Id, Document FROM {0} WHERE IsSynced=0", tableName);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            DataTable table = query.SelectToTable();
+            DataTable table = null;
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                table = query.SelectToTable();
+                }
             PerformQuery("SetSendingDocs", docName, tableName, table, (int)mode);
 
             bool fullDeleteAccepted = typeof(T) == typeof(SendingToRepair) || typeof(T) == typeof(SendingToCharge);
@@ -784,8 +812,10 @@ namespace WMS_client
             if (fullDeleteAccepted)
                 {
                 command = string.Format("SELECT DISTINCT Id FROM {0} WHERE IsSynced=0", tableName);
-                query = dbWorker.NewQuery(command);
-                table = query.SelectToTable();
+                using (SqlCeCommand query = dbWorker.NewQuery(command))
+                    {
+                    table = query.SelectToTable();
+                    }
                 StringBuilder removeCommand = new StringBuilder("DELETE FROM {0} WHERE 1=0 ");
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
                 int index = 0;
@@ -798,20 +828,26 @@ namespace WMS_client
                     index++;
                     }
 
-                query = dbWorker.NewQuery(string.Format(removeCommand.ToString(), docName));
-                query.AddParameters(parameters);
-                query.ExecuteNonQuery();
+                using (SqlCeCommand query = dbWorker.NewQuery(string.Format(removeCommand.ToString(), docName)))
+                    {
+                    query.AddParameters(parameters);
+                    query.ExecuteNonQuery();
+                    }
 
-                query = dbWorker.NewQuery(string.Format(removeCommand.ToString(), tableName));
-                query.AddParameters(parameters);
-                query.ExecuteNonQuery();
+                using (SqlCeCommand query = dbWorker.NewQuery(string.Format(removeCommand.ToString(), tableName)))
+                    {
+                    query.AddParameters(parameters);
+                    query.ExecuteNonQuery();
+                    }
                 }
             else
                 {
                 //2. Удаление обновленных (? а нужно ли ... может когда весь документ удаляется)
                 command = string.Format("DELETE FROM {0} WHERE IsSynced=0", tableName);
-                query = dbWorker.NewQuery(command);
-                query.ExecuteNonQuery();
+                using (SqlCeCommand query = dbWorker.NewQuery(command))
+                    {
+                    query.ExecuteNonQuery();
+                    }
 
                 //3. Удаление полностью принятого документа
                 command = string.Format(@"SELECT s.Id
@@ -822,8 +858,10 @@ LEFT JOIN (
     JOIN {1} t2 ON t2.Id=t1.Id
     GROUP BY t1.Id)t ON s.Id=t.Id
 WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
-                query = dbWorker.NewQuery(command);
-                table = query.SelectToTable();
+                using (SqlCeCommand query = dbWorker.NewQuery(command))
+                    {
+                    table = query.SelectToTable();
+                    }
 
                 StringBuilder removeCommand = new StringBuilder();
                 removeCommand.AppendFormat("DELETE FROM {0} WHERE 1=0", docName);
@@ -838,9 +876,11 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
                     index++;
                     }
 
-                query = dbWorker.NewQuery(removeCommand.ToString());
-                query.AddParameters(parameters);
-                query.ExecuteNonQuery();
+                using (SqlCeCommand query = dbWorker.NewQuery(removeCommand.ToString()))
+                    {
+                    query.AddParameters(parameters);
+                    query.ExecuteNonQuery();
+                    }
                 }
             }
 
@@ -851,9 +891,11 @@ WHERE t.Count=0 OR t.Id IS NULL", docName, tableName);
             string command = string.Format(
                 "SELECT d.Id,m.{0} Nomenclature,d.{1} FROM {2} d LEFT JOIN Models m ON m.Id=d.Nomenclature ORDER BY Id,Nomenclature",
                 dbObject.SYNCREF_NAME, dbObject.BARCODE_NAME, tableName);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            DataTable table = query.SelectToTable();
-
+            DataTable table = null;
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                table = query.SelectToTable();
+                }
             //Send
             PerformQuery("SetSendingExchangeDocs", table);
             //Clear

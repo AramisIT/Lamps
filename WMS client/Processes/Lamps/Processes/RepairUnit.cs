@@ -116,26 +116,29 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Query
+
         /// <summary>Чи знаходиться блок на гарантії?</summary>
         private bool underWarranty()
             {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
+            using (SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
 	CASE WHEN e.DateOfWarrantyEnd>=@EndOfDay THEN 1 ELSE 0 END UnderWarranty
 FROM ElectronicUnits e 
 LEFT JOIN Models t ON t.Id=e.Model
 LEFT JOIN Party p ON p.Id=e.Party
-WHERE RTRIM(e.BarCode)=RTRIM(@BarCode)");
-            query.AddParameter("BarCode", UnitBarcode);
-            query.AddParameter("EndOfDay", DateTime.Now.Date.AddDays(1));
-            object result = query.ExecuteScalar();
+WHERE RTRIM(e.BarCode)=RTRIM(@BarCode)"))
+                {
+                query.AddParameter("BarCode", UnitBarcode);
+                query.AddParameter("EndOfDay", DateTime.Now.Date.AddDays(1));
+                object result = query.ExecuteScalar();
 
-            return result != null && Convert.ToBoolean(result);
+                return result != null && Convert.ToBoolean(result);
+                }
             }
 
         /// <summary>Отримати інформації по блоку</summary>
         private object[] getUnitInfo()
             {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
+            using (SqlCeCommand query = dbWorker.NewQuery(@"SELECT 
 	m.Description Model
 	, p.Description Party
 	, e.DateOfWarrantyEnd
@@ -144,24 +147,31 @@ FROM ElectronicUnits e
 LEFT JOIN Models m ON m.Id=e.Model
 LEFT JOIN Party p ON p.Id=e.Party
 LEFT JOIN Contractors c ON c.Id=p.Contractor
-WHERE RTRIM(e.Barcode)=RTRIM(@Barcode)");
-            query.AddParameter("Barcode", UnitBarcode);
+WHERE RTRIM(e.Barcode)=RTRIM(@Barcode)"))
+                {
+                query.AddParameter("Barcode", UnitBarcode);
 
-            return query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+                return
+                    query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+                }
             }
 
         /// <summary>Змінити статус ел.блоку</summary>
         /// <param name="status">Новий статус</param>
         private void changeUnitStatus(TypesOfLampsStatus status)
             {
-            string command = string.Format("UPDATE ElectronicUnits SET Status=@Status,{0}=@{0} WHERE RTRIM({1})=RTRIM(@{1})",
-                dbObject.IS_SYNCED, dbObject.BARCODE_NAME);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter("Status", (int)status);
-            query.AddParameter(dbObject.IS_SYNCED, false);
-            query.AddParameter(dbObject.BARCODE_NAME, UnitBarcode);
-            query.ExecuteNonQuery();
+            string command =
+                string.Format("UPDATE ElectronicUnits SET Status=@Status,{0}=@{0} WHERE RTRIM({1})=RTRIM(@{1})",
+                              dbObject.IS_SYNCED, dbObject.BARCODE_NAME);
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameter("Status", (int)status);
+                query.AddParameter(dbObject.IS_SYNCED, false);
+                query.AddParameter(dbObject.BARCODE_NAME, UnitBarcode);
+                query.ExecuteNonQuery();
+                }
             }
+
         #endregion
         }
     }

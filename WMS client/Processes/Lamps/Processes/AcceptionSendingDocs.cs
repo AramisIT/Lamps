@@ -64,24 +64,37 @@ namespace WMS_client.Processes.Lamps
                 {
                 sourceTable = new DataTable();
                 sourceTable.Columns.AddRange(new[]
-                                                 {
-                                                     new DataColumn("Description", typeof (string))
-                                                 });
+                    {
+                        new DataColumn("Description", typeof (string))
+                    });
                 visualTable = MainProcess.CreateTable("Accessories", 205);
                 visualTable.DT = sourceTable;
                 visualTable.AddColumn("Комплектующее", "Description", 214);
-                SqlCeDataReader reader = GetData();
 
-                while (reader.Read())
+                string command = string.Format(@"SELECT DISTINCT c.Document Id
+FROM {0} c 
+WHERE c.TypeOfAccessory=@Type AND c.{1}=1", subTableName, dbObject.IS_SYNCED);
+
+
+                using (SqlCeCommand query = dbWorker.NewQuery(command))
                     {
-                    string id = reader["Id"].ToString().TrimEnd();
-                    DataRow row = visualTable.AddRow(id);
+                    query.AddParameter("Type", typeOfAccessory);
 
-                    rows.Add(id, row);
+                    // Отримати дані для заповнення в таблиці
+                    using (SqlCeDataReader reader = query.ExecuteReader())
+                        {
+                        while (reader.Read())
+                            {
+                            string id = reader["Id"].ToString().TrimEnd();
+                            DataRow row = visualTable.AddRow(id);
+
+                            rows.Add(id, row);
+                            }
+
+                        visualTable.Focus();
+                        MainProcess.CreateButton("Ок", 15, 275, 210, 35, "ok", ok_Click);
+                        }
                     }
-
-                visualTable.Focus();
-                MainProcess.CreateButton("Ок", 15, 275, 210, 35, "ok", ok_Click);
                 }
             }
 
@@ -121,16 +134,6 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Query
-        /// <summary>Отримати дані для заповнення в таблиці</summary>
-        private SqlCeDataReader GetData()
-            {
-            string command = string.Format(@"SELECT DISTINCT c.Document Id
-FROM {0} c 
-WHERE c.TypeOfAccessory=@Type AND c.{1}=1", subTableName, dbObject.IS_SYNCED);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter("Type", typeOfAccessory);
-            return query.ExecuteReader();
-            }
 
         /// <summary>Збереження інформації</summary>
         private void Accept()
@@ -147,10 +150,13 @@ WHERE c.TypeOfAccessory=@Type AND c.{1}=1", subTableName, dbObject.IS_SYNCED);
                 index++;
                 }
 
-            SqlCeCommand query = dbWorker.NewQuery(command.ToString());
-            query.AddParameters(parameters);
-            query.ExecuteNonQuery();
+            using (SqlCeCommand query = dbWorker.NewQuery(command.ToString()))
+                {
+                query.AddParameters(parameters);
+                query.ExecuteNonQuery();
+                }
             }
+
         #endregion
         }
     }

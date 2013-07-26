@@ -147,6 +147,7 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Query
+
         /// <summary>Отримати дані для заповнення таблиці</summary>
         private SqlCeDataReader GetData()
             {
@@ -159,8 +160,10 @@ WHERE d.{6}=1",
                 ACC_ID_COLUMN, DESCRIPTION_COLUMN, MODEL_ID_COLUMN,
                 docName, tableName, dbObject.BARCODE_NAME, dbObject.IS_SYNCED);
 
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            return query.ExecuteReader();
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                return query.ExecuteReader();
+                }
             }
 
         /// <summary>Збереження інформації по завершенню прийомки</summary>
@@ -200,10 +203,11 @@ WHERE d.{6}=1",
             //Doc
             string command = string.Format("UPDATE {0} SET {1}=0 WHERE 1=1 {2}",
                                            docName, dbObject.IS_SYNCED, whereClause);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameters(parameters);
-            query.ExecuteNonQuery();
-
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameters(parameters);
+                query.ExecuteNonQuery();
+                }
             }
         #endregion
         }

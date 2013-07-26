@@ -99,21 +99,26 @@ namespace WMS_client
         #endregion
 
         #region Query
+
         /// <summary>Инфо о блоке</summary>
         private object[] getData()
             {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT
+            using (SqlCeCommand query = dbWorker.NewQuery(@"SELECT
     t.Description Model
     , p.Description Party
     , e.DateOfWarrantyEnd Warrantly
 FROM ElectronicUnits e
 LEFT JOIN Models t ON t.Id=e.Model
 LEFT JOIN Party p ON p.Id=e.Party
-WHERE RTRIM(e.BarCode)=RTRIM(@BarCode)");
-            query.AddParameter("BarCode", UnitBarcode);
+WHERE RTRIM(e.BarCode)=RTRIM(@BarCode)"))
+                {
+                query.AddParameter("BarCode", UnitBarcode);
 
-            return query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+                return
+                    query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+                }
             }
+
         #endregion
         }
     }

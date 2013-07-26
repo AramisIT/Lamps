@@ -45,18 +45,18 @@ namespace WMS_client.Utils
             }
 
         internal class SyncRefsDict : Dictionary<string, long>
-        {
-        }
+            {
+            }
 
         public static long FindCaseId(long accessoryId, TypeOfAccessories typeOfAccessories)
             {
             string sql = string.Format(@"select Id from cases where {0} = @accessoryId", typeOfAccessories);
-            SqlCeCommand query = dbWorker.NewQuery(sql);
-            query.AddParameter("accessoryId", accessoryId);
-            object idObj = query.ExecuteScalar();
-
-            return idObj == null ? 0 : Convert.ToInt64(idObj);
+            using (SqlCeCommand query = dbWorker.NewQuery(sql))
+                {
+                query.AddParameter("accessoryId", accessoryId);
+                object idObj = query.ExecuteScalar();
+                return idObj == null ? 0 : Convert.ToInt64(idObj);
+                }
             }
-
         }
     }

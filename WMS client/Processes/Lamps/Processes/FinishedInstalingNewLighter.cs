@@ -96,18 +96,24 @@ namespace WMS_client
             {
             Cases.ChangeLighterState(LightBarcode, TypesOfLampsStatus.IsWorking, false);
 
-            SqlCeCommand query = dbWorker.NewQuery(
-                    "UPDATE Cases SET Map=@Map,Register=@Register,Position=@Position,DateOfActuality=@DateOfActuality WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
-            query.AddParameter("Map", MapId);
-            query.AddParameter("Register", ResultParameters[1]);
-            query.AddParameter("Position", ResultParameters[2]);
-            query.AddParameter("Barcode", LightBarcode);
-            query.AddParameter("DateOfActuality", DateTime.Now);
-            query.ExecuteNonQuery();
+            using (SqlCeCommand query = dbWorker.NewQuery(
+                "UPDATE Cases SET Map=@Map,Register=@Register,Position=@Position,DateOfActuality=@DateOfActuality WHERE RTRIM(Barcode)=RTRIM(@Barcode)")
+                )
+                {
+                query.AddParameter("Map", MapId);
+                query.AddParameter("Register", ResultParameters[1]);
+                query.AddParameter("Position", ResultParameters[2]);
+                query.AddParameter("Barcode", LightBarcode);
+                query.AddParameter("DateOfActuality", DateTime.Now);
+                query.ExecuteNonQuery();
+                }
+            object syncRefObj = null;
+            using (SqlCeCommand query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)"))
+                {
+                query.AddParameter("Barcode", LightBarcode);
+                syncRefObj = query.ExecuteScalar();
+                }
 
-            query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
-            query.AddParameter("Barcode", LightBarcode);
-            object syncRefObj = query.ExecuteScalar();
             string syncRef = syncRefObj == null ? string.Empty : syncRefObj.ToString();
 
             //Внесение записи в "Перемещение"

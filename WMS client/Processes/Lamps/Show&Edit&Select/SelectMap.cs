@@ -50,13 +50,22 @@ namespace WMS_client
                 visualTable = MainProcess.CreateTable("Maps", 259, onRowSelected);
                 visualTable.DT = sourceTable;
                 visualTable.AddColumn("Карта", "Description", 214);
-                SqlCeDataReader reader = GetMapsList();
 
-                while (reader.Read())
+                using (SqlCeCommand query =
+                        dbWorker.NewQuery("SELECT Id,Description FROM Maps WHERE ParentId=@Id ORDER BY Description")
+                    )
                     {
-                    visualTable.AddRow(reader["Description"], reader["Id"]);
-                    }
+                    query.AddParameter("Id", CurrentMapId);
 
+                    using (SqlCeDataReader reader = query.ExecuteReader())
+                        {
+                        while (reader.Read())
+                            {
+                            visualTable.AddRow(reader["Description"], reader["Id"]);
+                            }
+                        }
+
+                    }
                 visualTable.Focus();
                 }
             }
@@ -102,31 +111,31 @@ namespace WMS_client
         #endregion
 
         #region Query
-        private SqlCeDataReader GetMapsList()
-            {
-            SqlCeCommand query = dbWorker.NewQuery("SELECT Id,Description FROM Maps WHERE ParentId=@Id ORDER BY Description");
-            query.AddParameter("Id", CurrentMapId);
-            return query.ExecuteReader();
-            }
+
 
         private bool checkIncludeMapOrInfo(long id)
             {
-            SqlCeCommand query = dbWorker.NewQuery("SELECT Count(1) FROM Maps WHERE ParentId=@Id");
-            query.AddParameter("Id", id);
-            object countObj = query.ExecuteScalar();
+            using (SqlCeCommand query = dbWorker.NewQuery("SELECT Count(1) FROM Maps WHERE ParentId=@Id"))
+                {
+                query.AddParameter("Id", id);
+                object countObj = query.ExecuteScalar();
 
-            return Convert.ToInt32(countObj) != 0;
+                return Convert.ToInt32(countObj) != 0;
+                }
             }
 
         private object[] getMapInfo(long id)
             {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT m.Id,m.Description,m.RegisterFrom,m.RegisterTo
+            using (SqlCeCommand query = dbWorker.NewQuery(@"SELECT m.Id,m.Description,m.RegisterFrom,m.RegisterTo
 FROM Maps m
-WHERE Id=@Id");
-            query.AddParameter("Id", id);
+WHERE Id=@Id"))
+                {
+                query.AddParameter("Id", id);
 
-            return query.SelectArray();
+                return query.SelectArray();
+                }
             }
+
         #endregion
         }
     }

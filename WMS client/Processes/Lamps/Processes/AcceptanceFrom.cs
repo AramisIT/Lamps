@@ -75,7 +75,7 @@ namespace WMS_client.Processes.Lamps
                     sourceTable.Rows.Remove(rows[Barcode]);
                     rows.Remove(Barcode);
                     }
-               
+
                 }
             }
 
@@ -101,6 +101,7 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Query
+
         /// <summary>Отримати дані для заповлення таблиці</summary>
         private SqlCeDataReader GetData()
             {
@@ -108,8 +109,10 @@ namespace WMS_client.Processes.Lamps
 FROM {0} c 
 WHERE c.{1}=1", tableName, dbObject.IS_SYNCED);
 
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            return query.ExecuteReader();
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                return query.ExecuteReader();
+                }
             }
 
         /// <summary>Збереження інформації по прийомці</summary>
@@ -127,10 +130,13 @@ WHERE c.{1}=1", tableName, dbObject.IS_SYNCED);
                 index++;
                 }
 
-            SqlCeCommand query = dbWorker.NewQuery(command.ToString());
-            query.AddParameters(parameters);
-            query.ExecuteNonQuery();
+            using (SqlCeCommand query = dbWorker.NewQuery(command.ToString()))
+                {
+                query.AddParameters(parameters);
+                query.ExecuteNonQuery();
+                }
             }
+
         #endregion
         }
     }

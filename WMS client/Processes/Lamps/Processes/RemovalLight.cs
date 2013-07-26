@@ -90,28 +90,35 @@ namespace WMS_client
         #endregion
 
         #region Query
+
         /// <summary>Позиция светильника</summary>
         /// <returns>Карта, Register, Position</returns>
         private object[] getLightPositionInfo()
             {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT m.Description, c.Map MapId, c.Register, c.Position 
+            using (SqlCeCommand query = dbWorker.NewQuery(@"SELECT m.Description, c.Map MapId, c.Register, c.Position 
 FROM Cases c
 LEFT JOIN Maps m ON m.Id=c.Map
-WHERE RTRIM(c.Barcode)=@Barcode");
-            query.AddParameter("Barcode", LightBarcode);
-            return query.SelectArray();
+WHERE RTRIM(c.Barcode)=@Barcode"))
+                {
+                query.AddParameter("Barcode", LightBarcode);
+                return query.SelectArray();
+                }
             }
 
         /// <summary>Завершение (Сохранение)</summary>
         private void finish()
             {
             Cases.ChangeLighterState(LightBarcode, TypesOfLampsStatus.Storage, true);
-
-            SqlCeCommand query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)");
-            query.AddParameter("Barcode", LightBarcode);
-            object syncRefObj = query.ExecuteScalar();
-            string syncRef = syncRefObj == null ? string.Empty : syncRefObj.ToString();
-
+            string syncRef = null;
+           
+            using (
+                SqlCeCommand query = dbWorker.NewQuery("SELECT SyncRef FROM Cases WHERE RTRIM(Barcode)=RTRIM(@Barcode)")
+                )
+                {
+                query.AddParameter("Barcode", LightBarcode);
+                object syncRefObj = query.ExecuteScalar();
+                syncRef = syncRefObj == null ? string.Empty : syncRefObj.ToString();
+                }
             //Внесение записи в "Перемещение"
             Movement.RegisterLighter(LightBarcode, syncRef, OperationsWithLighters.Removing, map, register, position);
             }

@@ -19,7 +19,7 @@ namespace WMS_client.db
                     {
                     _case = CatalogHelper.FindCaseId(Id, TypeOfAccessories.ElectronicUnit);
                     }
-                return _case;
+                    return _case;
                 }
             set { _case = value; }
             }
@@ -32,13 +32,15 @@ namespace WMS_client.db
             string command = string.Format("SELECT {0} FROM {1} WHERE [Case]=@Id",
                                            IDENTIFIER_NAME,
                                            typeof(ElectronicUnits).Name);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter("Id", caseId);
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameter("Id", caseId);
 
-            object idObj = query.ExecuteScalar();
-            long id = idObj == null ? 0 : Convert.ToInt64(idObj);
+                object idObj = query.ExecuteScalar();
+                long id = idObj == null ? 0 : Convert.ToInt64(idObj);
 
-            return id;
+                return id;
+                }
             }
 
         #region Implemention of dbObject

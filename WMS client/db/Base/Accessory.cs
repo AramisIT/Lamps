@@ -137,10 +137,12 @@ namespace WMS_client.db
             string command = string.Format(
                 "UPDATE {0}s SET Status=@{1} WHERE RTRIM({2})=RTRIM(@{2})",
                 accessory, dbSynchronizer.PARAMETER, BARCODE_NAME);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter(BARCODE_NAME, barcode);
-            query.AddParameter(dbSynchronizer.PARAMETER, state);
-            query.ExecuteNonQuery();
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameter(BARCODE_NAME, barcode);
+                query.AddParameter(dbSynchronizer.PARAMETER, state);
+                query.ExecuteNonQuery();
+                }
             }
 
         /// <summary>Получить статус комплектующего</summary>
@@ -151,12 +153,14 @@ namespace WMS_client.db
             {
             string command = string.Format("SELECT Status FROM {0}s WHERE RTRIM({1})=RTRIM(@{1})",
                                            accessory, BARCODE_NAME);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter(BARCODE_NAME, barcode);
-            object statusObj = query.ExecuteScalar();
-            int statusNumber = statusObj == null ? 0 : Convert.ToInt32(statusObj);
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameter(BARCODE_NAME, barcode);
+                object statusObj = query.ExecuteScalar();
+                int statusNumber = statusObj == null ? 0 : Convert.ToInt32(statusObj);
 
-            return (TypesOfLampsStatus)statusNumber;
+                return (TypesOfLampsStatus)statusNumber;
+                }
             }
 
         /// <summary>Встановити новий статус</summary>
@@ -167,10 +171,12 @@ namespace WMS_client.db
             {
             string command = string.Format("UPDATE {0}s SET Status=@State WHERE RTRIM({1})=RTRIM(@{1})",
                                            accessory, BARCODE_NAME);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter("State", newState);
-            query.AddParameter(BARCODE_NAME, barcode);
-            query.ExecuteNonQuery();
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameter("State", newState);
+                query.AddParameter(BARCODE_NAME, barcode);
+                query.ExecuteNonQuery();
+                }
             }
 
         /// <summary>Получить последний созданный объект комлектующего заданого типа</summary>
@@ -181,17 +187,21 @@ namespace WMS_client.db
             {
             accessory = (Accessory)Activator.CreateInstance(accessoryType);
             string command = string.Format("SELECT ID FROM {0} ORDER BY Date,Id DESC", accessoryType.Name);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            object idOfLastAccesory = query.ExecuteScalar();
-
-            if (idOfLastAccesory != null)
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
                 {
-                accessory.Read(accessoryType, idOfLastAccesory, IDENTIFIER_NAME);
-                return true;
+                object idOfLastAccesory = query.ExecuteScalar();
+
+                if (idOfLastAccesory != null)
+                    {
+                    accessory.Read(accessoryType, idOfLastAccesory, IDENTIFIER_NAME);
+                    return true;
+                    }
                 }
 
             return false;
+
             }
+
         #endregion
 
 

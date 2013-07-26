@@ -84,10 +84,11 @@ namespace WMS_client
         #endregion
 
         #region Query
+
         /// <summary>Інформація про новий світильник</summary>
         private object[] GetNewIlluminatorInfo()
             {
-            SqlCeCommand query = dbWorker.NewQuery(@"
+            using (SqlCeCommand query = dbWorker.NewQuery(@"
 SELECT CaseModel,CaseParty,CaseWarrantly
 FROM(
     SELECT 
@@ -112,18 +113,27 @@ FROM(
     LEFT JOIN Models t ON t.Id=u.Model
     LEFT JOIN Party p ON p.Id=u.Party
     WHERE c.BarCode=@BarCode)t
-ORDER BY Type");
-            query.AddParameter("BarCode", NewLampBarCode);
+ORDER BY Type"))
+                {
+                query.AddParameter("BarCode", NewLampBarCode);
 
-            return query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+                return
+                    query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+                }
             }
 
         /// <summary>Завершення заміни</summary>
         private void finishingReplaceLamps()
             {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT Map, Register, Position, Status, SyncRef FROM Cases WHERE RTRIM(BarCode)=RTRIM(@Old)");
-            query.AddParameter("Old", ExistLampBarCode);
-            object[] result = query.SelectArray();
+            object[] result = null;
+            using (
+                SqlCeCommand query =
+                    dbWorker.NewQuery(
+                        @"SELECT Map, Register, Position, Status, SyncRef FROM Cases WHERE RTRIM(BarCode)=RTRIM(@Old)"))
+                {
+                query.AddParameter("Old", ExistLampBarCode);
+                result = query.SelectArray();
+                }
 
             if (result != null)
                 {
@@ -131,7 +141,8 @@ ORDER BY Type");
                 int register = Convert.ToInt32(result[1]);
                 int position = Convert.ToInt32(result[2]);
 
-                Cases.ChangeLighterState(NewLampBarCode, TypesOfLampsStatus.IsWorking, false, map, register, position);
+                Cases.ChangeLighterState(NewLampBarCode, TypesOfLampsStatus.IsWorking, false, map, register,
+                                         position);
                 Cases.ChangeLighterState(ExistLampBarCode, TypesOfLampsStatus.Storage, true);
 
                 //Внесение записи в "Перемещение"
@@ -141,7 +152,9 @@ ORDER BY Type");
                 Movement.RegisterLighter(NewLampBarCode, newLampRef, OperationsWithLighters.Installing,
                                          map, register, position);
                 }
+
             }
+
         #endregion
         }
     }

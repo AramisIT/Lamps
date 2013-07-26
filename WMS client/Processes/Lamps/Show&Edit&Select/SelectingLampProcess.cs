@@ -188,22 +188,26 @@ namespace WMS_client
         #endregion
 
         #region Query
+
         /// <summary>Світильник на гектарі?</summary>
         /// <param name="barcode">Штрихкод світильника</param>
         /// <returns>Світильник на гектарі?</returns>
         private bool isCasePerHectare(string barcode)
             {
-            SqlCeCommand command = dbWorker.NewQuery(@"SELECT c.Status FROM Cases c WHERE RTRIM(BarCode)=@BarCode");
-            command.AddParameter("@BarCode", barcode);
-            object result = command.ExecuteScalar();
-
-            if (result == null)
+            using (
+                SqlCeCommand command = dbWorker.NewQuery(@"SELECT c.Status FROM Cases c WHERE RTRIM(BarCode)=@BarCode"))
                 {
-                return false;
-                }
+                command.AddParameter("@BarCode", barcode);
+                object result = command.ExecuteScalar();
 
-            TypesOfLampsStatus state = (TypesOfLampsStatus)Convert.ToInt32(result);
-            return state == TypesOfLampsStatus.IsWorking;
+                if (result == null)
+                    {
+                    return false;
+                    }
+
+                TypesOfLampsStatus state = (TypesOfLampsStatus)Convert.ToInt32(result);
+                return state == TypesOfLampsStatus.IsWorking;
+                }
             }
 
         /// <summary>Інформація по світильнику на гектарі</summary>
@@ -211,7 +215,7 @@ namespace WMS_client
         /// <returns>Інформація</returns>
         private object[] LuminaireOnHectareInfo(string barcode)
             {
-            SqlCeCommand command = dbWorker.NewQuery(@"SELECT CaseModel, CaseParty, CaseWarrantly
+            using (SqlCeCommand command = dbWorker.NewQuery(@"SELECT CaseModel, CaseParty, CaseWarrantly
 FROM (
     SELECT 
         0 Type
@@ -248,10 +252,16 @@ FROM (
     LEFT JOIN Models t ON t.Id=u.Model
     LEFT JOIN Party p ON p.Id=u.Party
     WHERE RTRIM(c.BarCode) like @BarCode) t
-ORDER BY Type");
-            command.AddParameter("@BarCode", barcode);
+ORDER BY Type"))
+                {
+                command.AddParameter("@BarCode", barcode);
 
-            return command.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+                return
+                    command.SelectArray(new Dictionary<string, Enum>
+                        {
+                            {BaseFormatName.DateTime, DateTimeFormat.OnlyDate}
+                        });
+                }
             }
 
         /// <summary>Інформація по світильнику не на гектарі</summary>
@@ -259,7 +269,7 @@ ORDER BY Type");
         /// <returns>Інформація</returns>
         private object[] LuminairePerHectareInfo(string barcode)
             {
-            SqlCeCommand command = dbWorker.NewQuery(@"
+            using (SqlCeCommand command = dbWorker.NewQuery(@"
 SELECT CaseModel, CaseParty, CaseWarrantly
 FROM (
     SELECT
@@ -284,11 +294,18 @@ FROM (
     LEFT JOIN Models t ON t.Id=u.Model
     LEFT JOIN Party p ON p.Id=u.Party
     WHERE RTRIM(c.BarCode) like @BarCode) t
-ORDER BY Type");
-            command.AddParameter("@BarCode", barcode);
+ORDER BY Type"))
+                {
+                command.AddParameter("@BarCode", barcode);
 
-            return command.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+                return
+                    command.SelectArray(new Dictionary<string, Enum>
+                        {
+                            {BaseFormatName.DateTime, DateTimeFormat.OnlyDate}
+                        });
+                }
             }
+
         #endregion
         }
     }

@@ -154,13 +154,17 @@ namespace WMS_client
 
         private void fillLikePrev()
             {
-            SqlCeCommand command = dbWorker.NewQuery(@"
+            DataTable table = null;
+
+            using (SqlCeCommand command = dbWorker.NewQuery(@"
 SELECT m.Id MapId,m.Description,m.RegisterFrom,m.RegisterTo,c.Register 
 FROM Cases c 
 JOIN Maps m ON m.Id=c.Map
 WHERE c.Status=1
-ORDER BY DateOfActuality DESC");
-            DataTable table = command.SelectToTable();
+ORDER BY DateOfActuality DESC"))
+                {
+                table = command.SelectToTable();
+                }
 
             if (table != null && table.Rows.Count > 0)
                 {

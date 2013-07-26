@@ -78,9 +78,12 @@ namespace WMS_client
             string command = string.Format("SELECT {0},{1} FROM {2} WHERE {3}=@Id",
                                            dbObject.BARCODE_NAME, dbObject.IDENTIFIER_NAME,
                                            button.Name, dbObject.IDENTIFIER_NAME);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter("Id", button.Tag);
-            List<object> values = query.SelectToList();
+            List<object> values = null;
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameter("Id", button.Tag);
+                values = query.SelectToList();
+                }
 
             if (values != null && values.Count == 2 && values[0] != null)
                 {

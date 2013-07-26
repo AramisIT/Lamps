@@ -4,10 +4,10 @@ using System.Data.SqlServerCe;
 using WMS_client.Enums;
 
 namespace WMS_client.db
-{
+    {
     /// <summary>Приемка новых комплектующих</summary>
     public class AcceptanceOfNewComponents : DocumentObject
-    {
+        {
         #region Properties
         /// <summary>Контрагент</summary>
         [dbFieldAtt(Description = "Contractor", dbObjectType = typeof(Contractors))]
@@ -41,55 +41,64 @@ namespace WMS_client.db
         public int WarrantlyYears { get; set; }
         /// <summary>Статус комплектуючого</summary>
         [dbFieldAtt(Description = "Статус комплектуючого")]
-        public TypesOfLampsStatus State { get; set; } 
+        public TypesOfLampsStatus State { get; set; }
         #endregion
 
         #region Query
         /// <summary>Запрос: ID всех проведенных приймок</summary>
         private const string ACCEPTED_ID_QUERY = "SELECT Id FROM AcceptanceOfNewComponents WHERE Posted=1";
         /// <summary>Запрос: ID всех НЕ проведенных приймок</summary>
-        private const string NOT_ACCEPTED_ID_QUERY = "SELECT Id FROM AcceptanceOfNewComponents WHERE Posted=0"; 
+        private const string NOT_ACCEPTED_ID_QUERY = "SELECT Id FROM AcceptanceOfNewComponents WHERE Posted=0";
         #endregion
 
         #region Static Methods
+
         /// <summary>Очистить проведенные документы</summary>
         public static void ClearAcceptedDocuments()
-        {
-            SqlCeCommand clearAccepted = dbWorker.NewQuery("DELETE FROM AcceptanceOfNewComponents WHERE Posted=1");
-            clearAccepted.ExecuteNonQuery();
-        }
+            {
+            using (
+                SqlCeCommand clearAccepted = dbWorker.NewQuery("DELETE FROM AcceptanceOfNewComponents WHERE Posted=1"))
+                {
+                clearAccepted.ExecuteNonQuery();
+                }
+            }
 
         /// <summary>Получить все проведенные документы</summary>
         /// <returns>ID всех проведенных приймок</returns>
         public static DataTable GetAcceptedDocuments()
-        {
-            SqlCeCommand command = dbWorker.NewQuery(ACCEPTED_ID_QUERY);
-            DataTable acceptedDocuments = command.SelectToTable();
+            {
+            using (SqlCeCommand command = dbWorker.NewQuery(ACCEPTED_ID_QUERY))
+                {
+                DataTable acceptedDocuments = command.SelectToTable();
 
-            return acceptedDocuments;
-        }
+                return acceptedDocuments;
+                }
+            }
 
         /// <summary>Получить все НЕ проведенные документы</summary>
         /// <returns>ID всех НЕ проведенных приймок</returns>
         public static DataTable GetNotAcceptedDocuments()
-        {
-            SqlCeCommand command = dbWorker.NewQuery(NOT_ACCEPTED_ID_QUERY);
-            DataTable acceptedDocuments = command.SelectToTable();
+            {
+            using (SqlCeCommand command = dbWorker.NewQuery(NOT_ACCEPTED_ID_QUERY))
+                {
+                DataTable acceptedDocuments = command.SelectToTable();
 
-            return acceptedDocuments;
-        } 
+                return acceptedDocuments;
+                }
+            }
+
         #endregion
 
         #region Implemention
         public override object Write()
-        {
+            {
             return base.Save<AcceptanceOfNewComponents>();
-        }
+            }
 
         public override object Sync()
-        {
+            {
             return base.Sync<AcceptanceOfNewComponents>();
-        } 
+            }
         #endregion
+        }
     }
-}

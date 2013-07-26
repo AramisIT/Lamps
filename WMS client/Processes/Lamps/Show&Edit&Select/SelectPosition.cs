@@ -90,15 +90,19 @@ namespace WMS_client
         #endregion
 
         #region Query
+
         private List<object> getFilledPosition()
             {
-            SqlCeCommand query =
-                dbWorker.NewQuery("SELECT c.Position FROM Cases c WHERE c.Map=@Map AND c.Register=@Register");
-            query.AddParameter("Map", MapInfo.Id);
-            query.AddParameter("Register", Register);
+            using (SqlCeCommand query =
+                dbWorker.NewQuery("SELECT c.Position FROM Cases c WHERE c.Map=@Map AND c.Register=@Register"))
+                {
+                query.AddParameter("Map", MapInfo.Id);
+                query.AddParameter("Register", Register);
 
-            return query.SelectToList();
+                return query.SelectToList();
+                }
             }
+
         #endregion
         }
     }

@@ -38,7 +38,7 @@ namespace WMS_client.db
                     string alternativeFilePath = @"\Storage Card\aramis_wms.sdf";
                     if (System.IO.File.Exists(alternativeFilePath))
                         {
-                     //   filePath = alternativeFilePath;
+                        //   filePath = alternativeFilePath;
                         }
                     z_connString = String.Format("Data Source='{0}';", filePath);
                     }

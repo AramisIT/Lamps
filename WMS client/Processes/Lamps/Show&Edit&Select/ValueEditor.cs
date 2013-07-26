@@ -263,8 +263,11 @@ namespace WMS_client
 
                 string command = string.Format("SELECT Id,Description FROM {0} WHERE MarkForDeleting=0",
                                                attribute.dbObjectType.Name);
-                SqlCeCommand query = dbWorker.NewQuery(command);
-                DataTable table = query.SelectToTable();
+                DataTable table = null;
+                using (SqlCeCommand query = dbWorker.NewQuery(command))
+                    {
+                    table = query.SelectToTable();
+                    }
 
                 foreach (DataRow row in table.Rows)
                     {

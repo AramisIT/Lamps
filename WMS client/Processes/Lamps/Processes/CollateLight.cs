@@ -210,14 +210,18 @@ namespace WMS_client
         #endregion
 
         #region Query
+
         private void saveCaseData()
             {
             string command = string.Format(
                 "UPDATE {0} SET Lamp=0,ElectronicUnit=0,{1}=0 WHERE {2}=@{2}",
                 typeof(Cases).Name, dbObject.IS_SYNCED, dbObject.BARCODE_NAME);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter(dbObject.BARCODE_NAME, LightBarcode);
-            query.ExecuteNonQuery();
+
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameter(dbObject.BARCODE_NAME, LightBarcode);
+                query.ExecuteNonQuery();
+                }
             }
 
         private void saveLampData()
@@ -228,11 +232,13 @@ namespace WMS_client
                 string.IsNullOrEmpty(lampBarcode) ? string.Empty : string.Format("{0}=@{0}, ", dbObject.BARCODE_NAME),
                 dbObject.IS_SYNCED,
                 dbObject.IDENTIFIER_NAME);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter(dbObject.BARCODE_NAME, lampBarcode);
-            query.AddParameter(dbSynchronizer.PARAMETER, 0);
-            query.AddParameter(dbObject.IDENTIFIER_NAME, lampId);
-            query.ExecuteNonQuery();
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameter(dbObject.BARCODE_NAME, lampBarcode);
+                query.AddParameter(dbSynchronizer.PARAMETER, 0);
+                query.AddParameter(dbObject.IDENTIFIER_NAME, lampId);
+                query.ExecuteNonQuery();
+                }
             }
 
         private void saveUnitData()
@@ -243,12 +249,15 @@ namespace WMS_client
                 string.IsNullOrEmpty(unitBarcode) ? string.Empty : string.Format("{0}=@{0}, ", dbObject.BARCODE_NAME),
                 dbObject.IS_SYNCED,
                 dbObject.IDENTIFIER_NAME);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter(dbObject.BARCODE_NAME, unitBarcode);
-            query.AddParameter(dbSynchronizer.PARAMETER, 0);
-            query.AddParameter(dbObject.IDENTIFIER_NAME, unitId);
-            query.ExecuteNonQuery();
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameter(dbObject.BARCODE_NAME, unitBarcode);
+                query.AddParameter(dbSynchronizer.PARAMETER, 0);
+                query.AddParameter(dbObject.IDENTIFIER_NAME, unitId);
+                query.ExecuteNonQuery();
+                }
             }
+
         #endregion
         }
     }

@@ -244,15 +244,21 @@ namespace WMS_client.Processes.Lamps
         #endregion
 
         #region Query
+
         /// <summary>Получить ID свежей приемки</summary>
         /// <returns></returns>
         private object getAcceptanceDoc()
             {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT Id FROM AcceptanceOfNewComponents a WHERE a.Posted=0 AND a.MarkForDeleting=0 AND TypeOfAccessories=@Accessory ORDER BY a.Date DESC");
-            query.AddParameter("Accessory", TypeOfAccessory);
-
-            return query.ExecuteScalar();
+            const string sql =
+                @"SELECT Id FROM AcceptanceOfNewComponents a WHERE a.Posted=0 AND a.MarkForDeleting=0 AND TypeOfAccessories=@Accessory ORDER BY a.Date DESC";
+          
+            using (SqlCeCommand query = dbWorker.NewQuery(sql))
+                {
+                query.AddParameter("Accessory", TypeOfAccessory);
+                return query.ExecuteScalar();
+                }
             }
+
         #endregion
         }
     }

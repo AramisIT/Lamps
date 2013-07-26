@@ -14,12 +14,14 @@ namespace WMS_client.db
         {
         /// <summary>Имя колонки "Пометка на удаление"</summary>
         public const string MARK_FOR_DELETING = "markfordeleting";
+
         /// <summary>Имя колонки "Опис"</summary>
         public const string DESCRIPTION = "Description";
 
         /// <summary>Помічений на видалення</summary>
         [dbFieldAtt(Description = "Помічений на видалення", NotShowInForm = true)]
         public bool MarkForDeleting { get; set; }
+
         /// <summary>Опис</summary>
         [dbFieldAtt(Description = "Опис", NotShowInForm = true)]
         public string Description { get; set; }
@@ -42,11 +44,12 @@ namespace WMS_client.db
                 }
 
             string command = string.Format("SELECT Description FROM {0} WHERE {1}=@Id", type.Name, IDENTIFIER_NAME);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter("Id", id);
-            object descriptionObj = query.ExecuteScalar();
-
-            return descriptionObj == null ? string.Empty : descriptionObj.ToString();
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameter("Id", id);
+                object descriptionObj = query.ExecuteScalar();
+                return descriptionObj == null ? string.Empty : descriptionObj.ToString();
+                }
             }
 
         #region Presenter
@@ -381,11 +384,13 @@ namespace WMS_client.db
                 }
 
             string query = string.Format("SELECT {0} FROM {1} WHERE {2}=@{2}", DESCRIPTION, tableName, IDENTIFIER_NAME);
-            SqlCeCommand command = dbWorker.NewQuery(query);
-            command.AddParameter(IDENTIFIER_NAME, id);
-            object desObj = command.ExecuteScalar();
+            using (SqlCeCommand command = dbWorker.NewQuery(query))
+                {
+                command.AddParameter(IDENTIFIER_NAME, id);
+                object desObj = command.ExecuteScalar();
 
-            return desObj == null ? string.Empty : desObj.ToString().TrimEnd();
+                return desObj == null ? string.Empty : desObj.ToString().TrimEnd();
+                }
             }
 
         public static string GetSyncRef(string tableName, object id)
@@ -396,12 +401,15 @@ namespace WMS_client.db
                 }
 
             string query = string.Format("SELECT {0} FROM {1} WHERE {2}=@{2}", SYNCREF_NAME, tableName, IDENTIFIER_NAME);
-            SqlCeCommand command = dbWorker.NewQuery(query);
-            command.AddParameter(IDENTIFIER_NAME, id);
-            object desObj = command.ExecuteScalar();
+            using (SqlCeCommand command = dbWorker.NewQuery(query))
+                {
+                command.AddParameter(IDENTIFIER_NAME, id);
+                object desObj = command.ExecuteScalar();
 
-            return desObj == null ? string.Empty : desObj.ToString();
+                return desObj == null ? string.Empty : desObj.ToString();
+                }
             }
+
         #endregion
         }
     }

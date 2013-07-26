@@ -202,9 +202,11 @@ namespace WMS_client.db
                                            columnsStr.ToString(0, columnsStr.Length - 1),
                                            parameterStr.ToString(0, parameterStr.Length - 1));
 
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameters(parameters);
-            query.ExecuteNonQuery();
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameters(parameters);
+                query.ExecuteNonQuery();
+                }
             IsNew = false;
 
             Id = Convert.ToInt64(newId);
@@ -246,11 +248,13 @@ namespace WMS_client.db
                                            type.Name,
                                            line.ToString(0, line.Length - 1),
                                            IDENTIFIER_NAME);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameters(parameters);
-            query.ExecuteNonQuery();
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameters(parameters);
+                query.ExecuteNonQuery();
 
-            return idValue;
+                return idValue;
+                }
             }
 
         /// <summary>Получить новый Id для объекта</summary>
@@ -263,10 +267,12 @@ namespace WMS_client.db
         public static long GetNewId(string tableName)
             {
             string command = string.Format("SELECT [{0}]+1 Id FROM {1} ORDER BY [{0}] DESC", IDENTIFIER_NAME, tableName);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            object newId = query.ExecuteScalar();
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                object newId = query.ExecuteScalar();
 
-            return Convert.ToInt64((newId ?? 1));
+                return Convert.ToInt64((newId ?? 1));
+                }
             }
 
         #endregion
@@ -334,42 +340,44 @@ namespace WMS_client.db
 
             string command = string.Format("SELECT {0} FROM {1} WHERE {2}=@Id", line.ToString(0, line.Length - 1),
                                            type.Name, idColumn);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter("Id", id);
-            SqlCeDataReader reader = query.ExecuteReader();
-
-            while (reader.Read())
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
                 {
-                foreach (PropertyInfo property in properties)
+                query.AddParameter("Id", id);
+                SqlCeDataReader reader = query.ExecuteReader();
+
+                while (reader.Read())
                     {
-                    dbFieldAtt attributes = Attribute.GetCustomAttribute(property, typeof(dbFieldAtt)) as dbFieldAtt;
-
-                    if (attributes != null)
+                    foreach (PropertyInfo property in properties)
                         {
-                        object value = reader[property.Name];
+                        dbFieldAtt attributes =
+                            Attribute.GetCustomAttribute(property, typeof(dbFieldAtt)) as dbFieldAtt;
 
-                        if (property.PropertyType == typeof(int))
+                        if (attributes != null)
                             {
-                            value = Convert.ToInt32(value);
-                            }
-                        if (property.PropertyType == typeof(long))
-                            {
-                            value = Convert.ToInt64(value);
-                            }
-                        else if (property.PropertyType == typeof(double))
-                            {
-                            value = Convert.ToDouble(value);
-                            }
-                        else if (property.PropertyType == typeof(string))
-                            {
-                            value = value.ToString().TrimEnd();
-                            }
+                            object value = reader[property.Name];
 
-                        property.SetValue(this, value, null);
+                            if (property.PropertyType == typeof(int))
+                                {
+                                value = Convert.ToInt32(value);
+                                }
+                            if (property.PropertyType == typeof(long))
+                                {
+                                value = Convert.ToInt64(value);
+                                }
+                            else if (property.PropertyType == typeof(double))
+                                {
+                                value = Convert.ToDouble(value);
+                                }
+                            else if (property.PropertyType == typeof(string))
+                                {
+                                value = value.ToString().TrimEnd();
+                                }
+
+                            property.SetValue(this, value, null);
+                            }
                         }
                     }
                 }
-
             //Если Id=0, значит такой обьект не найден -> он новый
             IsNew = Id == 0;
 

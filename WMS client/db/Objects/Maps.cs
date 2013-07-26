@@ -2,10 +2,10 @@ using System.Data.SqlServerCe;
 using System;
 
 namespace WMS_client.db
-{
+    {
     /// <summary>Карта</summary>
     public class Maps : CatalogObject, IBarcodeOwner
-    {
+        {
         /// <summary>Штрихкод</summary>
         [dbFieldAtt(Description = "Штрихкод", NotShowInForm = true)]
         public string BarCode { get; set; }
@@ -26,24 +26,26 @@ namespace WMS_client.db
         public bool IsSynced { get; set; }
 
         public override object Write()
-        {
+            {
             return base.Save<Maps>();
-        }
+            }
 
         public override object Sync()
-        {
+            {
             return base.Sync<Maps>();
-        }
+            }
 
         public static int GetMaxPositionNumber(object mapId)
-        {
+            {
             string query = string.Format("SELECT NumberOfPositions FROM {0} WHERE {1}=@{1}",
-                typeof(Maps).Name, IDENTIFIER_NAME);
-            SqlCeCommand command = dbWorker.NewQuery(query);
-            command.AddParameter(IDENTIFIER_NAME, mapId);
-            object result = command.ExecuteScalar();
+                                         typeof(Maps).Name, IDENTIFIER_NAME);
+            using (SqlCeCommand command = dbWorker.NewQuery(query))
+                {
+                command.AddParameter(IDENTIFIER_NAME, mapId);
+                object result = command.ExecuteScalar();
 
-            return result == null ? 0 : Convert.ToInt32(result);
+                return result == null ? 0 : Convert.ToInt32(result);
+                }
+            }
         }
     }
-}

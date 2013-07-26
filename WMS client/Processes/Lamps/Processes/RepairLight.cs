@@ -326,16 +326,19 @@ WHERE RTRIM(c.Barcode)=@Barcode");
         /// <summary>Есть ли у лампы штрихкод</summary>
         private bool IsLampHaveBarcode()
             {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT l.Barcode
+            using (SqlCeCommand query = dbWorker.NewQuery(@"SELECT l.Barcode
 FROM Cases c 
 JOIN Lamps l ON l.Id=c.ElectronicUnit
-WHERE RTRIM(c.Barcode)=@Barcode");
-            query.AddParameter("Barcode", LightBarcode);
-            object barcode = query.ExecuteScalar();
-            unitBarcode = barcode == null ? string.Empty : barcode.ToString().TrimEnd();
+WHERE RTRIM(c.Barcode)=@Barcode"))
+                {
+                query.AddParameter("Barcode", LightBarcode);
+                object barcode = query.ExecuteScalar();
+                unitBarcode = barcode == null ? string.Empty : barcode.ToString().TrimEnd();
 
-            return !string.IsNullOrEmpty(unitBarcode);
+                return !string.IsNullOrEmpty(unitBarcode);
+                }
             }
+
         #endregion
 
         #region Save
@@ -353,13 +356,15 @@ WHERE RTRIM(c.Barcode)=@Barcode");
             string command = string.Format(
                 "UPDATE ElectronicUnits SET Status=@Status,{0}=0,DateOfActuality=@Date,[Case]=0{1} WHERE {2}=@{2}",
                 dbObject.IS_SYNCED, needSaveUnitBarcode ? ",Barcode=@Barcode" : string.Empty, dbObject.IDENTIFIER_NAME);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter("Status", newUnitStatus);
-            query.AddParameter(dbObject.BARCODE_NAME, unitBarcode);
-            query.AddParameter(dbObject.IDENTIFIER_NAME, Cases.GetUnitInCase(LightBarcode));
-            query.AddParameter("Date", DateTime.Now);
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameter("Status", newUnitStatus);
+                query.AddParameter(dbObject.BARCODE_NAME, unitBarcode);
+                query.AddParameter(dbObject.IDENTIFIER_NAME, Cases.GetUnitInCase(LightBarcode));
+                query.AddParameter("Date", DateTime.Now);
 
-            query.ExecuteNonQuery();
+                query.ExecuteNonQuery();
+                }
             }
 
         /// <summary>Сохранение данных по лампе</summary>
@@ -369,14 +374,17 @@ WHERE RTRIM(c.Barcode)=@Barcode");
                 {
                 string command = string.Format(
                     "UPDATE Lamps SET Status=@Status,{0}=0,DateOfActuality=@Date,[Case]=0{1} WHERE {2}=@{2}",
-                    dbObject.IS_SYNCED, needSaveUnitBarcode ? ",Barcode=@Barcode" : string.Empty, dbObject.IDENTIFIER_NAME);
-                SqlCeCommand query = dbWorker.NewQuery(command);
-                query.AddParameter("Status", newLampStatus);
-                query.AddParameter(dbObject.BARCODE_NAME, lampBarcode);
-                query.AddParameter(dbObject.IDENTIFIER_NAME, Cases.GetLampInCase(LightBarcode));
-                query.AddParameter("Date", DateTime.Now);
+                    dbObject.IS_SYNCED, needSaveUnitBarcode ? ",Barcode=@Barcode" : string.Empty,
+                    dbObject.IDENTIFIER_NAME);
+                using (SqlCeCommand query = dbWorker.NewQuery(command))
+                    {
+                    query.AddParameter("Status", newLampStatus);
+                    query.AddParameter(dbObject.BARCODE_NAME, lampBarcode);
+                    query.AddParameter(dbObject.IDENTIFIER_NAME, Cases.GetLampInCase(LightBarcode));
+                    query.AddParameter("Date", DateTime.Now);
 
-                query.ExecuteNonQuery();
+                    query.ExecuteNonQuery();
+                    }
                 }
             }
 
@@ -386,13 +394,16 @@ WHERE RTRIM(c.Barcode)=@Barcode");
             string command = string.Format(
                 "UPDATE Cases SET Status=@Status,{0}=0,DateOfActuality=@Date,Lamp=0,ElectronicUnit=0 WHERE RTRIM({1})=RTRIM(@{1})",
                 dbObject.IS_SYNCED, dbObject.BARCODE_NAME);
-            SqlCeCommand query = dbWorker.NewQuery(command);
-            query.AddParameter("Status", (int)newCaseStatus);
-            query.AddParameter(dbObject.BARCODE_NAME, LightBarcode);
-            query.AddParameter("Date", DateTime.Now);
+            using (SqlCeCommand query = dbWorker.NewQuery(command))
+                {
+                query.AddParameter("Status", (int)newCaseStatus);
+                query.AddParameter(dbObject.BARCODE_NAME, LightBarcode);
+                query.AddParameter("Date", DateTime.Now);
 
-            query.ExecuteNonQuery();
+                query.ExecuteNonQuery();
+                }
             }
+
         #endregion
         #endregion
         }

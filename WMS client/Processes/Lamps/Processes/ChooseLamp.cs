@@ -94,22 +94,27 @@ namespace WMS_client
         #endregion
 
         #region Query
+
         /// <summary>Инфо о лампе</summary>
         /// <returns>Масив иформации</returns>
         private object[] getData()
             {
-            SqlCeCommand query = dbWorker.NewQuery(@"SELECT
+            using (SqlCeCommand query = dbWorker.NewQuery(@"SELECT
     t.Description Model
     , p.Description Party
     , l.DateOfWarrantyEnd Warrantly
 FROM Lamps l
 LEFT JOIN Models t ON t.Id=l.Model
 LEFT JOIN Party p ON p.Id=l.Party
-WHERE RTRIM(l.BarCode)=RTRIM(@BarCode)");
-            query.AddParameter("BarCode", LampBarcode);
+WHERE RTRIM(l.BarCode)=RTRIM(@BarCode)"))
+                {
+                query.AddParameter("BarCode", LampBarcode);
 
-            return query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+                return
+                    query.SelectArray(new Dictionary<string, Enum> { { BaseFormatName.DateTime, DateTimeFormat.OnlyDate } });
+                }
             }
+
         #endregion
         }
     }
