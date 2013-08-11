@@ -9,7 +9,7 @@ using WMS_client.db;
 namespace WMS_client
     {
     /// <summary>"Строитель редактирования"</summary>
-    public class EditBuilder : BusinessProcess
+    public class AccessoryRegistration : BusinessProcess
         {
 
         private int groupSizeValue;
@@ -66,7 +66,7 @@ namespace WMS_client
         /// <param name="type">Текущий тип комплектующего</param>
         /// <param name="prevType">Предыдущий тип комплектующего</param>
         /// <param name="topic">Текущий заголовок</param>
-        public EditBuilder(WMSClient MainProcess, Type type, Type prevType, string topic)
+        public AccessoryRegistration(WMSClient MainProcess, Type type, Type prevType, string topic)
             : base(MainProcess, 1)
             {
             //Если предыдущего типа нет, то это "начало" - нужно указать сохранить неизменные начальные данные
@@ -94,7 +94,7 @@ namespace WMS_client
         /// <param name="topic">Текущий заголовок</param>
         /// <param name="id">ИД комплектующего с которого перешли</param>
         /// <param name="emptyBarcode">Ввод пустого штрихкода разрешен</param>
-        public EditBuilder(WMSClient MainProcess, Type type, Type prevType, string topic, long id, bool emptyBarcode)
+        public AccessoryRegistration(WMSClient MainProcess, Type type, Type prevType, string topic, long id, bool emptyBarcode)
             : base(MainProcess, 1)
             {
             if (prevType == null)
@@ -123,14 +123,14 @@ namespace WMS_client
         /// <param name="currentTopic">Текущий заголовок</param>
         /// <param name="accessory">Комплектующее</param>
         /// <param name="barcode">Отсканированный щтрих-код</param>
-        public EditBuilder(WMSClient MainProcess, Type mainType, string mainTopic, Type currentType, string currentTopic, Accessory accessory, string barcode)
+        public AccessoryRegistration(WMSClient MainProcess, Type mainType, string mainTopic, Type currentType, string currentTopic, Accessory accessory, string barcode)
             : base(MainProcess, 1)
             {
             StopNetworkConnection();
 
-            EditBuilder.accessory = accessory;
-            EditBuilder.mainType = mainType;
-            EditBuilder.mainTopic = mainTopic;
+            AccessoryRegistration.accessory = accessory;
+            AccessoryRegistration.mainType = mainType;
+            AccessoryRegistration.mainTopic = mainTopic;
             this.currentType = currentType;
             this.currentTopic = currentTopic;
             this.barcode = barcode;
@@ -420,7 +420,7 @@ namespace WMS_client
                             {
                             Accessory newObj = (Accessory)Activator.CreateInstance(type);
                             newObj.Read(type, newAccessoryId, dbObject.IDENTIFIER_NAME);
-                            MainProcess.Process = new EditBuilder(MainProcess, mainType, mainTopic, type,
+                            MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainTopic, type,
                                                                   button.Text, newObj, newObj.BarCode);
                             accessory = newObj;
                             }
@@ -434,15 +434,15 @@ namespace WMS_client
                                     {
                                     accessory = (Accessory)accessory.Copy();
                                     accessory.ClearPosition();
-                                    MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
+                                    MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainType, mainTopic);
                                     }
 
-                                MainProcess.Process = new EditBuilder(MainProcess, mainType, mainType, mainTopic);
+                                MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainType, mainTopic);
                                 }
                             //Не совпадает - "Передача ИД комплектующего с которого переходим"
                             else
                                 {
-                                MainProcess.Process = new EditBuilder(MainProcess, type, mainType, button.Text,
+                                MainProcess.Process = new AccessoryRegistration(MainProcess, type, mainType, button.Text,
                                                                       accessory.Id, type == typeof(ElectronicUnits));
                                 }
 

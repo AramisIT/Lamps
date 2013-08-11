@@ -301,7 +301,7 @@ namespace WMS_client
             if (isValid)
                 {
                 MainProcess.ClearControls();
-                MainProcess.Process = new EditBuilder(MainProcess, mainType, mainTopic, currentType, currentTopic, accessory, barcode);
+                MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainTopic, currentType, currentTopic, accessory, barcode);
                 }
             else
                 {

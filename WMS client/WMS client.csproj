@@ -131,6 +131,7 @@
     <Compile Include="Enums\TypesOfLampsWarrantly.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Processes\EmptyProcess.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptanceFrom.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptanceFromExchange.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptanceOfNewAccessory.cs" />
@@ -147,7 +148,7 @@
     <Compile Include="Processes\Lamps\Processes\RemovalLight.cs" />
     <Compile Include="Processes\Lamps\Processes\SetAccessoryForStorage.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\ValueEditor.cs" />
-    <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\EditBuilder.cs" />
+    <Compile Include="Processes\Lamps\AccessoryRegistration.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\EditSelector.cs" />
     <Compile Include="Processes\Lamps\Sync\CatalogSynchronizer.cs" />
     <Compile Include="Processes\Lamps\Sync\dbSynchronizer.cs" />
@@ -163,24 +164,18 @@
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\SelectingLampProcess.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\SelectMap.cs" />
     <Compile Include="Processes\Lamps\Sync\ServerIdProvider.cs" />
-    <Compile Include="Processes\Old\QualityRegistrationProcess.cs" />
-    <Compile Include="Processes\Old\EmptyProcess.cs" />
     <Compile Include="Base\Visual\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Base\Visual\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="Processes\Old\FormDesignProcess.cs" />
     <Compile Include="Base\Visual\HotKeyProcessing.cs" />
-    <Compile Include="Processes\Old\IncomingProcess.cs" />
     <Compile Include="Base\Visual\Controls\MobileControl.cs" />
     <Compile Include="Base\Visual\Controls\MobileLabel.cs" />
     <Compile Include="Base\Visual\Controls\MobileTextBox.cs" />
     <Compile Include="Base\Visual\Controls\MobileTable.cs" />
     <Compile Include="Base\PackageConvertation.cs" />
-    <Compile Include="Processes\Old\SelectingProcess.cs" />
-    <Compile Include="Processes\Old\RawProductionQualityRegistrationProcess.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Base\Visual\emptyDialog.resx">
