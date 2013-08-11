@@ -83,7 +83,7 @@ namespace WMS_client
             return getEnumDescription<TypesOfLampsWarrantly>((byte)warrantyType);
             }
 
-        public static TypeOfAccessories GeAccessoryType(this IAccessory accessory)
+        public static TypeOfAccessories GetAccessoryType(this IAccessory accessory)
             {
             if (accessory is Case)
                 {

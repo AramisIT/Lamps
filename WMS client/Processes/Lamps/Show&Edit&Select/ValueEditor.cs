@@ -14,28 +14,16 @@ namespace WMS_client
     /// <summary>Редактор значений</summary>
     public class ValueEditor : BusinessProcess
         {
-        /// <summary>Комплектующее</summary>
-        private static Accessory oldTypeaccessory;
-        /// <summary>Основной (неизменный при переходах) тип комплектующего (тот тип с которого начали)</summary>
-        private static Type mainType;
-        /// <summary>Текущий тип комплектующего (тот тип на который перешли с основного)</summary>
-        private readonly Type currentType;
         /// <summary>Текущий заголовок</summary>
         private readonly string currentTopic;
-        /// <summary>Отсканированный щтрих-код</summary>
-        private readonly string barcode;
-        /// <summary>Редактируемое свойство</summary>
-        private readonly string propertyName;
-
 
         /// <summary>Выбранный Id</summary>
         private int selectedId;
         /// <summary>Список контролов-"частичных значний"</summary>
         private readonly List<MobileControl> controls = new List<MobileControl>();
-        private Type valueType;
         private MobileButton okButton;
-        private TypeOfAccessories requaredAccessoryType;
-        private IAccessory accessory;
+        private PropertyButtonInfo propertyInfo;
+        private AccessoriesSet accessoriesSet;
 
         /// <summary>Редактор значений</summary>
         /// <param name="MainProcess"></param>
@@ -47,18 +35,12 @@ namespace WMS_client
         /// <param name="topic">Заголовок</param>
         /// <param name="barcode">Отсканированный щтрих-код</param>
         /// <param name="propertyName">Редактируемое свойство</param>
-        public ValueEditor(WMSClient MainProcess, IAccessory accessory, Type mainType, string mainTopic, Type currentType, string currentTopic, Accessory oldTypeaccessory, TypeOfAccessories requaredAccessoryType, string topic, string barcode, string propertyName)
+        public ValueEditor(WMSClient MainProcess, PropertyButtonInfo propertyInfo, AccessoriesSet accessoriesSet)
             : base(MainProcess, 1)
             {
-            MainProcess.ToDoCommand = topic;
-            this.accessory = accessory;
-            ValueEditor.oldTypeaccessory = oldTypeaccessory;
-            ValueEditor.mainType = mainType;
-            this.requaredAccessoryType = requaredAccessoryType;
-            this.currentType = currentType;
-            this.currentTopic = currentTopic;
-            this.barcode = barcode;
-            this.propertyName = propertyName;
+            this.accessoriesSet = accessoriesSet;
+            MainProcess.ToDoCommand = propertyInfo.PropertyDescription;
+            this.propertyInfo = propertyInfo;
 
             IsLoad = true;
             DrawControls();
@@ -71,9 +53,9 @@ namespace WMS_client
                 {
                 okButton = MainProcess.CreateButton("Ok", 10, 275, 220, 35, string.Empty, button_Click);
 
-                valueType = oldTypeaccessory.GetProperyType(propertyName);
+                var valueType = propertyInfo.PropertyType;
 
-                if (valueType == typeof(string))
+                if (propertyInfo.PropertyType == typeof(string))
                     {
                     createStringControls();
                     }
@@ -89,7 +71,7 @@ namespace WMS_client
                     {
                     createEnumControls(valueType);
                     }
-                else if (valueType == typeof(long))
+                else if (valueType == typeof(PartyModel) || valueType == typeof(Model))
                     {
                     createLongControls();
                     }
@@ -244,52 +226,38 @@ namespace WMS_client
 
         private void createLongControls()
             {
-            dbFieldAtt attribute = Attribute.GetCustomAttribute(
-                           oldTypeaccessory.GetType().GetProperty(propertyName),
-                           typeof(dbFieldAtt)) as dbFieldAtt;
-
-            if (attribute != null && attribute.dbObjectType != null)
-                {
-                DataTable sourceTable = new DataTable();
-                sourceTable.Columns.AddRange(new[]
+            DataTable sourceTable = new DataTable();
+            sourceTable.Columns.AddRange(new[]
                                                      {
                                                          new DataColumn("Number", typeof (int)),
                                                          new DataColumn("Description", typeof (string))
                                                      });
 
-                MobileTable visualTable = MainProcess.CreateTable("Table", 200, 65);
-                visualTable.OnChangeSelectedRow += visualTable_OnChangeSelectedRow;
-                visualTable.DT = sourceTable;
-                visualTable.AddColumn("№", "Number", 34);
-                visualTable.AddColumn("Назва", "Description", 180);
+            MobileTable visualTable = MainProcess.CreateTable("Table", 200, 65);
+            visualTable.OnChangeSelectedRow += visualTable_OnChangeSelectedRow;
+            visualTable.DT = sourceTable;
+            visualTable.AddColumn("№", "Number", 34);
+            visualTable.AddColumn("Назва", "Description", 180);
 
-                switch (propertyName)
-                    {
-                    case "Model":
-                        foreach (var item in Configuration.Current.Repository.ModelsList)
-                            {
-                            visualTable.AddRow((int)item.Id, item.Description);
-                            }
-                        break;
-
-                    case "Party":
-                        foreach (var item in Configuration.Current.Repository.PartiesList)
-                            {
-                            visualTable.AddRow((int)item.Id, item.Description);
-                            }
-                        break;
-                    }
-
-                visualTable.Focus();
-                controls.Add(visualTable);
-                }
-            else
+            switch (propertyInfo.PropertyName)
                 {
-                MainProcess.CreateLabel("Справочник/Документ пуст!", 5, 150, 230,
-                                        MobileFontSize.Normal, MobileFontPosition.Center, MobileFontColors.Warning,
-                                        FontStyle.Bold);
-                controls.Add(MainProcess.CreateTable("Table", 200, 65));
+                case "Model":
+                    foreach (var item in Configuration.Current.Repository.ModelsList)
+                        {
+                        visualTable.AddRow((int)item.Id, item.Description);
+                        }
+                    break;
+
+                case "Party":
+                    foreach (var item in Configuration.Current.Repository.PartiesList)
+                        {
+                        visualTable.AddRow((int)item.Id, item.Description);
+                        }
+                    break;
                 }
+
+            visualTable.Focus();
+            controls.Add(visualTable);
             }
 
         void visualTable_OnChangeSelectedRow(object param1, OnChangeSelectedRowEventArgs param2)
@@ -301,14 +269,11 @@ namespace WMS_client
         private void button_Click()
             {
             string value = concatValue();
-            bool isValid;
-            oldTypeaccessory.SetValue(propertyName, value, out isValid);
-            setAccessoryValue(value);
 
-            if (isValid)
+            if (setAccessoryValue(value))
                 {
                 MainProcess.ClearControls();
-                MainProcess.Process = new AccessoryRegistration(MainProcess, accessory, requaredAccessoryType, mainType, currentType, oldTypeaccessory, barcode);
+                MainProcess.Process = new AccessoryRegistration(MainProcess, accessoriesSet);
                 }
             else
                 {
@@ -316,38 +281,47 @@ namespace WMS_client
                 }
             }
 
-        private void setAccessoryValue(string value)
+        private bool setAccessoryValue(string value)
             {
-            switch (propertyName)
+            try
                 {
-                case "Model":
-                    accessory.Model = Convert.ToInt16(value);
-                    break;
+                switch (propertyInfo.PropertyName)
+                    {
+                    case "Model":
+                        accessoriesSet.CurrentAccessory.Model = Convert.ToInt16(value);
+                        break;
 
-                case "Party":
-                    accessory.Party = Convert.ToInt32(value);
-                    break;
+                    case "Party":
+                        accessoriesSet.CurrentAccessory.Party = Convert.ToInt32(value);
+                        break;
 
-                case "Status":
-                    accessory.Status = Convert.ToByte(value);
-                    break;
+                    case "Status":
+                        accessoriesSet.CurrentAccessory.Status = Convert.ToByte(value);
+                        break;
 
-                case "DateOfWarrantyEnd":
-                case "WarrantyExpiryDate":
-                    accessory.WarrantyExpiryDate = Convert.ToDateTime(value);
-                    break;
+                    case "WarrantyExpiryDate":
+                        accessoriesSet.CurrentAccessory.WarrantyExpiryDate = Convert.ToDateTime(value);
+                        break;
 
-                case "TypeOfWarrantly":
-                case "RepairWarranty":
-                    var typeOfWarranty = (TypesOfLampsWarrantly)Convert.ToInt32(value);
-                    ((IFixableAccessory)accessory).RepairWarranty = typeOfWarranty == TypesOfLampsWarrantly.Repair;
-                    if (typeOfWarranty == TypesOfLampsWarrantly.None ||
-                        typeOfWarranty == TypesOfLampsWarrantly.Without)
-                        {
-                        accessory.WarrantyExpiryDate = DateTime.MinValue;
-                        }
-                    break;
+                    case "RepairWarranty":
+                        var typeOfWarranty = (TypesOfLampsWarrantly)Convert.ToInt32(value);
+                        ((IFixableAccessory)accessoriesSet.CurrentAccessory).RepairWarranty = typeOfWarranty ==
+                                                                                               TypesOfLampsWarrantly
+                                                                                                   .Repair;
+                        if (typeOfWarranty == TypesOfLampsWarrantly.None ||
+                            typeOfWarranty == TypesOfLampsWarrantly.Without)
+                            {
+                            accessoriesSet.CurrentAccessory.WarrantyExpiryDate = DateTime.MinValue;
+                            }
+                        break;
+                    }
                 }
+            catch
+                {
+                return false;
+                }
+
+            return true;
             }
 
         /// <summary>Обьединение контролов "частичных значений" в единое значение</summary>

@@ -12,7 +12,6 @@ namespace WMS_client
     /// <summary>"Строитель редактирования"</summary>
     public class AccessoryRegistration : BusinessProcess
         {
-        private IAccessory currentAccessory;
 
         private int groupSizeValue;
         private int groupSize
@@ -37,22 +36,9 @@ namespace WMS_client
         private Cases currentCase;
 
         #region Fields
-        /// <summary>Комплектующее</summary>
-        private static Accessory accessory;
-        /// <summary>Основной (неизменный при переходах) тип комплектующего (тот тип с которого начали)</summary>
-        private static Type mainType;
-        /// <summary>Основой (неизменный при переходах) заголовок</summary>
-        private static string mainTopic;
-        /// <summary>ИД комплектующего с которого перешли</summary>
-        private static long linkId = -1;
-        /// <summary>Текущий тип комплектующего (тот тип на который перешли с основного)</summary>
-        private readonly Type currentType;
         /// <summary>Текущий заголовок</summary>
         private string currentTopic;
-        /// <summary>Отсканированный щтрих-код</summary>
-        private string barcode;
-        /// <summary>Чи заповнені основні дані</summary>
-        private bool isMainDataEntered { get { return accessory.Model != 0; } }
+
         /// <summary></summary>
         private readonly bool emptyBarcodeEnabled;
         /// <summary></summary>
@@ -63,6 +49,14 @@ namespace WMS_client
         private MobileButton unitButton;
         private TypeOfAccessories currentAccessotyType;
         private TypeOfAccessories requaredAccessoryType;
+        private AccessoriesSet accessoriesSet;
+        private MobileButton modelButton;
+        private MobileButton statusButton;
+        private MobileButton partyButton;
+        private MobileButton contractorButton;
+        private MobileButton partyDateButton;
+        private MobileButton warrantyTypeButton;
+        private MobileButton warrantyExpiryDateButton;
 
         /// <summary>Напис кнопки для збереження данних (завершення гілки)</summary>
         private const string okBtnText = "Ок";
@@ -75,20 +69,14 @@ namespace WMS_client
         /// <param name="type">Текущий тип комплектующего</param>
         /// <param name="prevType">Предыдущий тип комплектующего</param>
         /// <param name="topic">Текущий заголовок</param>
-        public AccessoryRegistration(WMSClient MainProcess, TypeOfAccessories requaredAccessoryType, Type type)
+        public AccessoryRegistration(WMSClient MainProcess, TypeOfAccessories requaredAccessoryType)
             : base(MainProcess, 1)
             {
-            mainType = type;
-
-            accessory = null;
+            accessoriesSet = new AccessoriesSet();
 
 
             this.requaredAccessoryType = requaredAccessoryType;
             updateCurrentTopic();
-            mainTopic = currentTopic;
-
-            currentType = type;
-            linkId = -1;
             MainProcess.ToDoCommand = currentTopic;
 
             IsLoad = true;
@@ -116,62 +104,22 @@ namespace WMS_client
 
         /// <summary>"Строитель редактирования"</summary>
         /// <param name="MainProcess"></param>
-        /// <param name="type">Текущий тип комплектующего</param>
-        /// <param name="prevType">Предыдущий тип комплектующего</param>
-        /// <param name="topic">Текущий заголовок</param>
-        /// <param name="id">ИД комплектующего с которого перешли</param>
-        /// <param name="emptyBarcode">Ввод пустого штрихкода разрешен</param>
-        public AccessoryRegistration(WMSClient MainProcess, TypeOfAccessories requaredAccessoryType, Type type, Type prevType, string topic, long id, bool emptyBarcode)
-            : base(MainProcess, 1)
-            {
-            if (prevType == null)
-                {
-                mainType = type;
-                mainTopic = topic;
-                accessory = null;
-                }
-
-            this.requaredAccessoryType = requaredAccessoryType;
-
-            currentType = type;
-            currentTopic = topic;
-            linkId = id;
-            MainProcess.ToDoCommand = currentTopic;
-            emptyBarcodeEnabled = emptyBarcode;
-
-            IsLoad = true;
-            existMode = false;
-            DrawControls();
-            }
-
-        /// <summary>"Строитель редактирования"</summary>
-        /// <param name="MainProcess"></param>
         /// <param name="mainType">Основной (неизменный при переходах) тип комплектующего (тот тип с которого начали)</param>
         /// <param name="mainTopic">Основой (неизменный при переходах) заголовок</param>
         /// <param name="currentType">Текущий тип комплектующего (тот тип на который перешли с основного)</param>
         /// <param name="currentTopic">Текущий заголовок</param>
         /// <param name="accessory">Комплектующее</param>
         /// <param name="barcode">Отсканированный щтрих-код</param>
-        public AccessoryRegistration(WMSClient MainProcess, IAccessory accessory, TypeOfAccessories requaredAccessoryType, Type mainType, Type currentType, Accessory oldTypeaccessory, string barcode)
+        public AccessoryRegistration(WMSClient MainProcess, AccessoriesSet accessoriesSet)
             : base(MainProcess, 1)
             {
-
-            this.currentAccessory = accessory;
-
-            StopNetworkConnection();
-            this.requaredAccessoryType = requaredAccessoryType;
+            this.accessoriesSet = accessoriesSet;
+            requaredAccessoryType = accessoriesSet.CurrentAccessory.GetAccessoryType();
             updateCurrentTopic();
-
-            AccessoryRegistration.accessory = oldTypeaccessory;
-            AccessoryRegistration.mainType = mainType;
-            this.currentType = currentType;
-
-            this.barcode = barcode;
 
             IsLoad = true;
             existMode = true;
-
-            OnBarcode(barcode);
+            showData();
             }
 
         #region Override methods
@@ -185,7 +133,7 @@ namespace WMS_client
                 MainProcess.CreateLabel("ШТРИХ-КОД!", 0, 150, 240,
                                         MobileFontSize.Normal, MobileFontPosition.Center, MobileFontColors.Info, FontStyle.Bold);
 
-                if (currentType != typeof(Cases))
+                if (requaredAccessoryType != TypeOfAccessories.Case)
                     {
                     MainProcess.CreateButton("Без штрихкода", 10, 270, 220, 35, string.Empty, () => OnBarcode(string.Empty));
                     }
@@ -199,26 +147,19 @@ namespace WMS_client
             //Если это штрих-код комплектующего
             if (barcode.IsValidBarcode())
                 {
-                if (groupRegistration)
-                    {
-                    groupRegistrationOnBarcode(barcode);
-                    return;
-                    }
                 MainProcess.ClearControls();
-                this.barcode = barcode;
 
-
-                if (currentAccessory == null || !currentAccessory.HasBarcode(barcode))
+                if (accessoriesSet.CurrentAccessory == null || !accessoriesSet.CurrentAccessory.HasBarcode(barcode))
                     {
-                    currentAccessory = Configuration.Current.Repository.FindAccessory(barcode.GetIntegerBarcode());
+                    accessoriesSet.CurrentAccessory = Configuration.Current.Repository.FindAccessory(barcode.GetIntegerBarcode());
                     }
 
-                bool accesoryIsExist = currentAccessory != null;
+                bool accesoryIsExist = accessoriesSet.CurrentAccessory != null;
 
                 //Если в системе уже существует штрихкод
                 if (!existMode && accesoryIsExist)
                     {
-                    currentAccessotyType = currentAccessory.GeAccessoryType();
+                    currentAccessotyType = accessoriesSet.CurrentAccessory.GetAccessoryType();
 
                     bool isTypeLikeCurrent = currentAccessotyType == requaredAccessoryType;
 
@@ -231,7 +172,8 @@ namespace WMS_client
                         }
                     }
 
-                showData(accesoryIsExist, barcode);
+                initAccessory(barcode.GetIntegerBarcode());
+                showData();
                 }
             //Во всех других случаях
             else
@@ -241,42 +183,35 @@ namespace WMS_client
                 }
             }
 
-        private void showData(bool accesoryIsExist, string Barcode)
+        private void showData()
             {
-            initAccessory(Barcode.GetIntegerBarcode());
-
-            readAccessory(accesoryIsExist, Barcode);
-
-            if (accessory.Id == 0 && accessory.TypeOfWarrantly == TypesOfLampsWarrantly.None)
-                {
-                accessory.TypeOfWarrantly = TypesOfLampsWarrantly.Without;
-                }
-
-            //Установить отсканированный штрихкод
-            dbObject.SetValue(accessory, dbObject.BARCODE_NAME, Barcode);
-
-            //Список кнопок переходов
-            Dictionary<string, KeyValuePair<Type, object>> listOfDetail;
-           
             MainProcess.ToDoCommand = currentTopic;
 
-            //Отобразить доступные поля для редактирования
-            drawEditableProperties();
+            drawPropertiesButtons();
 
             drawActionButtons();
-
-            if (currentType == typeof(Cases))
-                {
-                groupRegistrationButton = MainProcess.CreateButton("Групова реєстрація", 5, 275, 230, 35, string.Empty, startGroupRegistration);
-                }
-            //MainProcess.CreateButton("Заповнити як попередній", 5, 275, 230, 35, string.Empty, fillFromPrev);
             }
 
         private void initAccessory(int intBarcode)
             {
-            if (currentAccessory == null)
+            if (accessoriesSet.CurrentAccessory == null)
                 {
-                currentAccessory = AccessoryHelper.CreateNewAccessory(intBarcode, requaredAccessoryType);
+                accessoriesSet.CurrentAccessory = AccessoryHelper.CreateNewAccessory(intBarcode, requaredAccessoryType);
+
+                switch (requaredAccessoryType)
+                    {
+                    case TypeOfAccessories.Case:
+                        accessoriesSet.Case = (Case)accessoriesSet.CurrentAccessory;
+                        break;
+
+                    case TypeOfAccessories.ElectronicUnit:
+                        accessoriesSet.Unit = (Unit)accessoriesSet.CurrentAccessory;
+                        break;
+
+                    case TypeOfAccessories.Lamp:
+                        accessoriesSet.Lamp = (Lamp)accessoriesSet.CurrentAccessory;
+                        break;
+                    }
                 }
             }
 
@@ -288,56 +223,63 @@ namespace WMS_client
                     MainProcess.ClearControls();
                     MainProcess.Process = new EditSelector(MainProcess);
 
-                    clearStaticFields();
+
                     break;
                 }
             }
 
-        private static void clearStaticFields()
-            {
-            accessory = null;
-            linkId = -1;
-            mainType = null;
-            mainTopic = null;
-            }
+
         #endregion
 
         #region Draw
         /// <summary>Отобразить доступные поля для редактирования</summary>
         /// <param name="listOfLabels">Список доступных полей для редактирования</param>
-        private void drawEditableProperties()
+        private void drawPropertiesButtons()
             {
             int top = 42;
             int index = 0;
             const int delta = 21;
 
             top += delta;
-            MainProcess.CreateButton(string.Format("Модель: {0}", currentAccessory.GetModelDescription()), 5, top, 230, 20, "modelButton", propertyButton_Click,
-                new PropertyButtonInfo() { PropertyName = "Model", PropertyDescription = "Модель" });
+            modelButton = MainProcess.CreateButton(string.Empty, 5, top, 230, 20, "modelButton", propertyButton_Click,
+                 new PropertyButtonInfo() { PropertyName = "Model", PropertyDescription = "Модель", PropertyType = typeof(Model) });
 
             top += delta;
-            MainProcess.CreateButton(string.Format("Статус: {0}", currentAccessory.GetStatusDescription()), 5, top, 230, 20, "modelButton", propertyButton_Click,
-                new PropertyButtonInfo() { PropertyName = "Status", PropertyDescription = "Статус" });
+            statusButton = MainProcess.CreateButton(string.Empty, 5, top, 230, 20, "modelButton", propertyButton_Click,
+                new PropertyButtonInfo() { PropertyName = "Status", PropertyDescription = "Статус", PropertyType = typeof(TypesOfLampsStatus) });
 
             top += delta;
-            MainProcess.CreateButton(string.Format("Партія: {0}", currentAccessory.GetPartyDescription()), 5, top, 230, 20, "modelButton", propertyButton_Click,
-                new PropertyButtonInfo() { PropertyName = "Party", PropertyDescription = "Партія" });
+            partyButton = MainProcess.CreateButton(string.Empty, 5, top, 230, 20, "modelButton", propertyButton_Click,
+                new PropertyButtonInfo() { PropertyName = "Party", PropertyDescription = "Партія", PropertyType = typeof(PartyModel) });
 
             top += delta;
-            MainProcess.CreateButton(string.Format("Контрагент: {0}", currentAccessory.GetPartyContractor()), 5, top, 230,
+            contractorButton = MainProcess.CreateButton(string.Empty, 5, top, 230,
                 20, string.Empty, null, null, false);
 
             top += delta;
-            MainProcess.CreateButton(string.Format("Дата партії: {0}", currentAccessory.GetPartyDate()), 5, top, 230,
+            partyDateButton = MainProcess.CreateButton(string.Empty, 5, top, 230,
                 20, string.Empty, null, null, false);
 
             top += delta;
-            MainProcess.CreateButton(string.Format("Тип гарантії: {0}", currentAccessory.GetWarrantyType()), 5, top, 230, 20, string.Empty, propertyButton_Click,
-               new PropertyButtonInfo() { PropertyName = "TypeOfWarrantly", PropertyDescription = "Тип гарантії" });
+            warrantyTypeButton = MainProcess.CreateButton(string.Empty, 5, top, 230, 20, string.Empty, propertyButton_Click,
+               new PropertyButtonInfo() { PropertyName = "RepairWarranty", PropertyDescription = "Тип гарантії", PropertyType = typeof(TypesOfLampsWarrantly) });
 
             top += delta;
-            MainProcess.CreateButton(string.Format("Завершення гарантії: {0}", currentAccessory.GetWarrantyExpiryDate()), 5, top, 230, 20, string.Empty, propertyButton_Click,
-               new PropertyButtonInfo() { PropertyName = "DateOfWarrantyEnd", PropertyDescription = "Завершення гарантії" });
+            warrantyExpiryDateButton = MainProcess.CreateButton(string.Empty, 5, top, 230, 20, string.Empty, propertyButton_Click,
+                new PropertyButtonInfo() { PropertyName = "WarrantyExpiryDate", PropertyDescription = "Завершення гарантії", PropertyType = typeof(DateTime) });
+
+            updatePropertiesButtonsText();
+            }
+
+        private void updatePropertiesButtonsText()
+            {
+            modelButton.Text = string.Format("Модель: {0}", accessoriesSet.CurrentAccessory.GetModelDescription());
+            statusButton.Text = string.Format("Статус: {0}", accessoriesSet.CurrentAccessory.GetStatusDescription());
+            partyButton.Text = string.Format("Партія: {0}", accessoriesSet.CurrentAccessory.GetPartyDescription());
+            contractorButton.Text = string.Format("Контрагент: {0}", accessoriesSet.CurrentAccessory.GetPartyContractor());
+            partyDateButton.Text = string.Format("Дата партії: {0}", accessoriesSet.CurrentAccessory.GetPartyDate());
+            warrantyTypeButton.Text = string.Format("Тип гарантії: {0}", accessoriesSet.CurrentAccessory.GetWarrantyType());
+            warrantyExpiryDateButton.Text = string.Format("Завершення гарантії: {0}", accessoriesSet.CurrentAccessory.GetWarrantyExpiryDate());
             }
 
         private void propertyButton_Click(object sender)
@@ -345,18 +287,7 @@ namespace WMS_client
             var info = (PropertyButtonInfo)((sender as Button).Tag);
 
             MainProcess.ClearControls();
-            MainProcess.Process = new ValueEditor(
-                MainProcess,
-                currentAccessory,
-                mainType,
-                mainTopic,
-                currentType,
-                currentTopic,
-                accessory,
-                requaredAccessoryType,
-                info.PropertyDescription,
-                barcode,
-                info.PropertyName);
+            MainProcess.Process = new ValueEditor(MainProcess, info, accessoriesSet);
             }
 
         /// <summary>
@@ -395,100 +326,7 @@ namespace WMS_client
             {
             }
 
-        /// <summary>Переход</summary>
-        /// <param name="sender">Выбранный тип следующего коплектующего</param>
-        private void button_click(object sender)
-            {
-            Button button = ((Button)sender);
-            Type type = button.Tag as Type;
-
-            if (isMainDataEntered)
-                {
-                if (warrantlyDataIsValid())
-                    {
-                    if (type != null)
-                        {
-                        MainProcess.ClearControls();
-                        bool isNewObject = accessory.IsNew;
-
-                        //Если выбранный тип совпадает с основным типом - "Сохранение перекрестных ссылок"
-                        if (mainType == type && linkId != -1)
-                            {
-                            accessory.SetValue(mainType.Name.Substring(0, mainType.Name.Length - 1), linkId);
-                            //Сохраняем для того что бы получить accessory.Id
-                            accessory.Write();
-
-                            dbObject mainObj = (Accessory)Activator.CreateInstance(mainType);
-                            mainObj = (Accessory)mainObj.Read(mainType, linkId, dbObject.IDENTIFIER_NAME);
-                            mainObj.SetValue(currentType.Name.Substring(0, currentType.Name.Length - 1), accessory.Id);
-                            mainObj.Write();
-                            }
-
-                        //Запись
-                        accessory.Write();
-
-                        //Если документ новый - значит был процесс "Регистрация"
-                        if (isNewObject)
-                            {
-                            //Внесение записи в "Перемещение"
-                            Movement.RegisterLighter(accessory.BarCode, accessory.SyncRef,
-                                                     OperationsWithLighters.Registration);
-                            }
-
-                        //Отображение 
-                        string propertyName = type.Name.Substring(0, type.Name.Length - 1);
-                        object newAccessory = accessory.GetPropery(propertyName);
-                        long newAccessoryId = newAccessory == null ? 0 : Convert.ToInt64(newAccessory);
-
-                        //Переход на связанное комплектующее
-                        if ((newAccessoryId != 0 || (newAccessoryId == 0 && linkId != -1 && mainType == type))
-                            && button.Text != okBtnText && button.Text != nextBtnText)
-                            {
-                            Accessory newObj = (Accessory)Activator.CreateInstance(type);
-                            newObj.Read(type, newAccessoryId, dbObject.IDENTIFIER_NAME);
-                            //MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainTopic, type,
-                            //                                      button.Text, newObj, newObj.BarCode);
-                            accessory = newObj;
-                            }
-                        //Переход на НОВЫЙ выбранный тип комплектующего 
-                        else
-                            {
-                            //Если выбранный тип совпадает с основным типом
-                            //if (mainType == type)
-                            //    {
-                            //    if (mainType == null || linkId == -1)
-                            //        {
-                            //        accessory = (Accessory)accessory.Copy();
-                            //        accessory.ClearPosition();
-                            //        MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainType);
-                            //        }
-
-                            //    MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainType);
-                            //    }
-                            //Не совпадает - "Передача ИД комплектующего с которого переходим"
-                            //else
-                            //{
-                            //MainProcess.Process = new AccessoryRegistration(MainProcess, type, mainType, button.Text,
-                            //                                      accessory.Id, type == typeof(ElectronicUnits));
-                            //}
-
-
-                            //Если не было произведено копирование полей для следующего комплектующего, то очистить все поля
-                            if (!accessory.IsNew)
-                                {
-                                accessory = null;
-                                }
-                            }
-                        }
-                    }
-                }
-            else
-                {
-                showWriteErrorMessage();
-                }
-            }
-
-        private static void showWriteErrorMessage()
+        private void showWriteErrorMessage()
             {
             //Для того щоб не зберігали "пусті" документи
             MessageBox.Show(
@@ -502,128 +340,96 @@ namespace WMS_client
         /// <summary>Чи вірні дані про гарантію?</summary>
         private bool warrantlyDataIsValid()
             {
-            //При відсутності гарантії, дата не може бути більше сьогоднішньої!
-            if ((accessory.TypeOfWarrantly == TypesOfLampsWarrantly.Without ||
-                 accessory.TypeOfWarrantly == TypesOfLampsWarrantly.None) &&
-                accessory.DateOfWarrantyEnd > DateTime.Now)
-                {
-                const string message = "При відсутності гарантії, дата не може бути більше сьогоднішньої!\r\n\r\nЗбросити дату?";
+            ////При відсутності гарантії, дата не може бути більше сьогоднішньої!
+            //if ((accessory.TypeOfWarrantly == TypesOfLampsWarrantly.Without ||
+            //     accessory.TypeOfWarrantly == TypesOfLampsWarrantly.None) &&
+            //    accessory.DateOfWarrantyEnd > DateTime.Now)
+            //    {
+            //    const string message = "При відсутності гарантії, дата не може бути більше сьогоднішньої!\r\n\r\nЗбросити дату?";
 
-                if (MessageBox.Show(message, "Не вірно заповнені дані", MessageBoxButtons.YesNo,
-                                    MessageBoxIcon.Asterisk, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
-                    {
-                    accessory.DateOfWarrantyEnd = DateTime.MinValue;
-                    return true;
-                    }
+            //    if (MessageBox.Show(message, "Не вірно заповнені дані", MessageBoxButtons.YesNo,
+            //                        MessageBoxIcon.Asterisk, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+            //        {
+            //        accessory.DateOfWarrantyEnd = DateTime.MinValue;
+            //        return true;
+            //        }
 
-                return false;
-                }
+            //    return false;
+            //    }
 
-            //При наявності гарантії, дата не може бути менше сьогоднішньої!
-            if (accessory.TypeOfWarrantly != TypesOfLampsWarrantly.Without &&
-                accessory.TypeOfWarrantly != TypesOfLampsWarrantly.None &&
-                accessory.DateOfWarrantyEnd < DateTime.Now)
-                {
-                string warrantly = EnumWorker.GetDescription(typeof(TypesOfLampsWarrantly),
-                                                             (int)accessory.TypeOfWarrantly);
-                string message = string.Format(
-                    "При наявності гарантії '{0}', дата не може бути менше сьогоднішньої!\r\n\r\nЗбросити тип гарантії?",
-                    warrantly);
+            ////При наявності гарантії, дата не може бути менше сьогоднішньої!
+            //if (accessory.TypeOfWarrantly != TypesOfLampsWarrantly.Without &&
+            //    accessory.TypeOfWarrantly != TypesOfLampsWarrantly.None &&
+            //    accessory.DateOfWarrantyEnd < DateTime.Now)
+            //    {
+            //    string warrantly = EnumWorker.GetDescription(typeof(TypesOfLampsWarrantly),
+            //                                                 (int)accessory.TypeOfWarrantly);
+            //    string message = string.Format(
+            //        "При наявності гарантії '{0}', дата не може бути менше сьогоднішньої!\r\n\r\nЗбросити тип гарантії?",
+            //        warrantly);
 
-                if (MessageBox.Show(message, "Не вірно заповнена дата", MessageBoxButtons.YesNo,
-                                    MessageBoxIcon.Asterisk, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
-                    {
-                    accessory.TypeOfWarrantly = TypesOfLampsWarrantly.Without;
-                    return true;
-                    }
+            //    if (MessageBox.Show(message, "Не вірно заповнена дата", MessageBoxButtons.YesNo,
+            //                        MessageBoxIcon.Asterisk, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+            //        {
+            //        accessory.TypeOfWarrantly = TypesOfLampsWarrantly.Without;
+            //        return true;
+            //        }
 
-                return false;
-                }
+            //    return false;
+            //    }
 
             return true;
             }
 
         #endregion
 
-        /// <summary>Прочитать данные комплектующего</summary>
-        /// <param name="accesoryIsExist">Комплектующее существует</param>
-        /// <param name="barcodeValue">Штрихкод</param>
-        private void readAccessory(bool accesoryIsExist, string barcodeValue)
-            {
-            //Если комплектующее еще не редактировалось - "Создать"/"Прочитать существующее"
-            if (accessory == null || (accesoryIsExist && !accessory.IsModified))
-                {
-                accessory = (Accessory)Activator.CreateInstance(currentType);
-
-                if (string.IsNullOrEmpty(barcodeValue) && !accesoryIsExist)
-                    {
-                    return;
-                    }
-
-                if (string.IsNullOrEmpty(barcodeValue) && emptyBarcodeEnabled)
-                    {
-                    long id = ElectronicUnits.GetIdByEmptyBarcode(linkId);
-
-                    if (id != 0)
-                        {
-                        accessory = (Accessory)accessory.Read(currentType, id, dbObject.IDENTIFIER_NAME);
-                        }
-                    }
-                else
-                    {
-                    accessory = (Accessory)accessory.Read(currentType, barcodeValue, dbObject.BARCODE_NAME);
-                    }
-
-                accessory.Status = TypesOfLampsStatus.Storage;
-                }
-            }
 
         private void startGroupRegistration()
             {
-            currentCase = accessory as Cases;
+            //currentCase = accessory as Cases;
 
-            if (currentCase.Lamp == 0 || currentCase.ElectronicUnit == 0)
-                {
-                ShowMessage("Нужно заполнить лампу и эл. блок!");
-                return;
-                }
+            //if (currentCase.Lamp == 0 || currentCase.ElectronicUnit == 0)
+            //    {
+            //    ShowMessage("Нужно заполнить лампу и эл. блок!");
+            //    return;
+            //    }
 
-            if (!(accessory is Cases))
-                {
-                return;
-                }
+            //if (!(accessory is Cases))
+            //    {
+            //    return;
+            //    }
 
-            currentLamp = new Lamps();
-            currentLamp.Read(currentCase.Lamp);
+            //currentLamp = new Lamps();
+            //currentLamp.Read(currentCase.Lamp);
 
-            currentUnit = new ElectronicUnits();
-            currentUnit.Read(currentCase.ElectronicUnit);
+            //currentUnit = new ElectronicUnits();
+            //currentUnit.Read(currentCase.ElectronicUnit);
 
-            if (!string.IsNullOrEmpty(currentLamp.BarCode) || !string.IsNullOrEmpty(currentUnit.BarCode))
-                {
-                ShowMessage("Для групової реєстрації лампа та блок мають бути без штрих-коду");
-                return;
-                }
+            //if (!string.IsNullOrEmpty(currentLamp.BarCode) || !string.IsNullOrEmpty(currentUnit.BarCode))
+            //    {
+            //    ShowMessage("Для групової реєстрації лампа та блок мають бути без штрих-коду");
+            //    return;
+            //    }
 
-            if (isMainDataEntered && warrantlyDataIsValid())
-                {
-                accessory.Write();
-                }
-            else
-                {
-                showWriteErrorMessage();
-                return;
-                }
+            //if (isMainDataEntered && warrantlyDataIsValid())
+            //    {
+            //    accessory.Write();
+            //    }
+            //else
+            //    {
+            //    showWriteErrorMessage();
+            //    return;
+            //    }
 
-            groupRegistration = true;
+            //groupRegistration = true;
 
-            currentCase = new Cases();
-            currentCase.Read(accessory.Id);
+            //currentCase = new Cases();
+            //currentCase.Read(accessory.Id);
 
-            groupRegistrationButton.Hide();
-            groupSizeLabel = MainProcess.CreateLabel("", 5, 283, 230,
-                                        MobileFontSize.Normal, MobileFontPosition.Left, MobileFontColors.Info, FontStyle.Bold);
-            groupSize = 0;
+            //groupRegistrationButton.Hide();
+            //groupSizeLabel = MainProcess.CreateLabel("", 5, 283, 230,
+            //                            MobileFontSize.Normal, MobileFontPosition.Left, MobileFontColors.Info, FontStyle.Bold);
+            //groupSize = 0;
             }
 
         private void groupRegistrationOnBarcode(string barcode)
@@ -654,9 +460,19 @@ namespace WMS_client
             }
         }
 
-    internal class PropertyButtonInfo
+    public class PropertyButtonInfo
         {
         public string PropertyName { get; set; }
         public string PropertyDescription { get; set; }
+        public Type PropertyType { get; set; }
+        }
+
+    public class AccessoriesSet
+        {
+        public Case Case { get; set; }
+        public Lamp Lamp { get; set; }
+        public Unit Unit { get; set; }
+
+        public IAccessory CurrentAccessory { get; set; }
         }
     }

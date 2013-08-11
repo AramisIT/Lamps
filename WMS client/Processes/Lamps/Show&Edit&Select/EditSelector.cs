@@ -42,21 +42,21 @@ namespace WMS_client
         private void unit_Click()
             {
             MainProcess.ClearControls();
-            MainProcess.Process = new AccessoryRegistration(MainProcess, TypeOfAccessories.ElectronicUnit, typeof(ElectronicUnits));
+            MainProcess.Process = new AccessoryRegistration(MainProcess, TypeOfAccessories.ElectronicUnit);
             }
 
         /// <summary>Лампа</summary>
         private void lamp_Click()
             {
             MainProcess.ClearControls();
-            MainProcess.Process = new AccessoryRegistration(MainProcess, TypeOfAccessories.Lamp, typeof(Lamps));
+            MainProcess.Process = new AccessoryRegistration(MainProcess, TypeOfAccessories.Lamp);
             }
 
         /// <summary>Корпус</summary>
         private void case_Click()
             {
             MainProcess.ClearControls();
-            MainProcess.Process = new AccessoryRegistration(MainProcess, TypeOfAccessories.Case, typeof(Cases));
+            MainProcess.Process = new AccessoryRegistration(MainProcess, TypeOfAccessories.Case);
             }
         #endregion
         }
