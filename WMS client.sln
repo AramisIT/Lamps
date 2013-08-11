@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WMS client", "WMS client\WMS client.csproj", "{00A68012-89FA-4E19-8156-D2292ABC588D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClisentTest", "ClisentTest\ClisentTest.csproj", "{76274656-9816-41AE-A821-8C1FAC04482E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tcdEnums", "tcdEnums\tcdEnums.csproj", "{A95D2C09-B66D-48E4-B50C-D43B886CB862}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSQL", "TestSQL\TestSQL.csproj", "{9C58C0F2-F2F3-4005-8774-4E0ABFA9FEFE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +19,16 @@ Global
 		{00A68012-89FA-4E19-8156-D2292ABC588D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{00A68012-89FA-4E19-8156-D2292ABC588D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{00A68012-89FA-4E19-8156-D2292ABC588D}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{76274656-9816-41AE-A821-8C1FAC04482E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{76274656-9816-41AE-A821-8C1FAC04482E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{76274656-9816-41AE-A821-8C1FAC04482E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{76274656-9816-41AE-A821-8C1FAC04482E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A95D2C09-B66D-48E4-B50C-D43B886CB862}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A95D2C09-B66D-48E4-B50C-D43B886CB862}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A95D2C09-B66D-48E4-B50C-D43B886CB862}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A95D2C09-B66D-48E4-B50C-D43B886CB862}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C58C0F2-F2F3-4005-8774-4E0ABFA9FEFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C58C0F2-F2F3-4005-8774-4E0ABFA9FEFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9C58C0F2-F2F3-4005-8774-4E0ABFA9FEFE}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{9C58C0F2-F2F3-4005-8774-4E0ABFA9FEFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C58C0F2-F2F3-4005-8774-4E0ABFA9FEFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9C58C0F2-F2F3-4005-8774-4E0ABFA9FEFE}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using WMS_client.Enums;
 using System;
 using System.Windows.Forms;
@@ -167,9 +168,54 @@ namespace WMS_client
         #region ButtonClick
         /// <summary>Перехід до процессу "Інформація"</summary>
         private void info_Click()
-            {
+        {
+            fixLamps();
+            return;
             MainProcess.ClearControls();
             MainProcess.Process = new Info(MainProcess);
+            }
+
+        private void fixLamps()
+            {
+            for (int caseId = 3100; caseId <= 3407; caseId++)
+                {
+                if (!fixCase(caseId))
+                    {
+                    Trace.WriteLine(string.Format("Can't update case. Case id - {0}", caseId));
+                    }
+                Trace.WriteLine(caseId);
+                }
+            }
+
+        private bool fixCase(int caseId)
+            {
+            const string selectCommand = @"select Lamps.Id lampId from Lamps
+join cases on cases.LampSync = Lamps.SyncRef
+where Cases.Id = @caseId";
+
+            object result;
+
+            using (SqlCeCommand query = dbWorker.NewQuery(selectCommand))
+                {
+                query.AddParameter("caseId", caseId);
+                result = query.ExecuteScalar();
+                }
+
+            if (result == null)
+                {
+                return true;
+                }
+
+            int lampId = (int)result;
+
+            const string updateCommand = "update Cases set Lamp = @lampId where Cases.Id = @caseId";
+            using (SqlCeCommand query = dbWorker.NewQuery(updateCommand))
+                {
+                query.AddParameter("caseId", caseId);
+                query.AddParameter("lampId", lampId);
+                return query.ExecuteNonQuery() == 1;
+                }
+
             }
 
         /// <summary>Перехід для вибору процесу</summary>

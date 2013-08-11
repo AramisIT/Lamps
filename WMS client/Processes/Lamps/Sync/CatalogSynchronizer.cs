@@ -179,9 +179,11 @@ WHERE [Id]=@Id";
                     {
                     addDefaultParameters(query, row);
                     }
-                catch (Exception)
+                catch (Exception exp)
                     {
-
+                    SqlCeCommand newQuery = getMergeQuery(row, statusObj);
+                    addDefaultParameters(newQuery, row);
+                    Trace.Write(exp.Message);
                     }
 
                 try

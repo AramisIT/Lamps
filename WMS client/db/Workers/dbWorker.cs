@@ -2,6 +2,7 @@
 using System.Data;
 using System.Data.SqlServerCe;
 using System.Collections.Generic;
+using System.Diagnostics;
 using WMS_client.Enums;
 using System.Data.SqlTypes;
 
@@ -57,7 +58,14 @@ namespace WMS_client.db
                     {
                     SqlCeEngine DBEngine = new SqlCeEngine(connString);
                     z_dBConnection = new SqlCeConnection(DBEngine.LocalConnectionString);
-                    z_dBConnection.Open();
+                    try
+                        {
+                        z_dBConnection.Open();
+                        }
+                    catch (Exception exp)
+                        {
+                        Trace.WriteLine(exp.Message);
+                        }
                     }
 
                 return z_dBConnection;

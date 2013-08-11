@@ -7,9 +7,9 @@ using WMS_client.db;
 using WMS_client.Base.Visual;
 
 namespace WMS_client
-{
-    public partial class MainForm : Form
     {
+    public partial class MainForm : Form
+        {
         #region Public fields
 
         public bool IsTest { get; private set; }
@@ -20,14 +20,14 @@ namespace WMS_client
         private const int versionNumber = 64;
 
         public int VersionNumber
-        {
+            {
             get { return versionNumber; }
-        }
+            }
         public String ServerIP;
         public bool IsMainThread
-        {
+            {
             get { return !LogoOnLine.InvokeRequired; }
-        }
+            }
 
         #endregion
 
@@ -52,12 +52,13 @@ namespace WMS_client
 
         #region Public methods
 
-        public MainForm():this(false)
-        {
-        }
+        public MainForm()
+            : this(false)
+            {
+            }
 
         public MainForm(bool test)
-        {
+            {
             IsTest = test;
             InitializeComponent();
             Height = 320;
@@ -80,18 +81,18 @@ namespace WMS_client
             //}
 
             if (!IsTest)
-            {
-                try
                 {
+                try
+                    {
                     IntermecBarcodeReader = new BarcodeReader();
                     IntermecBarcodeReader.BarcodeRead += OnBarcodeRead;
                     IntermecBarcodeReader.ThreadedRead(true);
-                }
+                    }
                 catch (Exception exc)
-                {
+                    {
                     Console.Write(exc.Message);
+                    }
                 }
-            }
 
             HotKeyAgent = new HotKeyProcessing(this);
 
@@ -101,229 +102,239 @@ namespace WMS_client
                 File.Exists(
                     Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase) +
                     "\\update"))
-            {
+                {
                 Client.NeedToUpdate = true;
+                }
             }
-        }
 
         public void PerformMainThreadEvent()
-        {
-            if (InvokeRequired)
             {
+            if (InvokeRequired)
+                {
                 try { Invoke(new OnEventDelegate(PerformMainThreadEvent), null); }
                 catch { }
-            }
+                }
             else
-            {
+                {
                 PerformInMainThread();
+                }
             }
-        }
 
         public void DrawConnectionStatus(bool IsOnline)
-        {
+            {
             if (IsClosing) return;
 
             if (LogoOnLine.InvokeRequired)
-            {
+                {
                 try { Invoke(new SetConnectionStatusDelegate(DrawConnectionStatus), new object[] { IsOnline }); }
                 catch { }
-            }
+                }
             else
-            {
+                {
                 LogoOnLine.Visible = IsOnline;
                 if (IsOnline)
-                {
+                    {
                     //Note: Online
                     BackColor = Color.FromArgb(219, 236, 242);
                     Command.ForeColor = Color.DarkGreen;
-                }
+                    }
                 else
-                {
+                    {
                     //Note: Offline
                     BackColor = Color.FromArgb(220, 220, 220);
                     Command.ForeColor = Color.FromArgb(58, 58, 58);
+                    }
                 }
             }
-        }
 
         public void ShowQueryWait()
-        {
-            if (!LogoOnLine.InvokeRequired)
             {
+            if (!LogoOnLine.InvokeRequired)
+                {
                 LogoOnLine.Size = new Size(168, 19);
                 LogoOnLine.Location = new Point(36, 8);
 
                 LogoOffLine.Size = new Size(168, 19);
                 LogoOffLine.Location = new Point(36, 8);
                 Refresh();
+                }
             }
-        }
 
         public void ShowQueryComplated()
-        {
-            if (!LogoOnLine.InvokeRequired)
             {
+            if (!LogoOnLine.InvokeRequired)
+                {
                 LogoOnLine.Size = new Size(240, 34);
                 LogoOnLine.Location = new Point(0, 0);
 
                 LogoOffLine.Size = new Size(240, 34);
                 LogoOffLine.Location = new Point(0, 0);
                 Refresh();
+                }
             }
-        }
 
         public void ShowPingResult(string result)
-        {
-            if (LogoOnLine.InvokeRequired)
             {
+            if (LogoOnLine.InvokeRequired)
+                {
                 try { Invoke(new FVoid1StringDelegate(ShowPingResult), new object[] { result }); }
                 catch { }
-            }
+                }
             else
-            {
+                {
 
                 PingResult = String.Format("{0}Ping reply: {1}", symbols[symbolsNum].ToString(), result);
                 symbolsNum++; if (symbolsNum > 3) symbolsNum = 0;
                 //if (!PingResult.Visible) { PingResult.Visible = true; }
                 LogoOnLine.Refresh();
+                }
             }
-        }
 
         public void ShowCellName(string NewCellName)
-        {
+            {
             CellName.Text = NewCellName;
             CellName.Visible = true;
-        }
+            }
 
         public void HideCellName()
-        {
+            {
             CellName.Visible = false;
-        }
+            }
 
         public void BarCodeOnTDC(string Barcode)
-        {
-            if (LogoOnLine.InvokeRequired)
             {
+            if (LogoOnLine.InvokeRequired)
+                {
                 try { Invoke(new FVoid1StringDelegate(BarCodeOnTDC), new object[] { Barcode }); }
-                catch(Exception exc)
+                catch (Exception exc)
                     {
                     Console.Write(exc.Message);
                     }
-            }
+                }
             else
-            {
+                {
                 Client.Process.OnBarcode(Barcode);
+                }
             }
-        }
         public void PressKeyOnTDC(int KeyCode)
-        {
-            if (LogoOnLine.InvokeRequired)
             {
+            if (LogoOnLine.InvokeRequired)
+                {
                 try { Invoke(new FVoid1IntDelegate(PressKeyOnTDC), new object[] { KeyCode }); }
                 catch { }
-            }
+                }
             else
-            {
+                {
                 HotKeyAgent.OnHotKeyPressed((KeyAction)KeyCode);
                 //Client.Process.OnHotKey((KeyAction)KeyCode);
+                }
             }
-        }
 
         public void BarCodeByHands()
-        {
+            {
             BarcodeLabel.Visible = true;
             BarcodeTextBox.Enabled = true;
             BarcodeTextBox.Visible = true;
             Command.Visible = false;
             BarcodeTextBox.Focus();
-        }
+            }
 
         public void BarCodeByHandsCancel()
-        {
+            {
             BarcodeLabel.Visible = false;
             BarcodeTextBox.Enabled = false;
             BarcodeTextBox.Visible = false;
             Command.Visible = true;
-        }
+            }
 
         public void SetOnHotKeyPressed(OnHotKeyPressedDelegate OnHotKeyPressed)
-        {
+            {
             HotKeyAgent.OnHotKeyPressed = OnHotKeyPressed;
-        }
+            }
 
         #endregion
 
         #region Private methods
 
         private void OnBarcodeRead(object sender, BarcodeReadEventArgs e)
-        {
+            {
             Client.OnBarcode(e.strDataBuffer);
-        }
+            }
 
         private void pictureBox1_DoubleClick(object sender, EventArgs e)
-        {
-            if (MessageBox.Show(String.Format("[{0}]\r\n\r\nЗАКРЫТЬ ПРИЛОЖЕНИЕ?", ServerIP), "Aramis WMS Ver." + VersionNumber.ToString(), MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
             {
+            progressBar1.Visible = true;
+            for (int i = 0; i < 100; i += 50)
+                {
+                progressBar1.Value = i;
+                progressText.Text = i.ToString() + "%";
+                progressText.Refresh();
+                System.Threading.Thread.Sleep(500);
+                }
+            progressBar1.Visible = false;
+
+            if (MessageBox.Show(String.Format("[{0}]\r\n\r\nЗАКРЫТЬ ПРИЛОЖЕНИЕ?", ServerIP), "Aramis WMS Ver." + VersionNumber.ToString(), MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1) == DialogResult.Yes)
+                {
                 Close();
                 Client.ConnectionAgent.CloseAll();
                 Application.Exit();
 
+                }
             }
-        }
 
         private void Form1_Closed(object sender, EventArgs e)
-        {
+            {
             //IntermecBarcodeReader.Dispose();
             //Client.OnExit();
             dbWorker.Dispose();
-        }
+            }
 
         private void BarcodeTextBox_LostFocus(object sender, EventArgs e)
-        {
+            {
             BarCodeByHandsCancel();
             string barcode = BarcodeTextBox.Text.Trim().Replace(Convert.ToString((char)160), "");
             BarcodeTextBox.Text = "";
             if (barcode != "")
-            {
+                {
                 Client.OnBarcode(barcode);
+                }
             }
-        }
 
         private void BarcodeTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar == '\r')
             {
+            if (e.KeyChar == '\r')
+                {
                 BarcodeTextBox_LostFocus(sender, null);
+                }
             }
-        }
 
         #endregion
 
         private void LogoOnLine_Paint(object sender, PaintEventArgs e)
-        {
-            if (PingResult.Length > 0)
             {
+            if (PingResult.Length > 0)
+                {
                 Graphics g = e.Graphics;
                 g.DrawString(PingResult[0].ToString(), new Font("Tahoma", 8, FontStyle.Bold), new SolidBrush(IndicatorColor), 29, 19);
                 g.DrawString(PingResult.Substring(1), new Font("Tahoma", 8, FontStyle.Bold), new SolidBrush(TextColor), 45, 20);
 
                 g.DrawString(DateTime.Now.ToString("HH:mm:ss"), new Font("Tahoma", 8, FontStyle.Bold), new SolidBrush(TextColor), 176, 20);
                 PingResult = "";
+                }
             }
-        }
 
         private void Form1_Load(object sender, EventArgs e)
-        {
+            {
             (new emptyDialog()).ShowDialog();
             //Platform plat = GetPlatform();
             //if (plat == Platform.PocketPC)
             //{
             WindowState = FormWindowState.Maximized;
             //}
-        }
+            }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
-        {
+            {
             //string str = e.KeyData.ToString();
             //MessageBox.Show(str);
 
@@ -332,12 +343,12 @@ namespace WMS_client
             //    HotKeyAgent.OnHotKeyPressed(KeyAction.Proceed);
             //}
             //else 
-                if (e.Shift && e.KeyCode == Keys.ShiftKey)
-            {
+            if (e.Shift && e.KeyCode == Keys.ShiftKey)
+                {
                 HotKeyAgent.OnHotKeyPressed(KeyAction.Proceed);
-            }
+                }
             else if (e.KeyCode == Keys.Escape)
-            {
+                {
                 //if (Client.Process is RegistrationProcess)
                 //{
                 //    (Client.GetControl("Login") as MobileTextBox).Text = "a";
@@ -345,8 +356,8 @@ namespace WMS_client
                 //}
 
                 HotKeyAgent.OnHotKeyPressed(KeyAction.Esc);
+                }
             }
-        }
 
         //private void Form1_MouseDown(object sender, MouseEventArgs e)
         //{
@@ -382,5 +393,5 @@ namespace WMS_client
         //        Client.SendToServer("MouseMove", (-DeltaY).ToString(), (DeltaX).ToString());
         //    }
         //}
+        }
     }
-}

@@ -212,6 +212,9 @@
     <Compile Include="WMSClient.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="LampsBase.sdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="media_player.ico" />
     <Content Include="PDT_ID.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -225,6 +228,9 @@
       <Project>{A95D2C09-B66D-48E4-B50C-D43B886CB862}</Project>
       <Name>tcdEnums</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Repositories\" />
   </ItemGroup>
   <Import Condition="'$(TargetFrameworkVersion)' == 'v1.0'" Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.v1.targets" />
   <Import Condition="'$(TargetFrameworkVersion)' == 'v2.0'" Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />

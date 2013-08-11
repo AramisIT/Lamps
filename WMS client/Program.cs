@@ -11,7 +11,7 @@ namespace WMS_client
         private const string STARTUP_PATH = @"\Program files\WMS_client\WMS client.exe";
         [MTAThread]
         static void Main()
-            {
+        {
             if (isExistedSameProcess())
                 {
                 return;

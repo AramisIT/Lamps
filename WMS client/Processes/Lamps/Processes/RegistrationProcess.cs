@@ -38,6 +38,8 @@ namespace WMS_client
                     updateWifiOnOffButtonState(!startStatus);
                 });
             updateWifiOnOffButtonState(MainProcess.ConnectionAgent.WifiEnabled);
+
+           
             }
 
         private void updateWifiOnOffButtonState(bool wifiEnabled)
