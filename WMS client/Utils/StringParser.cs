@@ -3,10 +3,28 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 
-namespace WMS_client.Utils
+namespace WMS_client
     {
-    class StringParser
+    static class StringParser
         {
+        internal static int GetIntegerBarcode(this string barcodeStr)
+            {
+            if (string.IsNullOrEmpty(barcodeStr) || barcodeStr.Length < 2)
+                {
+                return 0;
+                }
+
+            try
+                {
+                int barcode = Convert.ToInt32(barcodeStr.Substring(1));
+                return barcode;
+                }
+            catch
+                {
+                return 0;
+                }
+            }
+
         internal static object ParseDateTime(object value)
             {
             const char separator = '.';
@@ -22,7 +40,7 @@ namespace WMS_client.Utils
                     parts[0],
                     separator,
                     parts[2]));
-                } 
+                }
             else
                 {
                 result = new DateTime();

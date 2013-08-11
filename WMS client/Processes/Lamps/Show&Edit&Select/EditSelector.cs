@@ -1,4 +1,6 @@
 using WMS_client.db;
+using WMS_client.Enums;
+
 namespace WMS_client
     {
     /// <summary>Вибір типу комплектуючого для регістрації (редагування)</summary>
@@ -40,21 +42,21 @@ namespace WMS_client
         private void unit_Click()
             {
             MainProcess.ClearControls();
-            MainProcess.Process = new AccessoryRegistration(MainProcess, typeof(ElectronicUnits), null, "Електронний блок");
+            MainProcess.Process = new AccessoryRegistration(MainProcess, TypeOfAccessories.ElectronicUnit, typeof(ElectronicUnits));
             }
 
         /// <summary>Лампа</summary>
         private void lamp_Click()
             {
             MainProcess.ClearControls();
-            MainProcess.Process = new AccessoryRegistration(MainProcess, typeof(Lamps), null, "Лампа");
+            MainProcess.Process = new AccessoryRegistration(MainProcess, TypeOfAccessories.Lamp, typeof(Lamps));
             }
 
         /// <summary>Корпус</summary>
         private void case_Click()
             {
             MainProcess.ClearControls();
-            MainProcess.Process = new AccessoryRegistration(MainProcess, typeof(Cases), null, "Корпус");
+            MainProcess.Process = new AccessoryRegistration(MainProcess, TypeOfAccessories.Case, typeof(Cases));
             }
         #endregion
         }

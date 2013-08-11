@@ -90,6 +90,7 @@
     <Compile Include="Base\Visual\emptyDialog.Designer.cs">
       <DependentUpon>emptyDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Configuration.cs" />
     <Compile Include="db\Attributes\dbElementAtt.cs" />
     <Compile Include="db\Interfaces\IBarcodeOwner.cs" />
     <Compile Include="db\Objects\AcceptanceAccessoriesFrom\Exchange\AcceptanceAccessoriesFromExchange.cs" />
@@ -131,6 +132,14 @@
     <Compile Include="Enums\TypesOfLampsWarrantly.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Models\IBarcodeAccessory.cs" />
+    <Compile Include="Models\IAccessory.cs" />
+    <Compile Include="Models\IFixableAccessory.cs" />
+    <Compile Include="Models\Unit.cs" />
+    <Compile Include="Models\PartyModel.cs" />
+    <Compile Include="Models\Model.cs" />
+    <Compile Include="Models\Case.cs" />
+    <Compile Include="Models\Lamp.cs" />
     <Compile Include="Processes\EmptyProcess.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptanceFrom.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptanceFromExchange.cs" />
@@ -199,8 +208,11 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="Processes\Lamps\Processes\RegistrationProcess.cs" />
+    <Compile Include="Processes\Lamps\RegistrationProcess.cs" />
     <Compile Include="Base\ServerAgent.cs" />
+    <Compile Include="Repositories\IRepository.cs" />
+    <Compile Include="Repositories\SqlCeRepository.cs" />
+    <Compile Include="Utils\AccessoryHelper.cs" />
     <Compile Include="Utils\CatalogHelper.cs" />
     <Compile Include="Utils\StringParser.cs" />
     <Compile Include="WinProcessesManagement\ProcessInfo.cs" />
@@ -208,7 +220,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="LampsBase.sdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="media_player.ico" />
     <Content Include="PDT_ID.txt">
@@ -223,9 +234,6 @@
       <Project>{A95D2C09-B66D-48E4-B50C-D43B886CB862}</Project>
       <Name>tcdEnums</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Repositories\" />
   </ItemGroup>
   <Import Condition="'$(TargetFrameworkVersion)' == 'v1.0'" Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.v1.targets" />
   <Import Condition="'$(TargetFrameworkVersion)' == 'v2.0'" Project="$(MSBuildBinPath)\Microsoft.CompactFramework.CSharp.targets" />

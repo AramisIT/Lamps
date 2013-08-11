@@ -56,13 +56,13 @@ namespace WMS_client.Processes.Lamps
                     documentId = idObj;
                     acceptanceDoc.Read<AcceptanceOfNewComponents>(documentId);
 
-                    string caseModel = CatalogObject.GetDescription(typeof(Models).Name, acceptanceDoc.CaseModel);
-                    string lampModel = CatalogObject.GetDescription(typeof(Models).Name, acceptanceDoc.LampModel);
-                    string unitModel = CatalogObject.GetDescription(typeof(Models).Name, acceptanceDoc.UnitModel);
+                    string caseModel = CatalogObject.GetDescription(typeof(WMS_client.db.Models).Name, acceptanceDoc.CaseModel);
+                    string lampModel = CatalogObject.GetDescription(typeof(WMS_client.db.Models).Name, acceptanceDoc.LampModel);
+                    string unitModel = CatalogObject.GetDescription(typeof(WMS_client.db.Models).Name, acceptanceDoc.UnitModel);
 
-                    caseModelRef = CatalogObject.GetSyncRef(typeof(Models).Name, acceptanceDoc.CaseModel);
-                    lampModelRef = CatalogObject.GetSyncRef(typeof(Models).Name, acceptanceDoc.LampModel);
-                    unitModelRef = CatalogObject.GetSyncRef(typeof(Models).Name, acceptanceDoc.UnitModel);
+                    caseModelRef = CatalogObject.GetSyncRef(typeof(WMS_client.db.Models).Name, acceptanceDoc.CaseModel);
+                    lampModelRef = CatalogObject.GetSyncRef(typeof(WMS_client.db.Models).Name, acceptanceDoc.LampModel);
+                    unitModelRef = CatalogObject.GetSyncRef(typeof(WMS_client.db.Models).Name, acceptanceDoc.UnitModel);
 
                     if (acceptanceDoc.CaseModel == 0)
                         {

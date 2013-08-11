@@ -6,6 +6,8 @@ using System.Text;
 using System.Data;
 using System.Data.SqlServerCe;
 using System.Windows.Forms;
+using WMS_client.Enums;
+using WMS_client.Models;
 
 namespace WMS_client
     {
@@ -13,11 +15,9 @@ namespace WMS_client
     public class ValueEditor : BusinessProcess
         {
         /// <summary>Комплектующее</summary>
-        private static Accessory accessory;
+        private static Accessory oldTypeaccessory;
         /// <summary>Основной (неизменный при переходах) тип комплектующего (тот тип с которого начали)</summary>
         private static Type mainType;
-        /// <summary>Основой (неизменный при переходах) заголовок</summary>
-        private static string mainTopic;
         /// <summary>Текущий тип комплектующего (тот тип на который перешли с основного)</summary>
         private readonly Type currentType;
         /// <summary>Текущий заголовок</summary>
@@ -34,6 +34,8 @@ namespace WMS_client
         private readonly List<MobileControl> controls = new List<MobileControl>();
         private Type valueType;
         private MobileButton okButton;
+        private TypeOfAccessories requaredAccessoryType;
+        private IAccessory accessory;
 
         /// <summary>Редактор значений</summary>
         /// <param name="MainProcess"></param>
@@ -45,14 +47,14 @@ namespace WMS_client
         /// <param name="topic">Заголовок</param>
         /// <param name="barcode">Отсканированный щтрих-код</param>
         /// <param name="propertyName">Редактируемое свойство</param>
-        public ValueEditor(WMSClient MainProcess, Type mainType, string mainTopic, Type currentType, string currentTopic, Accessory accessory, string topic, string barcode, string propertyName)
+        public ValueEditor(WMSClient MainProcess, IAccessory accessory, Type mainType, string mainTopic, Type currentType, string currentTopic, Accessory oldTypeaccessory, TypeOfAccessories requaredAccessoryType, string topic, string barcode, string propertyName)
             : base(MainProcess, 1)
             {
             MainProcess.ToDoCommand = topic;
-
-            ValueEditor.accessory = accessory;
+            this.accessory = accessory;
+            ValueEditor.oldTypeaccessory = oldTypeaccessory;
             ValueEditor.mainType = mainType;
-            ValueEditor.mainTopic = mainTopic;
+            this.requaredAccessoryType = requaredAccessoryType;
             this.currentType = currentType;
             this.currentTopic = currentTopic;
             this.barcode = barcode;
@@ -69,7 +71,7 @@ namespace WMS_client
                 {
                 okButton = MainProcess.CreateButton("Ok", 10, 275, 220, 35, string.Empty, button_Click);
 
-                valueType = accessory.GetProperyType(propertyName);
+                valueType = oldTypeaccessory.GetProperyType(propertyName);
 
                 if (valueType == typeof(string))
                     {
@@ -243,7 +245,7 @@ namespace WMS_client
         private void createLongControls()
             {
             dbFieldAtt attribute = Attribute.GetCustomAttribute(
-                           accessory.GetType().GetProperty(propertyName),
+                           oldTypeaccessory.GetType().GetProperty(propertyName),
                            typeof(dbFieldAtt)) as dbFieldAtt;
 
             if (attribute != null && attribute.dbObjectType != null)
@@ -261,17 +263,21 @@ namespace WMS_client
                 visualTable.AddColumn("№", "Number", 34);
                 visualTable.AddColumn("Назва", "Description", 180);
 
-                string command = string.Format("SELECT Id,Description FROM {0} WHERE MarkForDeleting=0",
-                                               attribute.dbObjectType.Name);
-                DataTable table = null;
-                using (SqlCeCommand query = dbWorker.NewQuery(command))
+                switch (propertyName)
                     {
-                    table = query.SelectToTable();
-                    }
+                    case "Model":
+                        foreach (var item in Configuration.Current.Repository.ModelsList)
+                            {
+                            visualTable.AddRow((int)item.Id, item.Description);
+                            }
+                        break;
 
-                foreach (DataRow row in table.Rows)
-                    {
-                    visualTable.AddRow(row["Id"], row["Description"]);
+                    case "Party":
+                        foreach (var item in Configuration.Current.Repository.PartiesList)
+                            {
+                            visualTable.AddRow((int)item.Id, item.Description);
+                            }
+                        break;
                     }
 
                 visualTable.Focus();
@@ -296,16 +302,51 @@ namespace WMS_client
             {
             string value = concatValue();
             bool isValid;
-            accessory.SetValue(propertyName, value, out isValid);
+            oldTypeaccessory.SetValue(propertyName, value, out isValid);
+            setAccessoryValue(value);
 
             if (isValid)
                 {
                 MainProcess.ClearControls();
-                MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainTopic, currentType, currentTopic, accessory, barcode);
+                MainProcess.Process = new AccessoryRegistration(MainProcess, accessory, requaredAccessoryType, mainType, currentType, oldTypeaccessory, barcode);
                 }
             else
                 {
                 ShowMessage("Невірний формат даних!");
+                }
+            }
+
+        private void setAccessoryValue(string value)
+            {
+            switch (propertyName)
+                {
+                case "Model":
+                    accessory.Model = Convert.ToInt16(value);
+                    break;
+
+                case "Party":
+                    accessory.Party = Convert.ToInt32(value);
+                    break;
+
+                case "Status":
+                    accessory.Status = Convert.ToByte(value);
+                    break;
+
+                case "DateOfWarrantyEnd":
+                case "WarrantyExpiryDate":
+                    accessory.WarrantyExpiryDate = Convert.ToDateTime(value);
+                    break;
+
+                case "TypeOfWarrantly":
+                case "RepairWarranty":
+                    var typeOfWarranty = (TypesOfLampsWarrantly)Convert.ToInt32(value);
+                    ((IFixableAccessory)accessory).RepairWarranty = typeOfWarranty == TypesOfLampsWarrantly.Repair;
+                    if (typeOfWarranty == TypesOfLampsWarrantly.None ||
+                        typeOfWarranty == TypesOfLampsWarrantly.Without)
+                        {
+                        accessory.WarrantyExpiryDate = DateTime.MinValue;
+                        }
+                    break;
                 }
             }
 

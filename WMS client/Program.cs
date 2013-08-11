@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.Diagnostics;
+using WMS_client.Repositories;
 using WMS_client.WinProcessesManagement;
 using System.Reflection;
 
@@ -16,6 +17,9 @@ namespace WMS_client
                 {
                 return;
                 }
+
+            Configuration.Current.Repository = new SqlCeRepository();
+
             MainForm mform = new MainForm();
          //   mform.MinimizeBox = true;
          //   mform.WindowState = FormWindowState.Normal;

@@ -231,7 +231,7 @@ WHERE [Id]=@Id";
 
             query.AddParameter("HoursOfWork", Convert.ToDouble(row["HoursOfWork"]));
             query.AddParameter("Marking", row["Marking"] ?? string.Empty);
-            query.AddParameter("Model", CatalogHelper.GetModelId<Models>(row["Model"]));
+            query.AddParameter("Model", CatalogHelper.GetModelId<WMS_client.db.Models>(row["Model"]));
             query.AddParameter("Party", CatalogHelper.GetModelId<Party>(row["Party"]));
             query.AddParameter("Status", row["Status"]);
             query.AddParameter("TypeOfWarrantly", row["TypeOfWarrantly"]);

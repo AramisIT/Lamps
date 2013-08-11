@@ -299,9 +299,8 @@ namespace WMS_client.db
         /// <param name="listOfDetail">Словарь єлементов с детальной информацией</param>
         /// <param name="accessory">Объект визуализирования</param>
         /// <returns>Список ...</returns>
-        public static List<LabelForConstructor> GetDetailVisualPresenter(Type type, out Dictionary<string, KeyValuePair<Type, object>> listOfDetail, dbObject accessory)
+        public static List<LabelForConstructor> GetDetailVisualPresenter(Type type, dbObject accessory)
             {
-            listOfDetail = new Dictionary<string, KeyValuePair<Type, object>>();
             List<LabelForConstructor> list = new List<LabelForConstructor>();
 
             PropertyInfo[] fields = type.GetProperties();
@@ -319,8 +318,6 @@ namespace WMS_client.db
                         if (attribute.NeedDetailInfo)
                             {
                             object value = field.GetValue(accessory, null);
-                            listOfDetail.Add(attribute.Description,
-                                             new KeyValuePair<Type, object>(attribute.dbObjectType, value));
                             }
                         else if (attribute.ShowInEditForm)
                             {
@@ -367,12 +364,7 @@ namespace WMS_client.db
                         }
                     }
                 }
-
-            if (type == typeof(Lamps) || type == typeof(ElectronicUnits))
-                {
-                listOfDetail.Add("Корпус", new KeyValuePair<Type, object>(typeof(Cases), accessory.GetPropery("Case")));
-                }
-
+            
             return list;
             }
 

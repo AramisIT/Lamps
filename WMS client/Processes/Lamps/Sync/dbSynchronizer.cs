@@ -77,7 +77,7 @@ namespace WMS_client
                 }
 
             infoLabel.Text = "Моделі";
-            if (!SyncObjects<Models>(WaysOfSync.TwoWay))
+            if (!SyncObjects<WMS_client.db.Models>(WaysOfSync.TwoWay))
                 {
                 return;
                 }
@@ -647,9 +647,9 @@ namespace WMS_client
                         string unitModelRef = row["UnitModel"].ToString();
                         object contractorObj = BarcodeWorker.GetIdByBarcode(typeof(Contractors), contractorBarcode);
                         object partyObj = BarcodeWorker.GetIdByRef(typeof(Party), partyRef);
-                        object caseModelObj = BarcodeWorker.GetIdByRef(typeof(Models), caseModelRef);
-                        object lampModelObj = BarcodeWorker.GetIdByRef(typeof(Models), lampModelRef);
-                        object unitModelObj = BarcodeWorker.GetIdByRef(typeof(Models), unitModelRef);
+                        object caseModelObj = BarcodeWorker.GetIdByRef(typeof(WMS_client.db.Models), caseModelRef);
+                        object lampModelObj = BarcodeWorker.GetIdByRef(typeof(WMS_client.db.Models), lampModelRef);
+                        object unitModelObj = BarcodeWorker.GetIdByRef(typeof(WMS_client.db.Models), unitModelRef);
 
                         AcceptanceOfNewComponents doc = new AcceptanceOfNewComponents
                                                             {
@@ -765,7 +765,7 @@ namespace WMS_client
                                 break;
                             case SyncModes.SendingToExchange:
                                 string syncRef = row["Nomenclature"].ToString();
-                                object modelId = BarcodeWorker.GetIdByRef(typeof(Models), syncRef);
+                                object modelId = BarcodeWorker.GetIdByRef(typeof(WMS_client.db.Models), syncRef);
 
                                 newSubDoc.SetValue("Nomenclature", modelId);
                                 break;

@@ -5,12 +5,14 @@ using System.Windows.Forms;
 using WMS_client.Base.Visual.Constructor;
 using WMS_client.Enums;
 using WMS_client.db;
+using WMS_client.Models;
 
 namespace WMS_client
     {
     /// <summary>"Строитель редактирования"</summary>
     public class AccessoryRegistration : BusinessProcess
         {
+        private IAccessory currentAccessory;
 
         private int groupSizeValue;
         private int groupSize
@@ -46,7 +48,7 @@ namespace WMS_client
         /// <summary>Текущий тип комплектующего (тот тип на который перешли с основного)</summary>
         private readonly Type currentType;
         /// <summary>Текущий заголовок</summary>
-        private readonly string currentTopic;
+        private string currentTopic;
         /// <summary>Отсканированный щтрих-код</summary>
         private string barcode;
         /// <summary>Чи заповнені основні дані</summary>
@@ -55,6 +57,13 @@ namespace WMS_client
         private readonly bool emptyBarcodeEnabled;
         /// <summary></summary>
         private readonly bool existMode;
+
+        private MobileButton caseButton;
+        private MobileButton lampButton;
+        private MobileButton unitButton;
+        private TypeOfAccessories currentAccessotyType;
+        private TypeOfAccessories requaredAccessoryType;
+
         /// <summary>Напис кнопки для збереження данних (завершення гілки)</summary>
         private const string okBtnText = "Ок";
         /// <summary>напис кнопки для переходу далі</summary>
@@ -66,25 +75,43 @@ namespace WMS_client
         /// <param name="type">Текущий тип комплектующего</param>
         /// <param name="prevType">Предыдущий тип комплектующего</param>
         /// <param name="topic">Текущий заголовок</param>
-        public AccessoryRegistration(WMSClient MainProcess, Type type, Type prevType, string topic)
+        public AccessoryRegistration(WMSClient MainProcess, TypeOfAccessories requaredAccessoryType, Type type)
             : base(MainProcess, 1)
             {
-            //Если предыдущего типа нет, то это "начало" - нужно указать сохранить неизменные начальные данные
-            if (prevType == null)
-                {
-                mainType = type;
-                mainTopic = topic;
-                accessory = null;
-                }
+            mainType = type;
+
+            accessory = null;
+
+
+            this.requaredAccessoryType = requaredAccessoryType;
+            updateCurrentTopic();
+            mainTopic = currentTopic;
 
             currentType = type;
-            currentTopic = topic;
             linkId = -1;
             MainProcess.ToDoCommand = currentTopic;
 
             IsLoad = true;
             existMode = false;
             DrawControls();
+            }
+
+        private void updateCurrentTopic()
+            {
+            switch (requaredAccessoryType)
+                {
+                case TypeOfAccessories.Case:
+                    currentTopic = "Корпус";
+                    break;
+
+                case TypeOfAccessories.Lamp:
+                    currentTopic = "Лампа";
+                    break;
+
+                case TypeOfAccessories.ElectronicUnit:
+                    currentTopic = "Електронний блок";
+                    break;
+                }
             }
 
         /// <summary>"Строитель редактирования"</summary>
@@ -94,7 +121,7 @@ namespace WMS_client
         /// <param name="topic">Текущий заголовок</param>
         /// <param name="id">ИД комплектующего с которого перешли</param>
         /// <param name="emptyBarcode">Ввод пустого штрихкода разрешен</param>
-        public AccessoryRegistration(WMSClient MainProcess, Type type, Type prevType, string topic, long id, bool emptyBarcode)
+        public AccessoryRegistration(WMSClient MainProcess, TypeOfAccessories requaredAccessoryType, Type type, Type prevType, string topic, long id, bool emptyBarcode)
             : base(MainProcess, 1)
             {
             if (prevType == null)
@@ -103,6 +130,8 @@ namespace WMS_client
                 mainTopic = topic;
                 accessory = null;
                 }
+
+            this.requaredAccessoryType = requaredAccessoryType;
 
             currentType = type;
             currentTopic = topic;
@@ -123,16 +152,20 @@ namespace WMS_client
         /// <param name="currentTopic">Текущий заголовок</param>
         /// <param name="accessory">Комплектующее</param>
         /// <param name="barcode">Отсканированный щтрих-код</param>
-        public AccessoryRegistration(WMSClient MainProcess, Type mainType, string mainTopic, Type currentType, string currentTopic, Accessory accessory, string barcode)
+        public AccessoryRegistration(WMSClient MainProcess, IAccessory accessory, TypeOfAccessories requaredAccessoryType, Type mainType, Type currentType, Accessory oldTypeaccessory, string barcode)
             : base(MainProcess, 1)
             {
-            StopNetworkConnection();
 
-            AccessoryRegistration.accessory = accessory;
+            this.currentAccessory = accessory;
+
+            StopNetworkConnection();
+            this.requaredAccessoryType = requaredAccessoryType;
+            updateCurrentTopic();
+
+            AccessoryRegistration.accessory = oldTypeaccessory;
             AccessoryRegistration.mainType = mainType;
-            AccessoryRegistration.mainTopic = mainTopic;
             this.currentType = currentType;
-            this.currentTopic = currentTopic;
+
             this.barcode = barcode;
 
             IsLoad = true;
@@ -173,18 +206,24 @@ namespace WMS_client
                     }
                 MainProcess.ClearControls();
                 this.barcode = barcode;
-                bool accesoryIsExist = !string.IsNullOrEmpty(barcode) && BarcodeWorker.IsBarcodeExist(barcode);
+
+
+                if (currentAccessory == null || !currentAccessory.HasBarcode(barcode))
+                    {
+                    currentAccessory = Configuration.Current.Repository.FindAccessory(barcode.GetIntegerBarcode());
+                    }
+
+                bool accesoryIsExist = currentAccessory != null;
 
                 //Если в системе уже существует штрихкод
                 if (!existMode && accesoryIsExist)
                     {
-                    //Тип комплектующего штрихкода
-                    TypeOfAccessories typesOfAccessories = BarcodeWorker.GetTypeOfAccessoriesByBarcode(barcode);
-                    //Является ли тип комплектующего (существующий) = типу который нужно отредактировать (отсканированный)
-                    bool isTypeLikeCurrent = typesOfAccessories.ToString() + 's' != currentType.Name;
+                    currentAccessotyType = currentAccessory.GeAccessoryType();
+
+                    bool isTypeLikeCurrent = currentAccessotyType == requaredAccessoryType;
 
                     //Если типы не совпадают - "Выход"
-                    if (isTypeLikeCurrent)
+                    if (!isTypeLikeCurrent)
                         {
                         ShowMessage("Штрихкод уже используется в другом типе комплектующего!");
                         OnHotKey(KeyAction.Esc);
@@ -193,26 +232,6 @@ namespace WMS_client
                     }
 
                 showData(accesoryIsExist, barcode);
-                }
-            //Если это штрих-код позиции
-            else if (barcode.IsValidPositionBarcode())
-                {
-                Cases cases = accessory as Cases;
-
-                if (cases != null)
-                    {
-                    long map;
-                    int register;
-                    int position;
-                    BarcodeWorker.GetPositionData(barcode, out map, out register, out position);
-
-                    cases.Map = map;
-                    cases.Register = register;
-                    cases.Position = position;
-                    cases.Status = TypesOfLampsStatus.IsWorking;
-                    MainProcess.ClearControls();
-                    showData(cases.Id == 0, cases.BarCode);
-                    }
                 }
             //Во всех других случаях
             else
@@ -224,6 +243,8 @@ namespace WMS_client
 
         private void showData(bool accesoryIsExist, string Barcode)
             {
+            initAccessory(Barcode.GetIntegerBarcode());
+
             readAccessory(accesoryIsExist, Barcode);
 
             if (accessory.Id == 0 && accessory.TypeOfWarrantly == TypesOfLampsWarrantly.None)
@@ -236,25 +257,27 @@ namespace WMS_client
 
             //Список кнопок переходов
             Dictionary<string, KeyValuePair<Type, object>> listOfDetail;
-            //Список доступных полей для редактирования
-            List<LabelForConstructor> listOfLabels = CatalogObject.GetDetailVisualPresenter(
-                currentType, out listOfDetail, accessory);
+           
             MainProcess.ToDoCommand = currentTopic;
-            //Дополение списка переходов
-            listOfDetail.Add(
-                mainType == currentType ? nextBtnText : okBtnText,
-                new KeyValuePair<Type, object>(mainType, null));
 
             //Отобразить доступные поля для редактирования
-            drawEditableProperties(listOfLabels);
-            //Отобразить кнопоки переходов
-            drawButtons(listOfDetail);
+            drawEditableProperties();
+
+            drawActionButtons();
 
             if (currentType == typeof(Cases))
                 {
                 groupRegistrationButton = MainProcess.CreateButton("Групова реєстрація", 5, 275, 230, 35, string.Empty, startGroupRegistration);
                 }
             //MainProcess.CreateButton("Заповнити як попередній", 5, 275, 230, 35, string.Empty, fillFromPrev);
+            }
+
+        private void initAccessory(int intBarcode)
+            {
+            if (currentAccessory == null)
+                {
+                currentAccessory = AccessoryHelper.CreateNewAccessory(intBarcode, requaredAccessoryType);
+                }
             }
 
         public override void OnHotKey(KeyAction TypeOfAction)
@@ -282,91 +305,94 @@ namespace WMS_client
         #region Draw
         /// <summary>Отобразить доступные поля для редактирования</summary>
         /// <param name="listOfLabels">Список доступных полей для редактирования</param>
-        private void drawEditableProperties(IEnumerable<LabelForConstructor> listOfLabels)
+        private void drawEditableProperties()
             {
             int top = 42;
             int index = 0;
             const int delta = 21;
 
-            foreach (LabelForConstructor label in listOfLabels)
-                {
-                top += delta;
-                string text;
+            top += delta;
+            MainProcess.CreateButton(string.Format("Модель: {0}", currentAccessory.GetModelDescription()), 5, top, 230, 20, "modelButton", propertyButton_Click,
+                new PropertyButtonInfo() { PropertyName = "Model", PropertyDescription = "Модель" });
 
-                if (label.AddParameterData)
-                    {
-                    index += label.Skip;
-                    string parameter = ResultParameters != null && ResultParameters.Length > index
-                                           ? ResultParameters[index].ToString()
-                                           : string.Empty;
+            top += delta;
+            MainProcess.CreateButton(string.Format("Статус: {0}", currentAccessory.GetStatusDescription()), 5, top, 230, 20, "modelButton", propertyButton_Click,
+                new PropertyButtonInfo() { PropertyName = "Status", PropertyDescription = "Статус" });
 
-                    text = string.Format(label.Text.TrimEnd(), parameter);
-                    index++;
-                    }
-                else
-                    {
-                    text = label.Text.TrimEnd();
-                    }
+            top += delta;
+            MainProcess.CreateButton(string.Format("Партія: {0}", currentAccessory.GetPartyDescription()), 5, top, 230, 20, "modelButton", propertyButton_Click,
+                new PropertyButtonInfo() { PropertyName = "Party", PropertyDescription = "Партія" });
 
-                //Можно ли редактировать данное поле
-                if (label.AllowEditValue)
-                    {
-                    MainProcess.CreateButton(text, 5, top, 230, 20, label.Name, button_Click, label.Name);
-                    }
-                else
-                    {
-                    MainProcess.CreateButton(text, 5, top, 230, 20, string.Empty, null, null, false);
-                    }
-                }
+            top += delta;
+            MainProcess.CreateButton(string.Format("Контрагент: {0}", currentAccessory.GetPartyContractor()), 5, top, 230,
+                20, string.Empty, null, null, false);
+
+            top += delta;
+            MainProcess.CreateButton(string.Format("Дата партії: {0}", currentAccessory.GetPartyDate()), 5, top, 230,
+                20, string.Empty, null, null, false);
+
+            top += delta;
+            MainProcess.CreateButton(string.Format("Тип гарантії: {0}", currentAccessory.GetWarrantyType()), 5, top, 230, 20, string.Empty, propertyButton_Click,
+               new PropertyButtonInfo() { PropertyName = "TypeOfWarrantly", PropertyDescription = "Тип гарантії" });
+
+            top += delta;
+            MainProcess.CreateButton(string.Format("Завершення гарантії: {0}", currentAccessory.GetWarrantyExpiryDate()), 5, top, 230, 20, string.Empty, propertyButton_Click,
+               new PropertyButtonInfo() { PropertyName = "DateOfWarrantyEnd", PropertyDescription = "Завершення гарантії" });
             }
 
-        /// <summary>Переход на экран редактирования поля</summary>
-        /// <param name="sender">Выбранное поле для редактирования</param>
-        private void button_Click(object sender)
+        private void propertyButton_Click(object sender)
             {
-            if (groupRegistration)
-                {
-                return;
-                }
+            var info = (PropertyButtonInfo)((sender as Button).Tag);
 
-            Button button = sender as Button;
-
-            if (button != null)
-                {
-                MainProcess.ClearControls();
-                MainProcess.Process = new ValueEditor(
-                    MainProcess,
-                    mainType,
-                    mainTopic,
-                    currentType,
-                    currentTopic,
-                    accessory,
-                    button.Text.Substring(0, button.Text.IndexOf(':')),
-                    barcode,
-                    button.Name);
-                }
+            MainProcess.ClearControls();
+            MainProcess.Process = new ValueEditor(
+                MainProcess,
+                currentAccessory,
+                mainType,
+                mainTopic,
+                currentType,
+                currentTopic,
+                accessory,
+                requaredAccessoryType,
+                info.PropertyDescription,
+                barcode,
+                info.PropertyName);
             }
 
-        /// <summary>Отобразить кнопоки переходов</summary>
-        /// <param name="listOfDetail">Список кнопок переходов</param>
-        private void drawButtons(Dictionary<string, KeyValuePair<Type, object>> listOfDetail)
+        /// <summary>
+        /// Case, lamp, unit and OK buttons
+        /// </summary>
+        private void drawActionButtons()
             {
-            if (listOfDetail.Count != 0)
-                {
-                const int top = 235;
-                const int height = 35;
-                int left = 15 / listOfDetail.Count;
-                int width = (240 - left * (listOfDetail.Count + 1)) / listOfDetail.Count;
-                int delta = left;
+            const int top = 235;
+            const int height = 35;
 
-                foreach (KeyValuePair<string, KeyValuePair<Type, object>> detail in listOfDetail)
-                    {
-                    //bool enable = detail.Value.Value== null;// || detail.Value.Key != typeof(Lamps);
-                    MainProcess.CreateButton(detail.Key, delta, top, width, height, string.Empty, button_click,
-                                             detail.Value.Key, true);
-                    delta += left + width;
-                    }
-                }
+            caseButton = MainProcess.CreateButton("Корпус", 5, top, 60, height, string.Empty, caseButton_click);
+            unitButton = MainProcess.CreateButton("Блок", 70, top, 60, height, string.Empty, unitButton_click);
+            lampButton = MainProcess.CreateButton("Лампа", 135, top, 60, height, string.Empty, lampButton_click);
+            MainProcess.CreateButton("ОК", 200, top, 35, height, string.Empty, okButton_click);
+
+            updateButtonsEnabling();
+            }
+
+        private void updateButtonsEnabling()
+            {
+            }
+
+        private void caseButton_click()
+            {
+            }
+
+        private void lampButton_click()
+            {
+            }
+
+        private void unitButton_click()
+            {
+            }
+
+        private void okButton_click()
+            {
             }
 
         /// <summary>Переход</summary>
@@ -420,31 +446,31 @@ namespace WMS_client
                             {
                             Accessory newObj = (Accessory)Activator.CreateInstance(type);
                             newObj.Read(type, newAccessoryId, dbObject.IDENTIFIER_NAME);
-                            MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainTopic, type,
-                                                                  button.Text, newObj, newObj.BarCode);
+                            //MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainTopic, type,
+                            //                                      button.Text, newObj, newObj.BarCode);
                             accessory = newObj;
                             }
                         //Переход на НОВЫЙ выбранный тип комплектующего 
                         else
                             {
                             //Если выбранный тип совпадает с основным типом
-                            if (mainType == type)
-                                {
-                                if (mainType == null || linkId == -1)
-                                    {
-                                    accessory = (Accessory)accessory.Copy();
-                                    accessory.ClearPosition();
-                                    MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainType, mainTopic);
-                                    }
+                            //if (mainType == type)
+                            //    {
+                            //    if (mainType == null || linkId == -1)
+                            //        {
+                            //        accessory = (Accessory)accessory.Copy();
+                            //        accessory.ClearPosition();
+                            //        MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainType);
+                            //        }
 
-                                MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainType, mainTopic);
-                                }
+                            //    MainProcess.Process = new AccessoryRegistration(MainProcess, mainType, mainType);
+                            //    }
                             //Не совпадает - "Передача ИД комплектующего с которого переходим"
-                            else
-                                {
-                                MainProcess.Process = new AccessoryRegistration(MainProcess, type, mainType, button.Text,
-                                                                      accessory.Id, type == typeof(ElectronicUnits));
-                                }
+                            //else
+                            //{
+                            //MainProcess.Process = new AccessoryRegistration(MainProcess, type, mainType, button.Text,
+                            //                                      accessory.Id, type == typeof(ElectronicUnits));
+                            //}
 
 
                             //Если не было произведено копирование полей для следующего комплектующего, то очистить все поля
@@ -517,24 +543,6 @@ namespace WMS_client
             return true;
             }
 
-        /// <summary>Заповнити як попередній</summary>
-        private void fillFromPrev()
-            {
-            //Сохраняем штрихкод, а то он затрется
-            string currBarcode = accessory.BarCode;
-            Accessory lastObj;
-
-            //Получаем объект последнего комплектующего
-            if (Accessory.GetLastAccesory(currentType, out lastObj))
-                {
-                accessory = lastObj.CopyWithoutLinks();
-                MainProcess.ClearControls();
-                accessory.Status = TypesOfLampsStatus.Storage;
-
-                accessory.ClearPosition();
-                showData(false, currBarcode);
-                }
-            }
         #endregion
 
         /// <summary>Прочитать данные комплектующего</summary>
@@ -627,7 +635,7 @@ namespace WMS_client
                 ShowMessage("Даний штрих-код вже використовується");
                 return;
                 }
-          
+
             Lamps newLamp = currentLamp.CopyWithoutLinks() as Lamps;
             newLamp.Write();
 
@@ -644,5 +652,11 @@ namespace WMS_client
 
             groupSize++;
             }
+        }
+
+    internal class PropertyButtonInfo
+        {
+        public string PropertyName { get; set; }
+        public string PropertyDescription { get; set; }
         }
     }
