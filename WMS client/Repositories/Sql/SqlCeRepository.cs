@@ -12,7 +12,6 @@ namespace WMS_client.Repositories
     {
     public class SqlCeRepository : IRepository
         {
-
         public SqlCeRepository()
             {
             initConnectionString();
@@ -178,14 +177,25 @@ namespace WMS_client.Repositories
 
         private bool insertCases(List<Case> list)
             {
-            throw new NotImplementedException();
+            var accessoryInserter = new AccessoryInserter<Case>("Cases", list, getOpenedConnection);
+
+            return accessoryInserter.InsertAccessories((newRow, accessory) =>
+                {
+                    Case _case = (Case)accessory;
+                    newRow["Lamp"] = _case.Lamp;
+                    newRow["Unit"] = _case.Unit;
+
+                    newRow["Map"] = _case.Map;
+                    newRow["Register"] = _case.Register;
+                    newRow["Position"] = _case.Position;
+                });
             }
 
         public bool UpdateCase(Case _case)
             {
             const string sql = @"update Cases 
 set Model = @Model, Party = @Party, WarrantyExpiryDate = @WarrantyExpiryDate, Status = @Status,
-RepairWarranty = @RepairWarranty
+RepairWarranty = @RepairWarranty, Lamp = @Lamp, Unit = @Unit, Map = @Map, Register = @Register, Position = @Position
 where Id = @Id";
 
             return updateAccessory(sql, (parameters) =>
@@ -217,12 +227,14 @@ where Id = @Id";
 
         private bool insertLamps(List<Lamp> list)
             {
-            throw new NotImplementedException();
+            var accessoryInserter = new AccessoryInserter<Lamp>("Lamps", list, getOpenedConnection);
+            return accessoryInserter.InsertAccessories(null);
             }
 
         private bool insertUnits(List<Unit> list)
             {
-            throw new NotImplementedException();
+            var accessoryInserter = new AccessoryInserter<Unit>("Units", list, getOpenedConnection);
+            return accessoryInserter.InsertAccessories(null);
             }
 
         public int GetNextUnitId()
@@ -603,7 +615,7 @@ where Id = @Id";
             parameters.AddWithValue("Party", accessory.Party);
             parameters.AddWithValue("Status", accessory.Status);
 
-            object warrantyExpiryDate = null;
+            object warrantyExpiryDate = DBNull.Value;
             if (accessory.WarrantyExpiryDate != DateTime.MinValue)
                 {
                 warrantyExpiryDate = accessory.WarrantyExpiryDate;
@@ -644,7 +656,7 @@ where Id = @Id";
 
                     object lastId = cmd.ExecuteScalar();
 
-                    if (lastId == null)
+                    if (lastId == null || System.DBNull.Value.Equals(lastId))
                         {
                         return minLampUnitId;
                         }

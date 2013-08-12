@@ -44,9 +44,7 @@ namespace TestSQL
 
         protected void InitializeResultSetOptions()
             {
-            resultSetOptions = System.Data.SqlServerCe.ResultSetOptions.Scrollable;
-            resultSetOptions = (resultSetOptions | System.Data.SqlServerCe.ResultSetOptions.Sensitive);
-            resultSetOptions = (resultSetOptions | System.Data.SqlServerCe.ResultSetOptions.Updatable);
+            resultSetOptions = ResultSetOptions.Scrollable | ResultSetOptions.Sensitive | ResultSetOptions.Updatable;
             }
 
         private const int MaxId = 1000;

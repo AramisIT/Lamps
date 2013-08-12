@@ -214,9 +214,10 @@
     </Compile>
     <Compile Include="Processes\Lamps\RegistrationProcess.cs" />
     <Compile Include="Base\ServerAgent.cs" />
-    <Compile Include="Repositories\CatalogCache.cs" />
+    <Compile Include="Repositories\Sql\AccessorySqlCeResultSet.cs" />
+    <Compile Include="Repositories\Sql\CatalogCache.cs" />
     <Compile Include="Repositories\IRepository.cs" />
-    <Compile Include="Repositories\SqlCeRepository.cs" />
+    <Compile Include="Repositories\Sql\SqlCeRepository.cs" />
     <Compile Include="Utils\AccessoryHelper.cs" />
     <Compile Include="Utils\CatalogHelper.cs" />
     <Compile Include="Utils\StringParser.cs" />
@@ -225,7 +226,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="LampsBase.sdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="media_player.ico" />
     <Content Include="PDT_ID.txt">

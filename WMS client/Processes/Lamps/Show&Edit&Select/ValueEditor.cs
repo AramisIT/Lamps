@@ -307,7 +307,7 @@ namespace WMS_client
                     case "RepairWarranty":
                         var typeOfWarranty = (TypesOfLampsWarrantly)Convert.ToInt32(value);
 
-                        var fixableAccessory = (IFixableAccessory)accessoriesSet.CurrentAccessory;
+                        var fixableAccessory = accessoriesSet.CurrentAccessory as IFixableAccessory;
                         if (fixableAccessory != null)
                             {
                             fixableAccessory.RepairWarranty = typeOfWarranty == TypesOfLampsWarrantly.Repair;
