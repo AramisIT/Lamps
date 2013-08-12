@@ -10,6 +10,24 @@ namespace WMS_client
     {
     static class AccessoryHelper
         {
+
+        public static T Copy<T>(this IAccessory accessory) where T : IAccessory, new()
+            {
+            T copy = new T();
+
+            copy.Model = accessory.Model;
+            copy.Status = accessory.Status;
+            copy.Party = accessory.Party;
+            copy.WarrantyExpiryDate = accessory.WarrantyExpiryDate;
+
+            if (copy is IFixableAccessory)
+                {
+                (copy as IFixableAccessory).RepairWarranty = (accessory as IFixableAccessory).RepairWarranty;
+                }
+
+            return copy;
+            }
+
         public static string GetModelDescription(this IAccessory accessory)
             {
             return Configuration.Current.Repository.GetModel(accessory.Model).Description;

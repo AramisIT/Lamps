@@ -41,5 +41,7 @@ namespace WMS_client.Repositories
         bool WriteMap(Map map);
 
         bool SaveAccessoriesSet(Case _case, Lamp lamp, Unit unit);
+
+        bool SaveGroupOfSets(Case _case, Lamp lamp, Unit unit, List<int> barcodes);
         }
     }

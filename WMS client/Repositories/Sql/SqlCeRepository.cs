@@ -121,6 +121,32 @@ namespace WMS_client.Repositories
                 }
             }
 
+        public bool SaveGroupOfSets(Case _case, Lamp lamp, Unit unit, List<int> barcodes)
+            {
+            List<Unit> units = new List<Unit>();
+            List<Lamp> lamps = new List<Lamp>();
+            List<Case> cases = new List<Case>();
+
+            foreach (int barcode in barcodes)
+                {
+                var newLamp = lamp.Copy<Lamp>();
+                newLamp.Id = GetNextLampId();
+                lamps.Add(newLamp);
+
+                var newUnit = unit.Copy<Unit>();
+                newUnit.Id = GetNextUnitId();
+                units.Add(newUnit);
+
+                var newCase = _case.Copy<Case>();
+                newCase.Id = barcode;
+                newCase.Lamp = newLamp.Id;
+                newCase.Unit = newUnit.Id;
+                cases.Add(newCase);
+                }
+
+            return insertUnits(units) && insertLamps(lamps) && insertCases(cases);
+            }
+
         public bool SaveAccessoriesSet(Case _case, Lamp lamp, Unit unit)
             {
             bool ok = true;
@@ -179,7 +205,7 @@ namespace WMS_client.Repositories
             {
             var accessoryInserter = new AccessoryInserter<Case>("Cases", list, getOpenedConnection);
 
-            return accessoryInserter.InsertAccessories((newRow, accessory) =>
+            bool saved = accessoryInserter.InsertAccessories((newRow, accessory) =>
                 {
                     Case _case = (Case)accessory;
                     newRow["Lamp"] = _case.Lamp;
@@ -189,6 +215,14 @@ namespace WMS_client.Repositories
                     newRow["Register"] = _case.Register;
                     newRow["Position"] = _case.Position;
                 });
+
+            if (!saved)
+                {
+                return false;
+                }
+
+            var logger = new AccessoryLogger<Case>("CasesUpdating", list, getOpenedConnection);
+            return logger.Log();
             }
 
         public bool UpdateCase(Case _case)

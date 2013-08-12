@@ -147,6 +147,7 @@
     <Compile Include="Processes\Lamps\Processes\AcceptanceFromExchange.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptanceOfNewAccessory.cs" />
     <Compile Include="Processes\Lamps\Processes\OffLine\AccessoryRegistration\AccessoriesSet.cs" />
+    <Compile Include="Processes\Lamps\Processes\OffLine\AccessoryRegistration\AccessoriesGroupRegistration.cs" />
     <Compile Include="Processes\Lamps\Processes\OffLine\AccessoryRegistration\PropertyButtonInfo.cs" />
     <Compile Include="Processes\Lamps\Processes\PlacingOnMap.cs" />
     <Compile Include="Processes\Lamps\Processes\ChooseLamp.cs" />
@@ -214,9 +215,10 @@
     </Compile>
     <Compile Include="Processes\Lamps\RegistrationProcess.cs" />
     <Compile Include="Base\ServerAgent.cs" />
-    <Compile Include="Repositories\Sql\AccessorySqlCeResultSet.cs" />
+    <Compile Include="Repositories\Sql\AccessoryInserter.cs" />
     <Compile Include="Repositories\Sql\CatalogCache.cs" />
     <Compile Include="Repositories\IRepository.cs" />
+    <Compile Include="Repositories\Sql\AccessoryLogger.cs" />
     <Compile Include="Repositories\Sql\SqlCeRepository.cs" />
     <Compile Include="Utils\AccessoryHelper.cs" />
     <Compile Include="Utils\CatalogHelper.cs" />
@@ -226,6 +228,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="LampsBase.sdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="media_player.ico" />
     <Content Include="PDT_ID.txt">

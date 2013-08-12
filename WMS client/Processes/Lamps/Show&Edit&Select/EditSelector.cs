@@ -16,9 +16,10 @@ namespace WMS_client
         public override sealed void DrawControls()
             {
             MainProcess.ToDoCommand = "Оберіть комлектуюче";
-            MainProcess.CreateButton("Електронний блок", 20, 75, 200, 45, "unit", unit_Click);
-            MainProcess.CreateButton("Лампа", 20, 150, 200, 45, "lamp", lamp_Click);
-            MainProcess.CreateButton("Корпус", 20, 225, 200, 45, "case", case_Click);
+            MainProcess.CreateButton("Електронний блок", 10, 80, 220, 40, "unit", unit_Click);
+            MainProcess.CreateButton("Лампа", 10, 140, 220, 40, "lamp", lamp_Click);
+            MainProcess.CreateButton("Корпус", 10, 200, 220, 40, "case", case_Click);
+            MainProcess.CreateButton("Групова реєстрація комплектів", 10, 260, 220, 40, "case", groupRegistration_Click);
             }
 
         public override void OnBarcode(string Barcode)
@@ -43,6 +44,12 @@ namespace WMS_client
             {
             MainProcess.ClearControls();
             MainProcess.Process = new AccessoryRegistration(MainProcess, TypeOfAccessories.ElectronicUnit);
+            }
+
+        private void groupRegistration_Click()
+            {
+            MainProcess.ClearControls();
+            MainProcess.Process = new AccessoriesGroupRegistration(MainProcess);
             }
 
         /// <summary>Лампа</summary>

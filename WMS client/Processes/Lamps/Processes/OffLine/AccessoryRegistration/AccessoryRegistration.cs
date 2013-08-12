@@ -121,7 +121,7 @@ namespace WMS_client
 
             if (requaredAccessoryType != TypeOfAccessories.Case)
                 {
-                MainProcess.CreateButton("Без штрихкода", 10, 270, 220, 35, string.Empty, () => OnBarcode(string.Empty));
+                MainProcess.CreateButton("Без штрих-коду", 10, 270, 220, 35, string.Empty, () => OnBarcode(string.Empty));
                 }
 
             waitingForBarcode = true;
@@ -190,6 +190,7 @@ namespace WMS_client
 
                 case TypeOfAccessories.ElectronicUnit:
                     accessoriesSet.Unit = (Unit)accessoriesSet.CurrentAccessory;
+                    accessoriesSet.Unit.Barcode = intBarcode;
 
                     if (!newAccesory)
                         {
@@ -203,6 +204,7 @@ namespace WMS_client
 
                 case TypeOfAccessories.Lamp:
                     accessoriesSet.Lamp = (Lamp)accessoriesSet.CurrentAccessory;
+                    accessoriesSet.Lamp.Barcode = intBarcode;
 
                     if (!newAccesory)
                         {
@@ -429,81 +431,6 @@ namespace WMS_client
 
         #endregion
 
-
-        private void startGroupRegistration()
-            {
-            //currentCase = accessory as Cases;
-
-            //if (currentCase.Lamp == 0 || currentCase.ElectronicUnit == 0)
-            //    {
-            //    ShowMessage("Нужно заполнить лампу и эл. блок!");
-            //    return;
-            //    }
-
-            //if (!(accessory is Cases))
-            //    {
-            //    return;
-            //    }
-
-            //currentLamp = new Lamps();
-            //currentLamp.Read(currentCase.Lamp);
-
-            //currentUnit = new ElectronicUnits();
-            //currentUnit.Read(currentCase.ElectronicUnit);
-
-            //if (!string.IsNullOrEmpty(currentLamp.BarCode) || !string.IsNullOrEmpty(currentUnit.BarCode))
-            //    {
-            //    ShowMessage("Для групової реєстрації лампа та блок мають бути без штрих-коду");
-            //    return;
-            //    }
-
-            //if (isMainDataEntered && warrantlyDataIsValid())
-            //    {
-            //    accessory.Write();
-            //    }
-            //else
-            //    {
-            //    showWriteErrorMessage();
-            //    return;
-            //    }
-
-            //groupRegistration = true;
-
-            //currentCase = new Cases();
-            //currentCase.Read(accessory.Id);
-
-            //groupRegistrationButton.Hide();
-            //groupSizeLabel = MainProcess.CreateLabel("", 5, 283, 230,
-            //                            MobileFontSize.Normal, MobileFontPosition.Left, MobileFontColors.Info, FontStyle.Bold);
-            //groupSize = 0;
-            }
-
-        private void groupRegistrationOnBarcode(string barcode)
-            {
-            //bool barcodeExists = BarcodeWorker.IsBarcodeExist(barcode);
-
-            //if (barcodeExists)
-            //    {
-            //    ShowMessage("Даний штрих-код вже використовується");
-            //    return;
-            //    }
-
-            //Lamps newLamp = currentLamp.CopyWithoutLinks() as Lamps;
-            //newLamp.Write();
-
-            //ElectronicUnits newElectronicUnit = currentUnit.CopyWithoutLinks() as ElectronicUnits;
-            //newElectronicUnit.Write();
-
-            //Cases newCase = currentCase.CopyWithoutLinks() as Cases;
-            //newCase.BarCode = barcode;
-            //newCase.Lamp = newLamp.Id;
-            //newCase.ElectronicUnit = newElectronicUnit.Id;
-            //newCase.Write();
-
-            //Movement.RegisterLighter(newCase.BarCode, newCase.SyncRef, OperationsWithLighters.Registration);
-
-
-            }
         }
 
 
