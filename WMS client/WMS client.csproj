@@ -132,6 +132,8 @@
     <Compile Include="Enums\TypesOfLampsWarrantly.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Models\ICatalog.cs" />
+    <Compile Include="Models\Map.cs" />
     <Compile Include="Models\IBarcodeAccessory.cs" />
     <Compile Include="Models\IAccessory.cs" />
     <Compile Include="Models\IFixableAccessory.cs" />
@@ -210,6 +212,7 @@
     </Compile>
     <Compile Include="Processes\Lamps\RegistrationProcess.cs" />
     <Compile Include="Base\ServerAgent.cs" />
+    <Compile Include="Repositories\CatalogCache.cs" />
     <Compile Include="Repositories\IRepository.cs" />
     <Compile Include="Repositories\SqlCeRepository.cs" />
     <Compile Include="Utils\AccessoryHelper.cs" />
@@ -220,6 +223,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="LampsBase.sdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="media_player.ico" />
     <Content Include="PDT_ID.txt">

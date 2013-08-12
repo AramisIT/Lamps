@@ -5,7 +5,7 @@ using System.Text;
 
 namespace WMS_client.Models
     {
-    public sealed class PartyModel
+    public sealed class PartyModel : ICatalog<int>
         {
         public int Id { get; set; }
 

@@ -85,11 +85,52 @@ namespace WMS_client.Repositories
                 }
             }
 
+        public bool WriteMap(Map map)
+            {
+            using (var conn = getOpenedConnection())
+                {
+                using (var cmd = conn.CreateCommand())
+                    {
+                    cmd.CommandText = @"update maps set Description=@Description where Id=@Id";
+                    cmd.Parameters.AddWithValue("Description", map.Description);
+                    cmd.Parameters.AddWithValue("Id", map.Id);
+
+                    bool rowExists = cmd.ExecuteNonQuery() > 0;
+
+                    if (!rowExists)
+                        {
+                        cmd.CommandText = @"insert into maps(Id,Description) Values(@Id,@Description);";
+                        try
+                            {
+                            return cmd.ExecuteNonQuery() > 0;
+                            }
+                        catch (Exception exception)
+                            {
+                            MessageBox.Show(string.Format("Ошибка вставки карты: {0}", exception.Message));
+                            return false;
+                            }
+                        }
+
+                    return true;
+                    }
+                }
+            }
+
         public List<Model> ModelsList
             {
             get
                 {
-                return modelsList ?? (modelsList = readModels());
+                var cache = modelsCache ?? (modelsCache = buildModelsCache());
+                return cache.CatalogList;
+                }
+            }
+
+        public List<Map> MapsList
+            {
+            get
+                {
+                var cache = mapsCache ?? (mapsCache = buildMapsCache());
+                return cache.CatalogList;
                 }
             }
 
@@ -97,42 +138,27 @@ namespace WMS_client.Repositories
             {
             get
                 {
-                return partiesList ?? (partiesList = readParties());
+                var cache = partiesCache ?? (partiesCache = buildPartiesCache());
+                return cache.CatalogList;
                 }
             }
 
-        public string GetModelDescription(short modelId)
+        public Model GetModel(short id)
             {
-            if (modelsDictionary == null)
-                {
-                modelsDictionary = new Dictionary<short, Model>();
-                ModelsList.ForEach(model => modelsDictionary.Add(model.Id, model));
-                }
+            var cache = modelsCache ?? (modelsCache = buildModelsCache());
+            return cache.GetCatalogItem(id);
+            }
 
-            Model foundedModel;
-            if (modelsDictionary.TryGetValue(modelId, out foundedModel))
-                {
-                return foundedModel.Description;
-                }
-
-            return string.Empty;
+        public Map GetMap(int id)
+            {
+            var cache = mapsCache ?? (mapsCache = buildMapsCache());
+            return cache.GetCatalogItem(id);
             }
 
         public PartyModel GetParty(int partyId)
             {
-            if (partiesDictionary == null)
-                {
-                partiesDictionary = new Dictionary<int, PartyModel>();
-                PartiesList.ForEach(party => partiesDictionary.Add(party.Id, party));
-                }
-
-            PartyModel foundedParty;
-            if (partiesDictionary.TryGetValue(partyId, out foundedParty))
-                {
-                return foundedParty;
-                }
-
-            return new PartyModel();
+            var cache = partiesCache ?? (partiesCache = buildPartiesCache());
+            return cache.GetCatalogItem(partyId);
             }
 
         public IAccessory FindAccessory(int accessoryBarcode)
@@ -246,66 +272,60 @@ namespace WMS_client.Repositories
             return conn;
             }
 
-        private Dictionary<short, Model> modelsDictionary;
-        private List<Model> modelsList;
+        private CatalogCache<int, PartyModel> partiesCache;
+        private CatalogCache<int, Map> mapsCache;
+        private CatalogCache<Int16, Model> modelsCache;
 
-        private List<Model> readModels()
+        private CatalogCache<int, PartyModel> buildPartiesCache()
             {
-            var result = new List<Model>();
+            var result = new CatalogCache<int, PartyModel>();
 
-            using (var conn = getOpenedConnection())
+            const string sql =
+                "select Id, Description, ContractorDescription, DateOfActSet, Date, WarrantyHours, WarrantyYears from Parties order by Date desc";
+
+            result.Load(sql, getOpenedConnection, (reader, catalog) =>
                 {
-                using (var cmd = conn.CreateCommand())
-                    {
-                    cmd.CommandText = @"select Id, Description from Models order by Description";
-                    using (var reader = cmd.ExecuteReader())
-                        {
-                        while (reader.Read())
-                            {
-                            var newModel = new Model();
-                            newModel.Description = (reader["Description"] as string).Trim();
-                            newModel.Id = Convert.ToInt16(reader["Id"]);
+                    catalog.Id = Convert.ToInt32(reader["Id"]);
+                    catalog.WarrantyHours = Convert.ToInt16(reader["WarrantyHours"]);
+                    catalog.WarrantyYears = Convert.ToInt16(reader["WarrantyYears"]);
+                    catalog.Description = (reader["Description"] as string).TrimEnd();
+                    catalog.ContractorDescription = (reader["ContractorDescription"] as string).TrimEnd();
+                    catalog.Date = (DateTime)(reader["Date"]);
+                    catalog.DateOfActSet = (DateTime)(reader["DateOfActSet"]);
+                });
 
-                            result.Add(newModel);
-                            }
-                        }
-                    }
-                }
-            return result;
-            }
-        private List<PartyModel> readParties()
-            {
-            var result = new List<PartyModel>();
-
-            using (var conn = getOpenedConnection())
-                {
-                using (var cmd = conn.CreateCommand())
-                    {
-                    cmd.CommandText = @"select Id, Description, ContractorDescription, DateOfActSet, Date, WarrantyHours, WarrantyYears from Parties order by Description";
-                    using (var reader = cmd.ExecuteReader())
-                        {
-                        while (reader.Read())
-                            {
-                            var newParty = new PartyModel();
-
-                            newParty.Id = Convert.ToInt32(reader["Id"]);
-                            newParty.WarrantyHours = Convert.ToInt16(reader["WarrantyHours"]);
-                            newParty.WarrantyYears = Convert.ToInt16(reader["WarrantyYears"]);
-                            newParty.Description = (reader["Description"] as string).Trim();
-                            newParty.ContractorDescription = (reader["ContractorDescription"] as string).Trim();
-                            newParty.Date = (DateTime)(reader["Date"]);
-                            newParty.DateOfActSet = (DateTime)(reader["DateOfActSet"]);
-
-                            result.Add(newParty);
-                            }
-                        }
-                    }
-                }
             return result;
             }
 
-        private Dictionary<int, PartyModel> partiesDictionary;
-        private List<PartyModel> partiesList;
+        private CatalogCache<int, Map> buildMapsCache()
+            {
+            var result = new CatalogCache<int, Map>();
+
+            const string sql = "select Id, Description from Maps order by Description";
+
+            result.Load(sql, getOpenedConnection, (reader, catalog) =>
+                {
+                    catalog.Description = (reader["Description"] as string).Trim();
+                    catalog.Id = Convert.ToInt32(reader["Id"]);
+                });
+
+            return result;
+            }
+
+        private CatalogCache<Int16, Model> buildModelsCache()
+            {
+            var result = new CatalogCache<Int16, Model>();
+
+            const string sql = "select Id, Description from Models order by Description";
+
+            result.Load(sql, getOpenedConnection, (reader, catalog) =>
+                {
+                    catalog.Description = (reader["Description"] as string).Trim();
+                    catalog.Id = Convert.ToInt16(reader["Id"]);
+                });
+
+            return result;
+            }
 
         private IAccessory readAccessory(string sqlCommand, int predicateValue, Func<SqlCeDataReader, IAccessory> createAccesoryMethod)
             {
@@ -375,7 +395,7 @@ namespace WMS_client.Repositories
             object warrantyExpiryDateObj = reader["WarrantyExpiryDate"];
             accessory.WarrantyExpiryDate = DBNull.Value.Equals(warrantyExpiryDateObj)
                 ? DateTime.MinValue
-                : (DateTime) warrantyExpiryDateObj;
+                : (DateTime)warrantyExpiryDateObj;
 
             accessory.Status = (byte)reader["Status"];
             }
@@ -391,6 +411,7 @@ namespace WMS_client.Repositories
             }
 
         #endregion
+
 
 
 

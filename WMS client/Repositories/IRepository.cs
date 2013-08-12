@@ -16,7 +16,9 @@ namespace WMS_client.Repositories
 
         List<PartyModel> PartiesList { get; }
 
-        string GetModelDescription(short modelId);
+        Model GetModel(short modelId);
+
+        Map GetMap(int id);
 
         PartyModel GetParty(int partyId);
 
@@ -32,5 +34,6 @@ namespace WMS_client.Repositories
 
         Lamp ReadLamp(int id);
 
+        bool WriteMap(Map map);
         }
     }

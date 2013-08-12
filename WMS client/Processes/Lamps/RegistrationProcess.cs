@@ -31,10 +31,35 @@ namespace WMS_client
 
         private bool CheckNewDataBase()
             {
-            bool ok = true;
-            ok = checkModels();
-            ok = ok && checkParties();
+            bool ok = checkModels() && checkParties() && checkMaps();
             return ok;
+            }
+
+        private bool checkMaps()
+            {
+            DataTable table = null;
+
+            using (SqlCeCommand query =
+                dbWorker.NewQuery(@"select Id, RTRIM(Description) Description from Maps"))
+                {
+                using (var reader = query.ExecuteReader())
+                    {
+                    var map = new Map();
+
+                    while (reader.Read())
+                        {
+                        map.Description = reader["Description"] as string;
+                        map.Id = Convert.ToInt16(reader["Id"]);
+
+                        if (!Configuration.Current.Repository.WriteMap(map))
+                            {
+                            return false;
+                            }
+                        }
+                    }
+                }
+
+            return true;
             }
 
         #region temporary methods

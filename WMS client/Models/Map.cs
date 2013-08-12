@@ -5,9 +5,9 @@ using System.Text;
 
 namespace WMS_client.Models
     {
-    public sealed class Model : ICatalog<Int16>
+    public sealed class Map : ICatalog<int>
         {
-        public Int16 Id { get; set; }
+        public int Id { get; set; }
 
         public string Description { get; set; }
         }

@@ -12,7 +12,7 @@ namespace WMS_client
         {
         public static string GetModelDescription(this IAccessory accessory)
             {
-            return Configuration.Current.Repository.GetModelDescription(accessory.Model);
+            return Configuration.Current.Repository.GetModel(accessory.Model).Description;
             }
 
         public static string GetPartyDescription(this IAccessory accessory)
