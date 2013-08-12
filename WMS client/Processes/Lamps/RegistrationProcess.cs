@@ -138,7 +138,7 @@ left join Contractors on Contractors.Id = p.Contractor"))
 
 
             //todo: заглушка
-            enterButton = MainProcess.CreateButton("Enter", 10, 275, 220, 35, "enter", () => OnBarcode("L9786175660690"));
+            enterButton = MainProcess.CreateButton("Enter", 10, 275, 220, 35, "enter", () => OnBarcode("L" + int.MaxValue.ToString()));
 
 
             wifiOffButton = MainProcess.CreateButton("Wifi on/off", 10, 65, 220, 35, "WifiOff", () =>
@@ -166,7 +166,7 @@ left join Contractors on Contractors.Id = p.Contractor"))
 
         public override void OnBarcode(string Barcode)
             {
-            if (Barcode.IsValidBarcode())
+            if (Barcode.IsAccessoryBarcode())
                 {
                 ////if (Barcode.IndexOf("SB_EM.") < 0 || Barcode.Length == 6 || !Number.IsNumber(Barcode.Substring(6))) 
                 ////{

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,8 +14,25 @@ namespace WMS_client
 
         private Configuration()
             {
+            string settingsFileName = PathToApplication + @"\pdt_id.txt";
 
+            string serverIdTxt = null;
+            using (StreamReader idFile = File.OpenText(settingsFileName))
+                {
+                serverIdTxt = idFile.ReadLine();
+                }
+
+            try
+                {
+                TerminalId = Convert.ToInt32(serverIdTxt.Trim());
+                }
+            catch (Exception exp)
+                {
+                Debug.WriteLine(string.Format("Ошибка считывания Id терминала"));
+                }
             }
+
+        public int TerminalId { get; private set; }
 
         private static Configuration current;
         public static Configuration Current
@@ -35,7 +53,7 @@ namespace WMS_client
                     Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase)
                         .Replace("file:\\", string.Empty);
 
-                    return path;
+                return path;
                 }
             }
 

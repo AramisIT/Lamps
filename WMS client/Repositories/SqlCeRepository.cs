@@ -16,6 +16,12 @@ namespace WMS_client.Repositories
         public SqlCeRepository()
             {
             initConnectionString();
+
+            minLampUnitId = Configuration.Current.TerminalId * 10 * 1000 * 1000;
+            maxLampUnitId = (Configuration.Current.TerminalId + 1) * 10 * 1000 * 1000 - 1;
+
+            nextUnitId = getNextId("Units");
+            nextLampId = getNextId("Lamps");
             }
 
         public bool WriteModel(Model model)
@@ -116,6 +122,140 @@ namespace WMS_client.Repositories
                 }
             }
 
+        public bool SaveAccessoriesSet(Case _case, Lamp lamp, Unit unit)
+            {
+            bool ok = true;
+
+            if (unit != null)
+                {
+                if (unit.Id <= 0)
+                    {
+                    unit.Id = GetNextUnitId();
+                    ok = ok && insertUnits(new List<Unit>() { unit });
+                    }
+                else
+                    {
+                    ok = ok && updateUnit(unit);
+                    }
+                }
+            if (!ok)
+                {
+                return false;
+                }
+
+
+            if (lamp != null)
+                {
+                if (lamp.Id <= 0)
+                    {
+                    lamp.Id = GetNextLampId();
+                    ok = ok && insertLamps(new List<Lamp>() { lamp });
+                    }
+                else
+                    {
+                    ok = ok && updateLamp(lamp);
+                    }
+                }
+            if (!ok)
+                {
+                return false;
+                }
+
+
+            if (_case != null)
+                {
+                _case.Lamp = lamp == null ? 0 : lamp.Id;
+                _case.Unit = unit == null ? 0 : unit.Id;
+
+                if (!UpdateCase(_case))
+                    {
+                    ok = ok && insertCases(new List<Case>() { _case });
+                    }
+                }
+
+            return ok;
+            }
+
+        private bool insertCases(List<Case> list)
+            {
+            throw new NotImplementedException();
+            }
+
+        public bool UpdateCase(Case _case)
+            {
+            const string sql = @"update Cases 
+set Model = @Model, Party = @Party, WarrantyExpiryDate = @WarrantyExpiryDate, Status = @Status,
+RepairWarranty = @RepairWarranty
+where Id = @Id";
+
+            return updateAccessory(sql, (parameters) =>
+                {
+                    fillSqlCmdParametersFromAccessory(parameters, _case);
+                    fillSqlCmdParametersFromFixableAccessory(parameters, _case);
+
+                    parameters.AddWithValue("Lamp", _case.Lamp);
+                    parameters.AddWithValue("Unit", _case.Unit);
+                    parameters.AddWithValue("Map", _case.Map);
+                    parameters.AddWithValue("Register", _case.Register);
+                    parameters.AddWithValue("Position", _case.Position);
+                });
+            }
+
+        private bool updateLamp(Lamp lamp)
+            {
+            const string sql = @"update Lamps 
+set Model = @Model, Party = @Party, WarrantyExpiryDate = @WarrantyExpiryDate, Status = @Status,
+Barcode = @Barcode
+where Id = @Id";
+
+            return updateAccessory(sql, (parameters) =>
+                {
+                    fillSqlCmdParametersFromAccessory(parameters, lamp);
+                    fillSqlCmdParametersFromBarcodeAccessory(parameters, lamp);
+                });
+            }
+
+        private bool insertLamps(List<Lamp> list)
+            {
+            throw new NotImplementedException();
+            }
+
+        private bool insertUnits(List<Unit> list)
+            {
+            throw new NotImplementedException();
+            }
+
+        public int GetNextUnitId()
+            {
+            int nextId = nextUnitId;
+            nextUnitId++;
+
+            return nextId;
+            }
+
+        public int GetNextLampId()
+            {
+            int nextId = nextLampId;
+            nextLampId++;
+
+            return nextId;
+            }
+
+        private bool updateUnit(Unit unit)
+            {
+            const string sql = @"update Units 
+set Model = @Model, Party = @Party, WarrantyExpiryDate = @WarrantyExpiryDate, Status = @Status,
+RepairWarranty = @RepairWarranty, Barcode = @Barcode
+where Id = @Id";
+
+            return updateAccessory(sql, (parameters) =>
+                {
+                    fillSqlCmdParametersFromAccessory(parameters, unit);
+                    fillSqlCmdParametersFromFixableAccessory(parameters, unit);
+                    fillSqlCmdParametersFromBarcodeAccessory(parameters, unit);
+                });
+            }
+
         public List<Model> ModelsList
             {
             get
@@ -193,6 +333,34 @@ namespace WMS_client.Repositories
             return (Case)readAccessory(sql, id, createCase);
             }
 
+        public Case FintCaseByLamp(int lampId)
+            {
+            if (lampId <= 0)
+                {
+                return null;
+                }
+
+            const string sql =
+               @"select Id, Lamp, Unit, Model, Party, WarrantyExpiryDate, Status, RepairWarranty, Map, Register, Position from Cases 
+                where Lamp = @Predicate";
+
+            return (Case)readAccessory(sql, lampId, createCase);
+            }
+
+        public Case FintCaseByUnit(int unitId)
+            {
+            if (unitId <= 0)
+                {
+                return null;
+                }
+
+            const string sql =
+               @"select Id, Lamp, Unit, Model, Party, WarrantyExpiryDate, Status, RepairWarranty, Map, Register, Position from Cases 
+                where Unit = @Predicate";
+
+            return (Case)readAccessory(sql, unitId, createCase);
+            }
+
         public Unit ReadUnit(int id)
             {
             if (id <= 0)
@@ -251,6 +419,9 @@ namespace WMS_client.Repositories
 
         private const string DATABASE_FILE_NAME = "LampsBase.sdf";
 
+        private int nextUnitId;
+        private int nextLampId;
+
         private void initConnectionString()
             {
             connectionString = String.Format("Data Source='{0}';", Configuration.Current.PathToApplication + '\\' + DATABASE_FILE_NAME);
@@ -271,6 +442,9 @@ namespace WMS_client.Repositories
 
             return conn;
             }
+
+        private readonly int minLampUnitId;
+        private readonly int maxLampUnitId;
 
         private CatalogCache<int, PartyModel> partiesCache;
         private CatalogCache<int, Map> mapsCache;
@@ -349,6 +523,28 @@ namespace WMS_client.Repositories
                 }
             }
 
+        private bool updateAccessory(string sqlCommand, Action<SqlCeParameterCollection> setParametersMethod)
+            {
+            using (var conn = getOpenedConnection())
+                {
+                using (var cmd = conn.CreateCommand())
+                    {
+                    cmd.CommandText = sqlCommand;
+
+                    setParametersMethod(cmd.Parameters);
+                    try
+                        {
+                        return cmd.ExecuteNonQuery() > 0;
+                        }
+                    catch (Exception exp)
+                        {
+                        Debug.WriteLine(string.Format("Ошибка обновления комплектующей - {0}", exp.Message));
+                        return false;
+                        }
+                    }
+                }
+            }
+
         private Case createCase(SqlCeDataReader reader)
             {
             var _case = new Case();
@@ -400,6 +596,31 @@ namespace WMS_client.Repositories
             accessory.Status = (byte)reader["Status"];
             }
 
+        private void fillSqlCmdParametersFromAccessory(SqlCeParameterCollection parameters, IAccessory accessory)
+            {
+            parameters.AddWithValue("Id", accessory.Id);
+            parameters.AddWithValue("Model", accessory.Model);
+            parameters.AddWithValue("Party", accessory.Party);
+            parameters.AddWithValue("Status", accessory.Status);
+
+            object warrantyExpiryDate = null;
+            if (accessory.WarrantyExpiryDate != DateTime.MinValue)
+                {
+                warrantyExpiryDate = accessory.WarrantyExpiryDate;
+                }
+            parameters.AddWithValue("WarrantyExpiryDate", warrantyExpiryDate);
+            }
+
+        private void fillSqlCmdParametersFromFixableAccessory(SqlCeParameterCollection parameters, IFixableAccessory accessory)
+            {
+            parameters.AddWithValue("RepairWarranty", accessory.RepairWarranty);
+            }
+
+        private void fillSqlCmdParametersFromBarcodeAccessory(SqlCeParameterCollection parameters, IBarcodeAccessory accessory)
+            {
+            parameters.AddWithValue("Barcode", accessory.Barcode);
+            }
+
         private void fillBarcodeAccessoryFromDataReader(IBarcodeAccessory accessory, SqlCeDataReader reader)
             {
             accessory.Barcode = (int)reader["Barcode"];
@@ -410,8 +631,30 @@ namespace WMS_client.Repositories
             accessory.RepairWarranty = (bool)reader["RepairWarranty"];
             }
 
-        #endregion
+        private int getNextId(string tableName)
+            {
+            string sqlCommand = string.Format("select max(Id) from {0} where Id>=@minLampUnitId and Id<=@maxLampUnitId", tableName);
+            using (var conn = getOpenedConnection())
+                {
+                using (var cmd = conn.CreateCommand())
+                    {
+                    cmd.CommandText = sqlCommand;
+                    cmd.Parameters.AddWithValue("minLampUnitId", minLampUnitId);
+                    cmd.Parameters.AddWithValue("maxLampUnitId", maxLampUnitId);
 
+                    object lastId = cmd.ExecuteScalar();
+
+                    if (lastId == null)
+                        {
+                        return minLampUnitId;
+                        }
+
+                    return Convert.ToInt32(lastId) + 1;
+                    }
+                }
+            }
+
+        #endregion
 
 
 

@@ -26,6 +26,10 @@ namespace WMS_client.Repositories
 
         Case ReadCase(int id);
 
+        Case FintCaseByLamp(int lampId);
+
+        Case FintCaseByUnit(int unitId);
+
         Unit ReadUnitByBarcode(int barcode);
 
         Lamp ReadLampByBarcode(int barcode);
@@ -35,5 +39,7 @@ namespace WMS_client.Repositories
         Lamp ReadLamp(int id);
 
         bool WriteMap(Map map);
+
+        bool SaveAccessoriesSet(Case _case, Lamp lamp, Unit unit);
         }
     }

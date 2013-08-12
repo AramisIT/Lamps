@@ -146,6 +146,8 @@
     <Compile Include="Processes\Lamps\Processes\AcceptanceFrom.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptanceFromExchange.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptanceOfNewAccessory.cs" />
+    <Compile Include="Processes\Lamps\Processes\OffLine\AccessoryRegistration\AccessoriesSet.cs" />
+    <Compile Include="Processes\Lamps\Processes\OffLine\AccessoryRegistration\PropertyButtonInfo.cs" />
     <Compile Include="Processes\Lamps\Processes\PlacingOnMap.cs" />
     <Compile Include="Processes\Lamps\Processes\ChooseLamp.cs" />
     <Compile Include="Processes\Lamps\Processes\ChooseLighterPerHectare.cs" />
@@ -159,7 +161,7 @@
     <Compile Include="Processes\Lamps\Processes\RemovalLight.cs" />
     <Compile Include="Processes\Lamps\Processes\SetAccessoryForStorage.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\ValueEditor.cs" />
-    <Compile Include="Processes\Lamps\AccessoryRegistration.cs" />
+    <Compile Include="Processes\Lamps\Processes\OffLine\AccessoryRegistration\AccessoryRegistration.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\EditSelector.cs" />
     <Compile Include="Processes\Lamps\Sync\CatalogSynchronizer.cs" />
     <Compile Include="Processes\Lamps\Sync\dbSynchronizer.cs" />

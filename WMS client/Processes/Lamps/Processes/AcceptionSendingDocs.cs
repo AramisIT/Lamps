@@ -101,7 +101,7 @@ WHERE c.TypeOfAccessory=@Type AND c.{1}=1", subTableName, dbObject.IS_SYNCED);
         public override void OnBarcode(string Barcode)
             {
             //Якщо такий штрихкод наявний у таблиці
-            if (Barcode.IsValidBarcode() && rows.ContainsKey(Barcode))
+            if (Barcode.IsAccessoryBarcode() && rows.ContainsKey(Barcode))
                 {
                 //Прийняти
                 accepted.Add(Barcode);

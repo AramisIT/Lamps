@@ -65,7 +65,7 @@ namespace WMS_client.Processes.Lamps
 
         public override void OnBarcode(string barcode)
             {
-            if (barcode.IsValidBarcode())
+            if (barcode.IsAccessoryBarcode())
                 {
                 long id = Cases.GetIdByBarcode(barcode);
                 if (id == 0)

@@ -21,10 +21,20 @@ FROM(
 
         /// <summary>Чи являється строка валідним штрихкодом комплектуючого</summary>
         /// <param name="barcode">Строка</param>
-        public static bool IsValidBarcode(this string barcode)
+        public static bool IsAccessoryBarcode(this string barcode)
             {
             string trimBarcode = barcode.Trim();
-            return trimBarcode.Length == 0 || trimBarcode[0] == 'L';
+
+            if (trimBarcode.Length == 0)
+                {
+                return true;
+                }
+            else if (trimBarcode[0] != 'L')
+                {
+                return false;
+                }
+
+            return barcode.GetIntegerBarcode() > 0;
             }
 
         /// <summary>Чи являється строка валідним штрих-кодом позиції</summary>

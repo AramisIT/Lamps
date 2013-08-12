@@ -200,7 +200,7 @@ namespace WMS_client.Processes.Lamps
                 }
             else if (FormNumber == 2)
                 {
-                if (barcode.IsValidBarcode())
+                if (barcode.IsAccessoryBarcode())
                     {
                     if (tryAddDocumentRow(barcode))
                         {

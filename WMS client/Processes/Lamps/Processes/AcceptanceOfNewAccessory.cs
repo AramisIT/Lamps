@@ -100,7 +100,7 @@ namespace WMS_client.Processes.Lamps
         /// <summary>Отсканировано комплектующее для приемки</summary>
         public override void OnBarcode(string Barcode)
             {
-            if (Barcode.IsValidBarcode())
+            if (Barcode.IsAccessoryBarcode())
                 {
                 if (newComponents.ContainsKey(Barcode) || BarcodeWorker.IsBarcodeExist(Barcode))
                     {

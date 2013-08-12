@@ -8,6 +8,7 @@ using System.Data.SqlServerCe;
 using System.Windows.Forms;
 using WMS_client.Enums;
 using WMS_client.Models;
+using WMS_client.Processes;
 
 namespace WMS_client
     {
@@ -305,11 +306,15 @@ namespace WMS_client
 
                     case "RepairWarranty":
                         var typeOfWarranty = (TypesOfLampsWarrantly)Convert.ToInt32(value);
-                        ((IFixableAccessory)accessoriesSet.CurrentAccessory).RepairWarranty = typeOfWarranty ==
-                                                                                               TypesOfLampsWarrantly
-                                                                                                   .Repair;
+
+                        var fixableAccessory = (IFixableAccessory)accessoriesSet.CurrentAccessory;
+                        if (fixableAccessory != null)
+                            {
+                            fixableAccessory.RepairWarranty = typeOfWarranty == TypesOfLampsWarrantly.Repair;
+                            }
+
                         if (typeOfWarranty == TypesOfLampsWarrantly.None ||
-                            typeOfWarranty == TypesOfLampsWarrantly.Without)
+                        typeOfWarranty == TypesOfLampsWarrantly.Without)
                             {
                             accessoriesSet.CurrentAccessory.WarrantyExpiryDate = DateTime.MinValue;
                             }

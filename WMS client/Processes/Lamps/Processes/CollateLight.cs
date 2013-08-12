@@ -64,7 +64,7 @@ namespace WMS_client
 
         public override void OnBarcode(string Barcode)
             {
-            if (Barcode.IsValidBarcode())
+            if (Barcode.IsAccessoryBarcode())
                 {
                 if (BarcodeWorker.IsBarcodeExist(Barcode))
                     {

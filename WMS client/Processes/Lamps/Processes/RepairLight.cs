@@ -199,7 +199,7 @@ namespace WMS_client.Processes.Lamps
         /// <param name="Barcode">Штрихкод</param>
         public override void OnBarcode(string Barcode)
             {
-            if (Barcode.IsValidBarcode())
+            if (Barcode.IsAccessoryBarcode())
                 {
                 //Скан ел.блоків?
                 if (stage == Stages.ScanUnitBarcode)

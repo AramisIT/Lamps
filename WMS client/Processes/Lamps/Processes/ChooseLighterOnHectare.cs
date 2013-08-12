@@ -56,7 +56,7 @@ namespace WMS_client
 
         public override void OnBarcode(string Barcode)
             {
-            if (Barcode.IsValidBarcode())
+            if (Barcode.IsAccessoryBarcode())
                 {
                 //Тип отсканированого комплектующего
                 TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(Barcode);

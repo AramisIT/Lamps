@@ -49,7 +49,7 @@ namespace WMS_client
                 {
                 tryPlacingLight(barcode);
                 }
-            else if (barcode.IsValidBarcode())
+            else if (barcode.IsAccessoryBarcode())
                 {
                 //Тип комплектуючого визначений за штрихкодом (якщо ШК відсутній, то тип = None)
                 TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(barcode);

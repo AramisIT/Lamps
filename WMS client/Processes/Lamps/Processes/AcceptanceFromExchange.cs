@@ -91,7 +91,7 @@ namespace WMS_client.Processes.Lamps
 
         public override void OnBarcode(string Barcode)
             {
-            if (Barcode.IsValidBarcode())
+            if (Barcode.IsAccessoryBarcode())
                 {
                 if (!accepted.ContainsKey(selectedModelId))
                     {

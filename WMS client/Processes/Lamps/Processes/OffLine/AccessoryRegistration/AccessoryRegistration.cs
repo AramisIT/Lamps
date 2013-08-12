@@ -6,50 +6,27 @@ using WMS_client.Base.Visual.Constructor;
 using WMS_client.Enums;
 using WMS_client.db;
 using WMS_client.Models;
+using WMS_client.Processes;
 
 namespace WMS_client
     {
     /// <summary>"Строитель редактирования"</summary>
     public class AccessoryRegistration : BusinessProcess
         {
-
-        private int groupSizeValue;
-        private int groupSize
-            {
-            get
-                {
-                return groupSizeValue;
-                }
-            set
-                {
-                groupSizeValue = value;
-                groupSizeLabel.Text = string.Format("Зареєстровано: {0} шт.", groupSizeValue);
-                }
-            }
-
-        private MobileButton groupRegistrationButton;
-        private bool groupRegistration;
-        private MobileLabel groupSizeLabel;
-
-        private Lamps currentLamp;
-        private ElectronicUnits currentUnit;
-        private Cases currentCase;
-
         #region Fields
-        /// <summary>Текущий заголовок</summary>
-        private string currentTopic;
 
         /// <summary></summary>
         private readonly bool emptyBarcodeEnabled;
         /// <summary></summary>
         private readonly bool existMode;
 
+        private AccessoriesSet accessoriesSet;
+        private TypeOfAccessories requaredAccessoryType;
+
         private MobileButton caseButton;
         private MobileButton lampButton;
         private MobileButton unitButton;
-        private TypeOfAccessories currentAccessotyType;
-        private TypeOfAccessories requaredAccessoryType;
-        private AccessoriesSet accessoriesSet;
+
         private MobileButton modelButton;
         private MobileButton statusButton;
         private MobileButton partyButton;
@@ -57,6 +34,9 @@ namespace WMS_client
         private MobileButton partyDateButton;
         private MobileButton warrantyTypeButton;
         private MobileButton warrantyExpiryDateButton;
+        private bool newAccesory;
+        private bool registrationAdditionalAccessory;
+        private bool waitingForBarcode;
 
         /// <summary>Напис кнопки для збереження данних (завершення гілки)</summary>
         private const string okBtnText = "Ок";
@@ -77,7 +57,6 @@ namespace WMS_client
 
             this.requaredAccessoryType = requaredAccessoryType;
             updateCurrentTopic();
-            MainProcess.ToDoCommand = currentTopic;
 
             IsLoad = true;
             existMode = false;
@@ -89,15 +68,15 @@ namespace WMS_client
             switch (requaredAccessoryType)
                 {
                 case TypeOfAccessories.Case:
-                    currentTopic = "Корпус";
+                    MainProcess.ToDoCommand = "Корпус";
                     break;
 
                 case TypeOfAccessories.Lamp:
-                    currentTopic = "Лампа";
+                    MainProcess.ToDoCommand = "Лампа";
                     break;
 
                 case TypeOfAccessories.ElectronicUnit:
-                    currentTopic = "Електронний блок";
+                    MainProcess.ToDoCommand = "Електронний блок";
                     break;
                 }
             }
@@ -127,91 +106,113 @@ namespace WMS_client
             {
             if (IsLoad)
                 {
-                MainProcess.ClearControls();
-                MainProcess.CreateLabel("Відскануйте", 0, 130, 240,
-                                        MobileFontSize.Normal, MobileFontPosition.Center, MobileFontColors.Info, FontStyle.Bold);
-                MainProcess.CreateLabel("ШТРИХ-КОД!", 0, 150, 240,
-                                        MobileFontSize.Normal, MobileFontPosition.Center, MobileFontColors.Info, FontStyle.Bold);
-
-                if (requaredAccessoryType != TypeOfAccessories.Case)
-                    {
-                    MainProcess.CreateButton("Без штрихкода", 10, 270, 220, 35, string.Empty, () => OnBarcode(string.Empty));
-                    }
+                prepareForBarcode(requaredAccessoryType);
                 }
+            }
+
+        private void prepareForBarcode(TypeOfAccessories typeOfAccessories)
+            {
+            requaredAccessoryType = typeOfAccessories;
+            MainProcess.ClearControls();
+            MainProcess.CreateLabel("Відскануйте", 0, 130, 240,
+                MobileFontSize.Normal, MobileFontPosition.Center, MobileFontColors.Info, FontStyle.Bold);
+            MainProcess.CreateLabel("ШТРИХ-КОД!", 0, 150, 240,
+                MobileFontSize.Normal, MobileFontPosition.Center, MobileFontColors.Info, FontStyle.Bold);
+
+            if (requaredAccessoryType != TypeOfAccessories.Case)
+                {
+                MainProcess.CreateButton("Без штрихкода", 10, 270, 220, 35, string.Empty, () => OnBarcode(string.Empty));
+                }
+
+            waitingForBarcode = true;
             }
 
         /// <summary>Комплектующее отсканировано, нужно начать редактирование</summary>
         /// <param name="Barcode">ШтрихКод</param>
         public override sealed void OnBarcode(string barcode)
             {
-            //Если это штрих-код комплектующего
-            if (barcode.IsValidBarcode())
+            if (!waitingForBarcode)
+                {
+                return;
+                }
+
+            if (barcode.IsAccessoryBarcode())
                 {
                 MainProcess.ClearControls();
 
-                if (accessoriesSet.CurrentAccessory == null || !accessoriesSet.CurrentAccessory.HasBarcode(barcode))
-                    {
-                    accessoriesSet.CurrentAccessory = Configuration.Current.Repository.FindAccessory(barcode.GetIntegerBarcode());
-                    }
+                registrationAdditionalAccessory = accessoriesSet.CurrentAccessory != null;
+                accessoriesSet.CurrentAccessory = Configuration.Current.Repository.FindAccessory(barcode.GetIntegerBarcode());
 
-                bool accesoryIsExist = accessoriesSet.CurrentAccessory != null;
+                newAccesory = accessoriesSet.CurrentAccessory == null;
 
                 //Если в системе уже существует штрихкод
-                if (!existMode && accesoryIsExist)
+                if (!existMode && !newAccesory)
                     {
-                    currentAccessotyType = accessoriesSet.CurrentAccessory.GetAccessoryType();
-
-                    bool isTypeLikeCurrent = currentAccessotyType == requaredAccessoryType;
-
-                    //Если типы не совпадают - "Выход"
-                    if (!isTypeLikeCurrent)
+                    if (requaredAccessoryType != accessoriesSet.CurrentAccessory.GetAccessoryType())
                         {
                         ShowMessage("Штрихкод уже используется в другом типе комплектующего!");
-                        OnHotKey(KeyAction.Esc);
+                        exit();
                         return;
                         }
                     }
-
-                initAccessory(barcode.GetIntegerBarcode());
+                waitingForBarcode = false;
+                initAccessoriesSet(barcode.GetIntegerBarcode());
                 showData();
                 }
-            //Во всех других случаях
             else
                 {
                 ShowMessage("Невірний формат штрихкоду!");
-                OnHotKey(KeyAction.Esc);
+                exit();
                 }
             }
 
         private void showData()
             {
-            MainProcess.ToDoCommand = currentTopic;
-
             drawPropertiesButtons();
 
             drawActionButtons();
             }
 
-        private void initAccessory(int intBarcode)
+        private void initAccessoriesSet(int intBarcode)
             {
             if (accessoriesSet.CurrentAccessory == null)
                 {
                 accessoriesSet.CurrentAccessory = AccessoryHelper.CreateNewAccessory(intBarcode, requaredAccessoryType);
+                }
 
-                switch (requaredAccessoryType)
-                    {
-                    case TypeOfAccessories.Case:
-                        accessoriesSet.Case = (Case)accessoriesSet.CurrentAccessory;
-                        break;
+            switch (requaredAccessoryType)
+                {
+                case TypeOfAccessories.Case:
+                    accessoriesSet.Case = (Case)accessoriesSet.CurrentAccessory;
+                    accessoriesSet.Lamp = accessoriesSet.Lamp ?? Configuration.Current.Repository.ReadLamp(accessoriesSet.Case.Lamp);
+                    accessoriesSet.Unit = accessoriesSet.Unit ?? Configuration.Current.Repository.ReadUnit(accessoriesSet.Case.Unit);
+                    break;
 
-                    case TypeOfAccessories.ElectronicUnit:
-                        accessoriesSet.Unit = (Unit)accessoriesSet.CurrentAccessory;
-                        break;
+                case TypeOfAccessories.ElectronicUnit:
+                    accessoriesSet.Unit = (Unit)accessoriesSet.CurrentAccessory;
 
-                    case TypeOfAccessories.Lamp:
-                        accessoriesSet.Lamp = (Lamp)accessoriesSet.CurrentAccessory;
-                        break;
-                    }
+                    if (!newAccesory)
+                        {
+                        accessoriesSet.Case = accessoriesSet.Case ?? Configuration.Current.Repository.FintCaseByUnit(accessoriesSet.Unit.Id);
+                        if (accessoriesSet.Case != null)
+                            {
+                            accessoriesSet.Lamp = accessoriesSet.Lamp ?? Configuration.Current.Repository.ReadLamp(accessoriesSet.Case.Lamp);
+                            }
+                        }
+                    break;
+
+                case TypeOfAccessories.Lamp:
+                    accessoriesSet.Lamp = (Lamp)accessoriesSet.CurrentAccessory;
+
+                    if (!newAccesory)
+                        {
+                        accessoriesSet.Case = accessoriesSet.Case ?? Configuration.Current.Repository.FintCaseByLamp(accessoriesSet.Lamp.Id);
+                        if (accessoriesSet.Case != null)
+                            {
+                            accessoriesSet.Unit = accessoriesSet.Unit ?? Configuration.Current.Repository.ReadUnit(accessoriesSet.Case.Unit);
+                            }
+                        }
+                    break;
                 }
             }
 
@@ -308,22 +309,67 @@ namespace WMS_client
 
         private void updateButtonsEnabling()
             {
+            bool isCase = requaredAccessoryType == TypeOfAccessories.Case;
+
+            caseButton.Enabled = accessoriesSet.Case != null && !isCase;
+
+            lampButton.Enabled = (accessoriesSet.Lamp != null || isCase || caseButton.Enabled) && requaredAccessoryType != TypeOfAccessories.Lamp;
+            unitButton.Enabled = (accessoriesSet.Unit != null || isCase || caseButton.Enabled) && requaredAccessoryType != TypeOfAccessories.ElectronicUnit;
             }
 
         private void caseButton_click()
             {
-            }
-
-        private void lampButton_click()
-            {
+            setNewCurrentAccessory(accessoriesSet.Case);
             }
 
         private void unitButton_click()
             {
+            if (accessoriesSet.Unit == null)
+                {
+                prepareForBarcode(TypeOfAccessories.ElectronicUnit);
+                }
+            else
+                {
+                setNewCurrentAccessory(accessoriesSet.Unit);
+                }
+            }
+
+        private void lampButton_click()
+            {
+            if (accessoriesSet.Lamp == null)
+                {
+                prepareForBarcode(TypeOfAccessories.Lamp);
+                }
+            else
+                {
+                setNewCurrentAccessory(accessoriesSet.Lamp);
+                }
+            }
+
+        private void setNewCurrentAccessory(IAccessory accessory)
+            {
+            requaredAccessoryType = accessory.GetAccessoryType();
+            accessoriesSet.CurrentAccessory = accessory;
+            updatePropertiesButtonsText();
+            updateButtonsEnabling();
             }
 
         private void okButton_click()
             {
+            if (
+                !Configuration.Current.Repository.SaveAccessoriesSet(accessoriesSet.Case, accessoriesSet.Lamp,
+                    accessoriesSet.Unit))
+                {
+                MessageBox.Show("Не вдалося зберегти світильник");
+                return;
+                }
+
+            exit();
+            }
+
+        private void exit()
+            {
+            OnHotKey(KeyAction.Esc);
             }
 
         private void showWriteErrorMessage()
@@ -434,45 +480,33 @@ namespace WMS_client
 
         private void groupRegistrationOnBarcode(string barcode)
             {
-            bool barcodeExists = BarcodeWorker.IsBarcodeExist(barcode);
+            //bool barcodeExists = BarcodeWorker.IsBarcodeExist(barcode);
 
-            if (barcodeExists)
-                {
-                ShowMessage("Даний штрих-код вже використовується");
-                return;
-                }
+            //if (barcodeExists)
+            //    {
+            //    ShowMessage("Даний штрих-код вже використовується");
+            //    return;
+            //    }
 
-            Lamps newLamp = currentLamp.CopyWithoutLinks() as Lamps;
-            newLamp.Write();
+            //Lamps newLamp = currentLamp.CopyWithoutLinks() as Lamps;
+            //newLamp.Write();
 
-            ElectronicUnits newElectronicUnit = currentUnit.CopyWithoutLinks() as ElectronicUnits;
-            newElectronicUnit.Write();
+            //ElectronicUnits newElectronicUnit = currentUnit.CopyWithoutLinks() as ElectronicUnits;
+            //newElectronicUnit.Write();
 
-            Cases newCase = currentCase.CopyWithoutLinks() as Cases;
-            newCase.BarCode = barcode;
-            newCase.Lamp = newLamp.Id;
-            newCase.ElectronicUnit = newElectronicUnit.Id;
-            newCase.Write();
+            //Cases newCase = currentCase.CopyWithoutLinks() as Cases;
+            //newCase.BarCode = barcode;
+            //newCase.Lamp = newLamp.Id;
+            //newCase.ElectronicUnit = newElectronicUnit.Id;
+            //newCase.Write();
 
-            Movement.RegisterLighter(newCase.BarCode, newCase.SyncRef, OperationsWithLighters.Registration);
+            //Movement.RegisterLighter(newCase.BarCode, newCase.SyncRef, OperationsWithLighters.Registration);
 
-            groupSize++;
+
             }
         }
 
-    public class PropertyButtonInfo
-        {
-        public string PropertyName { get; set; }
-        public string PropertyDescription { get; set; }
-        public Type PropertyType { get; set; }
-        }
 
-    public class AccessoriesSet
-        {
-        public Case Case { get; set; }
-        public Lamp Lamp { get; set; }
-        public Unit Unit { get; set; }
 
-        public IAccessory CurrentAccessory { get; set; }
-        }
+
     }
