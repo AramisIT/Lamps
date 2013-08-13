@@ -5,31 +5,18 @@ using System.Collections.Generic;
 using System.Text;
 using WMS_client.Enums;
 using WMS_client.db;
+using WMS_client.Models;
 
 namespace WMS_client.Processes.Lamps
     {
     public class PlacingOnMap : BusinessProcess
         {
-        private static SortedList<long, string> maps = new SortedList<long, string>();
-
-        private static string getMapDescription(long id)
-            {
-            string mapDescription;
-            if (!maps.TryGetValue(id, out mapDescription))
-                {
-                mapDescription = Accessory.GetDescription(typeof(Maps).Name, id);
-                maps.Add(id, mapDescription);
-                }
-
-            return mapDescription;
-            }
-
-        private readonly long map;
+        private readonly int map;
         private string mapDescription;
-        private readonly int register;
-        private readonly int position;
+        private readonly Int16 register;
+        private readonly byte position;
 
-        public PlacingOnMap(WMSClient wmsClient, long map, int register, int position)
+        public PlacingOnMap(WMSClient wmsClient, int map, Int16 register, byte position)
             : base(wmsClient, 1)
             {
 
@@ -49,7 +36,7 @@ namespace WMS_client.Processes.Lamps
 
         private void DrawForm1Controls()
             {
-            mapDescription = getMapDescription(map);
+            mapDescription = (Configuration.Current.Repository.GetMap(map) ?? new Map()).Description;
             if (string.IsNullOrEmpty(mapDescription))
                 {
                 MainProcess.Process = new SelectingLampProcess(MainProcess);
@@ -67,21 +54,18 @@ namespace WMS_client.Processes.Lamps
             {
             if (barcode.IsAccessoryBarcode())
                 {
-                long id = Cases.GetIdByBarcode(barcode);
-                if (id == 0)
+                Case _case = Configuration.Current.Repository.ReadCase(barcode.GetIntegerBarcode());
+                if (_case == null)
                     {
                     ShowMessage("Не знайдено корпусу з таким штрих-кодом!");
                     return;
                     }
 
-                Cases _case = new Cases();
-                _case.Read(id);
                 _case.Map = map;
                 _case.Register = register;
                 _case.Position = position;
-                _case.IsSynced = false;
-                _case.Status = TypesOfLampsStatus.IsWorking;
-                _case.Write();
+                _case.Status = (int)TypesOfLampsStatus.IsWorking;
+                Configuration.Current.Repository.UpdateCase(_case);
 
                 leaveProcess();
                 }

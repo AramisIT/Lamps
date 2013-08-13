@@ -144,7 +144,7 @@ namespace WMS_client.Repositories
                 cases.Add(newCase);
                 }
 
-            return insertUnits(units) && insertLamps(lamps) && insertCases(cases);
+            return InsertUnits(units) && InsertLamps(lamps) && InsertCases(cases);
             }
 
         public bool SaveAccessoriesSet(Case _case, Lamp lamp, Unit unit)
@@ -156,7 +156,7 @@ namespace WMS_client.Repositories
                 if (unit.Id <= 0)
                     {
                     unit.Id = GetNextUnitId();
-                    ok = ok && insertUnits(new List<Unit>() { unit });
+                    ok = ok && InsertUnits(new List<Unit>() { unit });
                     }
                 else
                     {
@@ -194,35 +194,11 @@ namespace WMS_client.Repositories
 
                 if (!UpdateCase(_case))
                     {
-                    ok = ok && insertCases(new List<Case>() { _case });
+                    ok = ok && InsertCases(new List<Case>() { _case });
                     }
                 }
 
             return ok;
-            }
-
-        private bool insertCases(List<Case> list)
-            {
-            var accessoryInserter = new AccessoryInserter<Case>("Cases", list, getOpenedConnection);
-
-            bool saved = accessoryInserter.InsertAccessories((newRow, accessory) =>
-                {
-                    Case _case = (Case)accessory;
-                    newRow["Lamp"] = _case.Lamp;
-                    newRow["Unit"] = _case.Unit;
-
-                    newRow["Map"] = _case.Map;
-                    newRow["Register"] = _case.Register;
-                    newRow["Position"] = _case.Position;
-                });
-
-            if (!saved)
-                {
-                return false;
-                }
-
-            var logger = new AccessoryLogger<Case>("CasesUpdating", list, getOpenedConnection);
-            return logger.Log();
             }
 
         public bool UpdateCase(Case _case)
@@ -232,7 +208,7 @@ set Model = @Model, Party = @Party, WarrantyExpiryDate = @WarrantyExpiryDate, St
 RepairWarranty = @RepairWarranty, Lamp = @Lamp, Unit = @Unit, Map = @Map, Register = @Register, Position = @Position
 where Id = @Id";
 
-            return updateAccessory(sql, (parameters) =>
+            return updateAccessory(true, _case.Id, "CasesUpdating", sql, (parameters) =>
                 {
                     fillSqlCmdParametersFromAccessory(parameters, _case);
                     fillSqlCmdParametersFromFixableAccessory(parameters, _case);
@@ -252,20 +228,44 @@ set Model = @Model, Party = @Party, WarrantyExpiryDate = @WarrantyExpiryDate, St
 Barcode = @Barcode
 where Id = @Id";
 
-            return updateAccessory(sql, (parameters) =>
+            return updateAccessory(false, lamp.Id, "LampsUpdating", sql, (parameters) =>
                 {
                     fillSqlCmdParametersFromAccessory(parameters, lamp);
                     fillSqlCmdParametersFromBarcodeAccessory(parameters, lamp);
                 });
             }
 
-        private bool insertLamps(List<Lamp> list)
+        public bool InsertCases(List<Case> list)
+            {
+            var accessoryInserter = new AccessoryInserter<Case>("Cases", list, getOpenedConnection);
+
+            bool saved = accessoryInserter.InsertAccessories((newRow, accessory) =>
+            {
+                Case _case = (Case)accessory;
+                newRow["Lamp"] = _case.Lamp;
+                newRow["Unit"] = _case.Unit;
+
+                newRow["Map"] = _case.Map;
+                newRow["Register"] = _case.Register;
+                newRow["Position"] = _case.Position;
+            });
+
+            if (!saved)
+                {
+                return false;
+                }
+
+            var logger = new AccessoryLogger<Case>("CasesUpdating", list, getOpenedConnection);
+            return logger.Log();
+            }
+
+        public bool InsertLamps(List<Lamp> list)
             {
             var accessoryInserter = new AccessoryInserter<Lamp>("Lamps", list, getOpenedConnection);
             return accessoryInserter.InsertAccessories(null);
             }
 
-        private bool insertUnits(List<Unit> list)
+        public bool InsertUnits(List<Unit> list)
             {
             var accessoryInserter = new AccessoryInserter<Unit>("Units", list, getOpenedConnection);
             return accessoryInserter.InsertAccessories(null);
@@ -294,7 +294,7 @@ set Model = @Model, Party = @Party, WarrantyExpiryDate = @WarrantyExpiryDate, St
 RepairWarranty = @RepairWarranty, Barcode = @Barcode
 where Id = @Id";
 
-            return updateAccessory(sql, (parameters) =>
+            return updateAccessory(false, unit.Id, "UnitsUpdating", sql, (parameters) =>
                 {
                     fillSqlCmdParametersFromAccessory(parameters, unit);
                     fillSqlCmdParametersFromFixableAccessory(parameters, unit);
@@ -569,7 +569,7 @@ where Id = @Id";
                 }
             }
 
-        private bool updateAccessory(string sqlCommand, Action<SqlCeParameterCollection> setParametersMethod)
+        private bool updateAccessory(bool isCase, int accessoryId, string logTableName, string sqlCommand, Action<SqlCeParameterCollection> setParametersMethod)
             {
             using (var conn = getOpenedConnection())
                 {
@@ -580,7 +580,29 @@ where Id = @Id";
                     setParametersMethod(cmd.Parameters);
                     try
                         {
-                        return cmd.ExecuteNonQuery() > 0;
+                        bool updated = cmd.ExecuteNonQuery() > 0;
+                        if (updated)
+                            {
+                            cmd.CommandText = string.Format("select Id from {0} where Id = @Id", logTableName);
+                            cmd.Parameters.Clear();
+                            cmd.Parameters.AddWithValue("Id", accessoryId);
+                            object result = cmd.ExecuteScalar();
+                            bool recordExists = result != null && !DBNull.Value.Equals(result);
+
+                            if (!recordExists)
+                                {
+                                if (isCase)
+                                    {
+                                    cmd.CommandText = string.Format("insert into {0}(Id, New) values(@Id, 0)", logTableName);
+                                    }
+                                else
+                                    {
+                                    cmd.CommandText = string.Format("insert into {0}(Id) values(@Id)", logTableName);
+                                    }
+                                cmd.ExecuteNonQuery();
+                                }
+                            }
+                        return updated;
                         }
                     catch (Exception exp)
                         {

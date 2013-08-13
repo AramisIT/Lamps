@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlServerCe;
 using WMS_client.db;
+using WMS_client.Enums;
 using WMS_client.Models;
 using Party = WMS_client.db.Party;
 
@@ -31,8 +33,132 @@ namespace WMS_client
 
         private bool CheckNewDataBase()
             {
-            bool ok = checkModels() && checkParties() && checkMaps();
+            bool ok = checkModels() && checkParties() && checkMaps() && checkAllLamps();
             return ok;
+            }
+
+        private bool checkAllLamps()
+            {
+            #region sql command
+            const string sql = @"
+select
+
+Cast(SUBSTRING(c.barcode, 2, 24) as int) Id,
+c.Model CaseModel, c.Party CaseParty, 
+c.DateOfWarrantyEnd CaseWarrantyExpiryDate,
+c.Status CaseStatus, 
+c.TypeOfWarrantly CaseWarrantyType,
+cast(c.map as int) [Map],
+cast(c.Register as smallint) Register,
+cast(c.Position as TinyInt) Position,
+
+
+case when l.Model is null then 0 else l.Model end LampModel,
+case when l.Party is null then 0 else l.Party end LampParty,
+case when l.Status is null then 0 else l.Status end LampStatus,
+case when l.DateOfWarrantyEnd = cast('1753-01-01' as datetime) then null else l.DateOfWarrantyEnd end LampWarrantyExpiryDate,
+
+case when u.Model is null then 0 else u.Model end UnitModel,
+case when u.Party is null then 0 else u.Party end UnitParty,
+case when u.Status is null then 0 else u.Status end UnitStatus,
+case when u.TypeOfWarrantly is null then 0 else u.TypeOfWarrantly end UnitWarrantyType,
+
+case when u.DateOfWarrantyEnd = cast('1753-01-01' as datetime) then null else u.DateOfWarrantyEnd end UnitWarrantyExpiryDate,
+
+case when (u.barcode is null) or RTrim(u.barcode) = '' then 0 else Cast(SUBSTRING(u.barcode, 2, 24) as int) end UnitBarcode
+
+
+from cases c
+left join Lamps l on c.Lamp = l.Id
+left join ElectronicUnits u on c.ElectronicUnit = u.Id
+
+order by LampWarrantyExpiryDate
+";
+            #endregion
+
+            var cases = new List<Case>();
+            var lamps = new List<Lamp>();
+            var units = new List<Unit>();
+
+            using (SqlCeCommand query = dbWorker.NewQuery(sql))
+                {
+                using (var reader = query.ExecuteReader())
+                    {
+                    while (reader.Read())
+                        {
+                        var lamp = new Lamp();
+                        lamp.Id = Configuration.Current.Repository.GetNextLampId();
+
+                        var unit = new Unit();
+                        unit.Id = Configuration.Current.Repository.GetNextUnitId();
+
+                        var _Case = new Case();
+                        _Case.Lamp = lamp.Id;
+                        _Case.Unit = unit.Id;
+
+                        fillCase(_Case, reader);
+                        fillLamp(lamp, reader);
+                        fillUnit(unit, reader);
+
+                        cases.Add(_Case);
+                        lamps.Add(lamp);
+                        units.Add(unit);
+                        }
+                    }
+                }
+
+            Configuration.Current.Repository.InsertLamps(lamps);
+            Configuration.Current.Repository.InsertUnits(units);
+            Configuration.Current.Repository.InsertCases(cases);
+
+            return true;
+            }
+
+        private void fillUnit(Unit accessory, SqlCeDataReader reader)
+            {
+            accessory.Model = Convert.ToInt16(reader["UnitModel"]);
+            accessory.Party = Convert.ToInt32(reader["UnitParty"]);
+            accessory.Status = Convert.ToByte(reader["UnitStatus"]);
+
+            object warrantyExpiryDate = reader["UnitWarrantyExpiryDate"];
+            bool emptyDate = warrantyExpiryDate == null || DBNull.Value.Equals(warrantyExpiryDate);
+            accessory.WarrantyExpiryDate = emptyDate ? DateTime.MinValue : (DateTime)warrantyExpiryDate;
+
+            accessory.Barcode = Convert.ToInt32(reader["UnitBarcode"]);
+
+            var warrantyType = (TypesOfLampsWarrantly)Convert.ToInt32(reader["UnitWarrantyType"]);
+            accessory.RepairWarranty = warrantyType == TypesOfLampsWarrantly.Repair;
+            }
+
+        private void fillLamp(Lamp accessory, SqlCeDataReader reader)
+            {
+            accessory.Model = Convert.ToInt16(reader["LampModel"]);
+            accessory.Party = Convert.ToInt32(reader["LampParty"]);
+            accessory.Status = Convert.ToByte(reader["LampStatus"]);
+
+            object warrantyExpiryDate = reader["LampWarrantyExpiryDate"];
+            bool emptyDate = warrantyExpiryDate == null || DBNull.Value.Equals(warrantyExpiryDate);
+            accessory.WarrantyExpiryDate = emptyDate ? DateTime.MinValue : (DateTime)warrantyExpiryDate;
+            }
+
+        private void fillCase(Case accessory, SqlCeDataReader reader)
+            {
+            accessory.Model = Convert.ToInt16(reader["CaseModel"]);
+            accessory.Party = Convert.ToInt32(reader["CaseParty"]);
+            accessory.Status = Convert.ToByte(reader["CaseStatus"]);
+
+            object warrantyExpiryDate = reader["CaseWarrantyExpiryDate"];
+            bool emptyDate = warrantyExpiryDate == null || DBNull.Value.Equals(warrantyExpiryDate);
+            accessory.WarrantyExpiryDate = emptyDate ? DateTime.MinValue : (DateTime)warrantyExpiryDate;
+
+            accessory.Id = Convert.ToInt32(reader["Id"]);
+
+            var warrantyType = (TypesOfLampsWarrantly)Convert.ToInt32(reader["CaseWarrantyType"]);
+            accessory.RepairWarranty = warrantyType == TypesOfLampsWarrantly.Repair;
+
+            accessory.Register = Convert.ToInt16(reader["Register"]);
+            accessory.Map = Convert.ToInt32(reader["Map"]);
+            accessory.Position = Convert.ToByte(reader["Position"]);
             }
 
         private bool checkMaps()

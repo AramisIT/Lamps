@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Diagnostics;
 using WMS_client.Repositories;
@@ -12,7 +13,9 @@ namespace WMS_client
         private const string STARTUP_PATH = @"\Program files\WMS_client\WMS client.exe";
         [MTAThread]
         static void Main()
-        {
+            {
+            //new MyDictTest();
+            //return;
             if (isExistedSameProcess())
                 {
                 return;
@@ -21,8 +24,8 @@ namespace WMS_client
             Configuration.Current.Repository = new SqlCeRepository();
 
             MainForm mform = new MainForm();
-         //   mform.MinimizeBox = true;
-         //   mform.WindowState = FormWindowState.Normal;
+            //   mform.MinimizeBox = true;
+            //   mform.WindowState = FormWindowState.Normal;
             Application.Run(mform);
             }
 
@@ -43,5 +46,36 @@ namespace WMS_client
                 }
             return false;
             }
+
+
         }
     }
+
+public class MyDictTest
+    {
+    public MyDictTest()
+        {
+        TestDict();
+        }
+
+    Dictionary<int, info> dict = new Dictionary<int, info>();
+
+    void TestDict()
+        {
+        for (int i = 0; i < 10000000; i++)
+            {
+            dict.Add(i, new info());
+            }
+
+        Trace.WriteLine(dict.Count);
+        }
+    }
+
+public class info
+{
+    public int Map;
+    public int Position;
+    public int Register;
+    public int Unit;
+    public int Lamp;
+}

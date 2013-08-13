@@ -76,9 +76,9 @@ namespace WMS_client
         private void tryPlacingLight(string barcode)
             {
 
-            long map;
-            int register;
-            int position;
+            int map;
+            Int16 register;
+            byte position;
             if (barcode.GetPositionData(out map, out register, out position))
                 {
                 ClearControls();
@@ -168,7 +168,7 @@ namespace WMS_client
         #region ButtonClick
         /// <summary>Перехід до процессу "Інформація"</summary>
         private void info_Click()
-        {
+            {
             fixLamps();
             return;
             MainProcess.ClearControls();

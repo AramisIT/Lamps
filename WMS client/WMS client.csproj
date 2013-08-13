@@ -149,7 +149,7 @@
     <Compile Include="Processes\Lamps\Processes\OffLine\AccessoryRegistration\AccessoriesSet.cs" />
     <Compile Include="Processes\Lamps\Processes\OffLine\AccessoryRegistration\AccessoriesGroupRegistration.cs" />
     <Compile Include="Processes\Lamps\Processes\OffLine\AccessoryRegistration\PropertyButtonInfo.cs" />
-    <Compile Include="Processes\Lamps\Processes\PlacingOnMap.cs" />
+    <Compile Include="Processes\Lamps\Processes\OffLine\PlacingOnMap.cs" />
     <Compile Include="Processes\Lamps\Processes\ChooseLamp.cs" />
     <Compile Include="Processes\Lamps\Processes\ChooseLighterPerHectare.cs" />
     <Compile Include="Processes\Lamps\Processes\ChooseUnit.cs" />
@@ -228,7 +228,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="LampsBase.sdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="media_player.ico" />
     <Content Include="PDT_ID.txt">

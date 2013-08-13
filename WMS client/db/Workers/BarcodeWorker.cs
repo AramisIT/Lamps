@@ -54,7 +54,7 @@ FROM(
         /// <param name="register">№ регістру</param>
         /// <param name="position">№ позиції</param>
         /// <returns>Чи були отримані данні з штрих-коду</returns>
-        public static bool GetPositionData(this string barcode, out long map, out int register, out int position)
+        public static bool GetPositionData(this string barcode, out int map, out Int16 register, out byte position)
             {
             string[] parts = barcode.Substring(2, barcode.Length - 2).Split(POSITION_SEPARATOR);
 
@@ -62,9 +62,9 @@ FROM(
                 {
                 try
                     {
-                    map = Convert.ToInt64(parts[0]);
-                    register = Convert.ToInt32(parts[1]);
-                    position = Convert.ToInt32(parts[2]);
+                    map = Convert.ToInt32(parts[0]);
+                    register = Convert.ToInt16(parts[1]);
+                    position = Convert.ToByte(parts[2]);
                     return true;
                     }
                 catch (Exception exc)

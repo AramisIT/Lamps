@@ -8,9 +8,19 @@ namespace WMS_client.Repositories
     {
     public interface IRepository
         {
+        int GetNextUnitId();
+
+        int GetNextLampId();
+
         bool WriteModel(Model model);
 
         bool WriteParty(PartyModel party);
+
+        bool InsertCases(List<Case> list);
+
+        bool InsertLamps(List<Lamp> list);
+
+        bool InsertUnits(List<Unit> list);
 
         List<Model> ModelsList { get; }
 
@@ -37,6 +47,8 @@ namespace WMS_client.Repositories
         Unit ReadUnit(int id);
 
         Lamp ReadLamp(int id);
+
+        bool UpdateCase(Case _case);
 
         bool WriteMap(Map map);
 
