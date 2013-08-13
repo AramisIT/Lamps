@@ -174,7 +174,7 @@ namespace WMS_client.Repositories
                 if (lamp.Id <= 0)
                     {
                     lamp.Id = GetNextLampId();
-                    ok = ok && insertLamps(new List<Lamp>() { lamp });
+                    ok = ok && InsertLamps(new List<Lamp>() { lamp });
                     }
                 else
                     {
@@ -463,7 +463,7 @@ where Id = @Id";
 
         private string connectionString;
 
-        private const string DATABASE_FILE_NAME = "LampsBase.sdf";
+        public const string DATABASE_FILE_NAME = "LampsBase.sdf";
 
         private int nextUnitId;
         private int nextLampId;

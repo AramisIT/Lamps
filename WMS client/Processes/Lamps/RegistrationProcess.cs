@@ -2,9 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlServerCe;
+using System.Diagnostics;
+using System.IO;
+using System.Windows.Forms;
 using WMS_client.db;
 using WMS_client.Enums;
 using WMS_client.Models;
+using WMS_client.Repositories;
 using Party = WMS_client.db.Party;
 
 namespace WMS_client
@@ -33,11 +37,11 @@ namespace WMS_client
 
         private bool CheckNewDataBase()
             {
-            bool ok = checkModels() && checkParties() && checkMaps() && checkAllLamps();
+            bool ok = checkModels() && checkParties() && checkMaps();
             return ok;
             }
 
-        private bool checkAllLamps()
+        private void checkAllLamps()
             {
             #region sql command
             const string sql = @"
@@ -76,53 +80,203 @@ order by LampWarrantyExpiryDate
 ";
             #endregion
 
+            Dictionary<int, CaseInfo> existsCases = getExistsCases();
+
             var cases = new List<Case>();
             var lamps = new List<Lamp>();
             var units = new List<Unit>();
+            int rowNumber = 1;
 
-            using (SqlCeCommand query = dbWorker.NewQuery(sql))
+            string fileRow;
+            var namedValues = new Dictionary<string, object>();
+
+            using (StreamReader sqlResultFile = File.OpenText(@"\Storage Card\result2.txt"))
                 {
-                using (var reader = query.ExecuteReader())
+                while ((fileRow = sqlResultFile.ReadLine()) != null)
                     {
-                    while (reader.Read())
+                    namedValues.Clear();
+                    string[] values = fileRow.Split('\t');
+
+                    int caseId = Convert.ToInt32(values[0]);
+
+                    CaseInfo caseInfo;
+                    existsCases.TryGetValue(caseId, out caseInfo);
+
+                    bool caseExists = caseInfo != null;
+                    if (caseExists && !caseInfo.HasNotLamp && !caseInfo.HasNotUnit && !caseInfo.HasNotPosition)
                         {
-                        var lamp = new Lamp();
-                        lamp.Id = Configuration.Current.Repository.GetNextLampId();
+                        Trace.WriteLine("Skiped");
+                        continue;
+                        }
 
-                        var unit = new Unit();
-                        unit.Id = Configuration.Current.Repository.GetNextUnitId();
+                    namedValues.Add("Id", caseId);
+                    namedValues.Add("CaseModel", values[1]);
+                    namedValues.Add("CaseParty", values[2]);
+                    namedValues.Add("CaseWarrantyExpiryDate", values[3]);
+                    namedValues.Add("CaseStatus", values[4]);
+                    namedValues.Add("CaseWarrantyType", values[5]);
+                    namedValues.Add("Map", values[6]);
+                    namedValues.Add("Register", values[7]);
+                    namedValues.Add("Position", values[8]);
+                    namedValues.Add("LampModel", values[9]);
+                    namedValues.Add("LampParty", values[10]);
+                    namedValues.Add("LampStatus", values[11]);
+                    namedValues.Add("LampWarrantyExpiryDate", values[12]);
+                    namedValues.Add("UnitModel", values[13]);
+                    namedValues.Add("UnitParty", values[14]);
+                    namedValues.Add("UnitStatus", values[15]);
+                    namedValues.Add("UnitWarrantyType", values[16]);
+                    namedValues.Add("UnitWarrantyExpiryDate", values[17]);
+                    namedValues.Add("UnitBarcode", values[18]);
 
-                        var _Case = new Case();
-                        _Case.Lamp = lamp.Id;
-                        _Case.Unit = unit.Id;
 
-                        fillCase(_Case, reader);
-                        fillLamp(lamp, reader);
-                        fillUnit(unit, reader);
+                    //using (SqlCeCommand query = dbWorker.NewQuery(sql))
+                    //    {
+                    //    using (var reader = query.ExecuteReader())
+                    //        {
+                    //        while (reader.Read())
+
+                    var lamp = new Lamp();
+                    var unit = new Unit();
+                    var _Case = new Case();
+
+                    fillCase(_Case, namedValues);
+                    fillLamp(lamp, namedValues);
+                    fillUnit(unit, namedValues);
+
+                    if (caseExists)
+                        {
+                        bool updateCase = false;
+
+                        if (caseInfo.HasNotLamp)
+                            {
+                            if (lamp.Model <= 0)
+                                {
+                                lamp = null;
+                                }
+                            else
+                                {
+                                updateCase = true; // lamp will be written
+                                }
+                            }
+                        else
+                            {
+                            lamp.Id = caseInfo.Lamp;
+                            }
+
+                        if (caseInfo.HasNotUnit)
+                            {
+                            if (unit.Model <= 0)
+                                {
+                                unit = null;
+                                }
+                            else
+                                {
+                                updateCase = true; // unit will be written
+                                }
+                            }
+                        else
+                            {
+                            unit.Id = caseInfo.Unit;
+                            }
+
+                        if (caseInfo.HasNotPosition && _Case.Map > 0)
+                            {
+                            updateCase = true;
+                            }
+
+                        if (updateCase)
+                            {
+                            Trace.WriteLine("Updated");
+                            Configuration.Current.Repository.SaveAccessoriesSet(_Case, lamp, unit);
+                            }
+                        }
+                    else
+                        {
+                        if (lamp.Model > 0)
+                            {
+                            lamp.Id = Configuration.Current.Repository.GetNextLampId();
+                            _Case.Lamp = lamp.Id;
+                            lamps.Add(lamp);
+                            }
+
+                        if (unit.Model > 0)
+                            {
+                            unit.Id = Configuration.Current.Repository.GetNextUnitId();
+                            _Case.Unit = unit.Id;
+                            units.Add(unit);
+                            }
 
                         cases.Add(_Case);
-                        lamps.Add(lamp);
-                        units.Add(unit);
+                        Trace.WriteLine(rowNumber);
+                        rowNumber++;
                         }
+
                     }
                 }
 
-            Configuration.Current.Repository.InsertLamps(lamps);
-            Configuration.Current.Repository.InsertUnits(units);
-            Configuration.Current.Repository.InsertCases(cases);
+            bool ok = Configuration.Current.Repository.InsertLamps(lamps);
+            ok = Configuration.Current.Repository.InsertUnits(units) && ok;
+            ok = Configuration.Current.Repository.InsertCases(cases) && ok;
 
-            return true;
+            Trace.WriteLine(string.Format("Total result: {0}", ok ? "OK" : "Failure"));
+
+            return;
             }
 
-        private void fillUnit(Unit accessory, SqlCeDataReader reader)
+        string connectionString = String.Format("Data Source='{0}';", Configuration.Current.PathToApplication + '\\' + SqlCeRepository.DATABASE_FILE_NAME);
+        private SqlCeConnection getOpenedConnection()
+            {
+            var conn = new SqlCeConnection(connectionString);
+            try
+                {
+                conn.Open();
+                }
+            catch (Exception exp)
+                {
+                MessageBox.Show(string.Format("Ошибка подключения к базе: {0}", exp.Message));
+                return null;
+                }
+
+            return conn;
+            }
+
+        private Dictionary<int, CaseInfo> getExistsCases()
+            {
+            var result = new Dictionary<int, CaseInfo>();
+
+            using (var conn = getOpenedConnection())
+                {
+                using (var cmd = conn.CreateCommand())
+                    {
+                    cmd.CommandText = @"select Id, Lamp, Unit, Map, Register, Position from cases";
+
+                    using (var reader = cmd.ExecuteReader())
+                        {
+                        while (reader.Read())
+                            {
+                            var caseInfo = new CaseInfo();
+                            result.Add((int)reader["Id"], caseInfo);
+
+                            caseInfo.Lamp = (int)reader["Lamp"];
+                            caseInfo.Unit = (int)reader["Unit"];
+                            caseInfo.Map = (int)reader["Map"];
+
+                            caseInfo.Register = (Int16)reader["Register"];
+                            caseInfo.Position = (byte)reader["Position"];
+                            }
+                        }
+                    }
+                }
+            return result;
+            }
+
+        private void fillUnit(Unit accessory, Dictionary<string, object> reader)
             {
             accessory.Model = Convert.ToInt16(reader["UnitModel"]);
             accessory.Party = Convert.ToInt32(reader["UnitParty"]);
             accessory.Status = Convert.ToByte(reader["UnitStatus"]);
-
-            object warrantyExpiryDate = reader["UnitWarrantyExpiryDate"];
-            bool emptyDate = warrantyExpiryDate == null || DBNull.Value.Equals(warrantyExpiryDate);
-            accessory.WarrantyExpiryDate = emptyDate ? DateTime.MinValue : (DateTime)warrantyExpiryDate;
+            accessory.WarrantyExpiryDate = getDate(reader["UnitWarrantyExpiryDate"]);
 
             accessory.Barcode = Convert.ToInt32(reader["UnitBarcode"]);
 
@@ -130,26 +284,27 @@ order by LampWarrantyExpiryDate
             accessory.RepairWarranty = warrantyType == TypesOfLampsWarrantly.Repair;
             }
 
-        private void fillLamp(Lamp accessory, SqlCeDataReader reader)
+        private DateTime getDate(object value)
+            {
+            bool emptyDate = "NULL".Equals(value) || value == null || DBNull.Value.Equals(value);
+            return emptyDate ? DateTime.MinValue : Convert.ToDateTime(value);
+            }
+
+        private void fillLamp(Lamp accessory, Dictionary<string, object> reader)
             {
             accessory.Model = Convert.ToInt16(reader["LampModel"]);
             accessory.Party = Convert.ToInt32(reader["LampParty"]);
             accessory.Status = Convert.ToByte(reader["LampStatus"]);
-
-            object warrantyExpiryDate = reader["LampWarrantyExpiryDate"];
-            bool emptyDate = warrantyExpiryDate == null || DBNull.Value.Equals(warrantyExpiryDate);
-            accessory.WarrantyExpiryDate = emptyDate ? DateTime.MinValue : (DateTime)warrantyExpiryDate;
+            accessory.WarrantyExpiryDate = getDate(reader["LampWarrantyExpiryDate"]);
             }
 
-        private void fillCase(Case accessory, SqlCeDataReader reader)
+        private void fillCase(Case accessory, Dictionary<string, object> reader)
             {
             accessory.Model = Convert.ToInt16(reader["CaseModel"]);
             accessory.Party = Convert.ToInt32(reader["CaseParty"]);
             accessory.Status = Convert.ToByte(reader["CaseStatus"]);
+            accessory.WarrantyExpiryDate = getDate(reader["CaseWarrantyExpiryDate"]);
 
-            object warrantyExpiryDate = reader["CaseWarrantyExpiryDate"];
-            bool emptyDate = warrantyExpiryDate == null || DBNull.Value.Equals(warrantyExpiryDate);
-            accessory.WarrantyExpiryDate = emptyDate ? DateTime.MinValue : (DateTime)warrantyExpiryDate;
 
             accessory.Id = Convert.ToInt32(reader["Id"]);
 
@@ -267,6 +422,9 @@ left join Contractors on Contractors.Id = p.Contractor"))
             enterButton = MainProcess.CreateButton("Enter", 10, 275, 220, 35, "enter", () => OnBarcode("L" + int.MaxValue.ToString()));
 
 
+
+            MainProcess.CreateButton("Load database", 10, 220, 220, 35, "WifiOff", checkAllLamps);
+
             wifiOffButton = MainProcess.CreateButton("Wifi on/off", 10, 65, 220, 35, "WifiOff", () =>
                 {
                     bool startStatus = MainProcess.ConnectionAgent.WifiEnabled;
@@ -326,5 +484,42 @@ left join Contractors on Contractors.Id = p.Contractor"))
                 }
             }
         #endregion
+        }
+
+    class CaseInfo
+        {
+        public int Lamp;
+
+        public int Unit;
+
+        public int Map;
+
+        public Int16 Register;
+
+        public byte Position;
+
+        public bool HasNotLamp
+            {
+            get
+                {
+                return Lamp == 0;
+                }
+            }
+
+        public bool HasNotUnit
+            {
+            get
+                {
+                return Unit == 0;
+                }
+            }
+
+        public bool HasNotPosition
+            {
+            get
+                {
+                return Map == 0;
+                }
+            }
         }
     }
