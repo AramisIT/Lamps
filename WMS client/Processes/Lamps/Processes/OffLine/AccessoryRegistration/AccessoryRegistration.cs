@@ -52,6 +52,8 @@ namespace WMS_client
         public AccessoryRegistration(WMSClient MainProcess, TypeOfAccessories requaredAccessoryType)
             : base(MainProcess, 1)
             {
+            StopNetworkConnection();
+
             accessoriesSet = new AccessoriesSet();
 
 
@@ -171,6 +173,8 @@ namespace WMS_client
             drawPropertiesButtons();
 
             drawActionButtons();
+
+            updateCurrentTopic();
             }
 
         private void initAccessoriesSet(int intBarcode)
@@ -351,6 +355,7 @@ namespace WMS_client
         private void setNewCurrentAccessory(IAccessory accessory)
             {
             requaredAccessoryType = accessory.GetAccessoryType();
+            updateCurrentTopic();
             accessoriesSet.CurrentAccessory = accessory;
             updatePropertiesButtonsText();
             updateButtonsEnabling();

@@ -26,13 +26,13 @@ namespace WMS_client
             {
             BusinessProcessType = ProcessType.Registration;
 
-            bool systemReady = CheckNewDataBase();
+            //bool systemReady = CheckNewDataBase();
 
-            if (!systemReady)
-                {
-                ShowMessage("База данных не актуальна. Нужно обновить приложение или базу данных.");
-                enterButton.Enabled = false;
-                }
+            //if (!systemReady)
+            //    {
+            //    ShowMessage("База данных не актуальна. Нужно обновить приложение или базу данных.");
+            //    enterButton.Enabled = false;
+            //    }
             }
 
         private bool CheckNewDataBase()
@@ -424,7 +424,7 @@ left join Contractors on Contractors.Id = p.Contractor"))
 
 
 
-            MainProcess.CreateButton("Load database", 10, 220, 220, 35, "WifiOff", checkAllLamps);
+           // MainProcess.CreateButton("Load database", 10, 220, 220, 35, "WifiOff", checkAllLamps);
 
             wifiOffButton = MainProcess.CreateButton("Wifi on/off", 10, 65, 220, 35, "WifiOff", () =>
                 {

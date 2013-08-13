@@ -24,6 +24,7 @@ namespace WMS_client
         public AccessoriesGroupRegistration(WMSClient MainProcess)
             : base(MainProcess, 1)
             {
+            StopNetworkConnection();
             }
 
         public override sealed void DrawControls()
