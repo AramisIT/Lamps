@@ -228,6 +228,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="LampsBase.sdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="media_player.ico" />
     <Content Include="PDT_ID.txt">

@@ -90,7 +90,8 @@ order by LampWarrantyExpiryDate
             string fileRow;
             var namedValues = new Dictionary<string, object>();
 
-            using (StreamReader sqlResultFile = File.OpenText(@"\Storage Card\result2.txt"))
+            using (StreamReader sqlResultFile = File.OpenText(
+                Configuration.Current.PathToApplication + @"\result2.txt"))
                 {
                 while ((fileRow = sqlResultFile.ReadLine()) != null)
                     {
