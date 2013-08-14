@@ -8,7 +8,7 @@ namespace WMS_client.db
     /// <summary>Электронный блок</summary>
     public class ElectronicUnits : Accessory
         {
-        private long _case = -1;
+        private long _Case = -1;
 
         /// <summary>Корпус</summary>
         public long Case
@@ -17,11 +17,11 @@ namespace WMS_client.db
                 {
                 //if (_case < 0)
                     {
-                    _case = CatalogHelper.FindCaseId(Id, TypeOfAccessories.ElectronicUnit);
+                    _Case = CatalogHelper.FindCaseId(Id, TypeOfAccessories.ElectronicUnit);
                     }
-                    return _case;
+                    return _Case;
                 }
-            set { _case = value; }
+            set { _Case = value; }
             }
 
         /// <summary>Получить ID блока (без BC) по корпусу</summary>

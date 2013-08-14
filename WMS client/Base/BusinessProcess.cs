@@ -88,10 +88,10 @@ namespace WMS_client
 
         protected void StopNetworkConnection()
             {
-            //#if Release
             bool release = true;
-
-            //release = false;
+#if DEBUG
+            release = false;
+#endif
             if (release)
                 {
                 bool startStatus = MainProcess.ConnectionAgent.WifiEnabled;
@@ -100,7 +100,6 @@ namespace WMS_client
                     MainProcess.ConnectionAgent.StopConnection();
                     }
                 }
-            //#endif
             }
 
         protected void StartNetworkConnection()

@@ -54,18 +54,18 @@ namespace WMS_client.Processes.Lamps
             {
             if (barcode.IsAccessoryBarcode())
                 {
-                Case _case = Configuration.Current.Repository.ReadCase(barcode.GetIntegerBarcode());
-                if (_case == null)
+                Case _Case = Configuration.Current.Repository.ReadCase(barcode.GetIntegerBarcode());
+                if (_Case == null)
                     {
                     ShowMessage("Не знайдено корпусу з таким штрих-кодом!");
                     return;
                     }
 
-                _case.Map = map;
-                _case.Register = register;
-                _case.Position = position;
-                _case.Status = (int)TypesOfLampsStatus.IsWorking;
-                Configuration.Current.Repository.UpdateCase(_case);
+                _Case.Map = map;
+                _Case.Register = register;
+                _Case.Position = position;
+                _Case.Status = (int)TypesOfLampsStatus.IsWorking;
+                Configuration.Current.Repository.UpdateCase(_Case);
 
                 leaveProcess();
                 }

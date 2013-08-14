@@ -14,7 +14,7 @@ namespace WMS_client
     /// <summary>"Строитель редактирования"</summary>
     public class AccessoriesGroupRegistration : BusinessProcess
         {
-        private Case _case;
+        private Case _Case;
         private Lamp lamp;
         private Unit unit;
         private List<int> barcodes = new List<int>();
@@ -66,15 +66,15 @@ namespace WMS_client
                     return;
                     }
 
-                _case = Configuration.Current.Repository.ReadCase(barcode.GetIntegerBarcode());
-                if (_case == null)
+                _Case = Configuration.Current.Repository.ReadCase(barcode.GetIntegerBarcode());
+                if (_Case == null)
                     {
                     MessageBox.Show("Корпус не знайдено!");
                     return;
                     }
 
-                lamp = Configuration.Current.Repository.ReadLamp(_case.Lamp);
-                unit = Configuration.Current.Repository.ReadUnit(_case.Unit);
+                lamp = Configuration.Current.Repository.ReadLamp(_Case.Lamp);
+                unit = Configuration.Current.Repository.ReadUnit(_Case.Unit);
 
                 if (lamp == null || unit == null)
                     {
@@ -104,7 +104,7 @@ namespace WMS_client
 
         private void complateOperation()
             {
-            if (Configuration.Current.Repository.SaveGroupOfSets(_case, lamp, unit, barcodes))
+            if (Configuration.Current.Repository.SaveGroupOfSets(_Case, lamp, unit, barcodes))
                 {
                 barcodes.Clear();
                 exit();

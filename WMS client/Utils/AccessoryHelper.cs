@@ -33,6 +33,11 @@ namespace WMS_client
             return Configuration.Current.Repository.GetModel(accessory.Model).Description;
             }
 
+        public static string GetMapDescription(this Case _Case)
+            {
+            return (Configuration.Current.Repository.GetMap(_Case.Map) ?? new Map()).Description;
+            }
+
         public static string GetPartyDescription(this IAccessory accessory)
             {
             return Configuration.Current.Repository.GetParty(accessory.Party).Description;

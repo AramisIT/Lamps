@@ -122,7 +122,7 @@ namespace WMS_client.Repositories
                 }
             }
 
-        public bool SaveGroupOfSets(Case _case, Lamp lamp, Unit unit, List<int> barcodes)
+        public bool SaveGroupOfSets(Case _Case, Lamp lamp, Unit unit, List<int> barcodes)
             {
             List<Unit> units = new List<Unit>();
             List<Lamp> lamps = new List<Lamp>();
@@ -138,7 +138,7 @@ namespace WMS_client.Repositories
                 newUnit.Id = GetNextUnitId();
                 units.Add(newUnit);
 
-                var newCase = _case.Copy<Case>();
+                var newCase = _Case.Copy<Case>();
                 newCase.Id = barcode;
                 newCase.Lamp = newLamp.Id;
                 newCase.Unit = newUnit.Id;
@@ -148,7 +148,7 @@ namespace WMS_client.Repositories
             return InsertUnits(units) && InsertLamps(lamps) && InsertCases(cases);
             }
 
-        public bool SaveAccessoriesSet(Case _case, Lamp lamp, Unit unit)
+        public bool SaveAccessoriesSet(Case _Case, Lamp lamp, Unit unit)
             {
             bool ok = true;
 
@@ -188,21 +188,21 @@ namespace WMS_client.Repositories
                 }
 
 
-            if (_case != null)
+            if (_Case != null)
                 {
-                _case.Lamp = lamp == null ? 0 : lamp.Id;
-                _case.Unit = unit == null ? 0 : unit.Id;
+                _Case.Lamp = lamp == null ? 0 : lamp.Id;
+                _Case.Unit = unit == null ? 0 : unit.Id;
 
-                if (!UpdateCase(_case))
+                if (!UpdateCase(_Case))
                     {
-                    ok = ok && InsertCases(new List<Case>() { _case });
+                    ok = ok && InsertCases(new List<Case>() { _Case });
                     }
                 }
 
             return ok;
             }
 
-        public bool UpdateCase(Case _case)
+        public bool UpdateCase(Case _Case)
             {
             using (var conn = getOpenedConnection())
                 {
@@ -211,78 +211,49 @@ namespace WMS_client.Repositories
                     cmd.CommandType = CommandType.TableDirect;
                     cmd.CommandText = "Cases";
                     cmd.Connection = conn;
-                    cmd.IndexName = "Id";
+                    cmd.IndexName = "PK_Cases";
 
-                    using (var result = cmd.ExecuteResultSet(RESULT_SET_OPTIONS))
+                    using (var result = cmd.ExecuteResultSet(UPDATABLE_RESULT_SET_OPTIONS))
                         {
-                        if (result.Seek(DbSeekOptions.FirstEqual, _case.Id))
+                        if (result.Seek(DbSeekOptions.FirstEqual, _Case.Id))
                             {
                             result.Read();
-                            
-                            result.SetInt32(result.GetOrdinal("Map"), _case.Map);
-                            result.SetInt16(result.GetOrdinal("Register"), _case.Register);
-                            result.SetByte(result.GetOrdinal("Position"), _case.Position);
+
+                            result.SetInt16(CasesTable.Model, _Case.Model);
+                            result.SetInt32(CasesTable.Party, _Case.Party);
+                            result.SetByte(CasesTable.Status, _Case.Status);
+                            result.SetBoolean(CasesTable.RepairWarranty, _Case.RepairWarranty);
+
+                            result.SetValue(CasesTable.WarrantyExpiryDate, getSqlDateTime(_Case.WarrantyExpiryDate));
+
+                            result.SetInt32(CasesTable.Lamp, _Case.Lamp);
+                            result.SetInt32(CasesTable.Unit, _Case.Unit);
+
+                            result.SetInt32(CasesTable.Map, _Case.Map);
+                            result.SetInt16(CasesTable.Register, _Case.Register);
+                            result.SetByte(CasesTable.Position, _Case.Position);
 
                             result.Update();
+
+                            return true;
+                            }
+                        else
+                            {
+                            return false;
                             }
                         }
                     }
                 }
+            }
 
-            return false;
-
-            //        using (var cmd = new getop)
-            //{
-            //    cmd.CommandType = CommandType.TableDirect;
-            //    cmd.CommandText = "MyTableName";
-            //    cmd.Connection = connection;
-            //    cmd.IndexName = "PrimakryKeyIndexName";
-
-            //    using (var result = cmd.ExecuteResultSet(
-            //                        ResultSetOptions.Scrollable | ResultSetOptions.Updatable))
-            //    {
-            //        int pkValue = 100; // set this, obviously
-
-            //        if (result.Seek(DbSeekOptions.FirstEqual, pkValue))
-            //        {
-            //            // row exists, need to update
-            //            result.Read();
-
-            //            // set values
-            //            result.SetInt32(0, 1);
-            //            // etc. 
-
-            //            result.Update();
-            //        }
-            //        else
-            //        {
-            //            // row doesn't exist, insert
-            //            var record = result.CreateRecord();
-
-            //            // set values
-            //            record.SetInt32(0, 1);
-            //            // etc. 
-
-            //            result.Insert(record);
-            //        }
-
-
-            //            const string sql = @"update Cases 
-            //set Model = @Model, Party = @Party, WarrantyExpiryDate = @WarrantyExpiryDate, Status = @Status,
-            //RepairWarranty = @RepairWarranty, Lamp = @Lamp, Unit = @Unit, Map = @Map, Register = @Register, Position = @Position
-            //where Id = @Id";
-
-            //            return updateAccessory(true, _case.Id, "CasesUpdating", sql, (parameters) =>
-            //                {
-            //                    fillSqlCmdParametersFromAccessory(parameters, _case);
-            //                    fillSqlCmdParametersFromFixableAccessory(parameters, _case);
-
-            //                    parameters.AddWithValue("Lamp", _case.Lamp);
-            //                    parameters.AddWithValue("Unit", _case.Unit);
-            //                    parameters.AddWithValue("Map", _case.Map);
-            //                    parameters.AddWithValue("Register", _case.Register);
-            //                    parameters.AddWithValue("Position", _case.Position);
-            //                });
+        private object getSqlDateTime(DateTime dateTime)
+            {
+            object result = DBNull.Value;
+            if (!DateTime.MinValue.Equals(dateTime))
+                {
+                result = dateTime;
+                }
+            return result;
             }
 
         private bool updateLamp(Lamp lamp)
@@ -305,13 +276,13 @@ where Id = @Id";
 
             bool saved = accessoryInserter.InsertAccessories((newRow, accessory) =>
             {
-                Case _case = (Case)accessory;
-                newRow["Lamp"] = _case.Lamp;
-                newRow["Unit"] = _case.Unit;
+                Case _Case = (Case)accessory;
+                newRow["Lamp"] = _Case.Lamp;
+                newRow["Unit"] = _Case.Unit;
 
-                newRow["Map"] = _case.Map;
-                newRow["Register"] = _case.Register;
-                newRow["Position"] = _case.Position;
+                newRow["Map"] = _Case.Map;
+                newRow["Register"] = _Case.Register;
+                newRow["Position"] = _Case.Position;
             });
 
             if (!saved)
@@ -436,11 +407,7 @@ where Id = @Id";
                 {
                 return null;
                 }
-
-            const string sql =
-               "select Id, Lamp, Unit, Model, Party, WarrantyExpiryDate, Status, RepairWarranty, Map, Register, Position from Cases where Id = @Predicate";
-
-            return (Case)readAccessory(sql, id, createCase);
+            return (Case)getAccessory("Cases", "PK_Cases", id, createCase);
             }
 
         public Case FintCaseByLamp(int lampId)
@@ -449,12 +416,35 @@ where Id = @Id";
                 {
                 return null;
                 }
+            return (Case)getAccessory("Cases", "Cases_Lamp", lampId, createCase);
+            }
 
-            const string sql =
-               @"select Id, Lamp, Unit, Model, Party, WarrantyExpiryDate, Status, RepairWarranty, Map, Register, Position from Cases 
-                where Lamp = @Predicate";
+        private IAccessory getAccessory(string tableName, string indexName, int predicateValue, Func<SqlCeResultSet, IAccessory> createAccesoryMethod)
+            {
+            using (var conn = getOpenedConnection())
+                {
+                using (var cmd = conn.CreateCommand())
+                    {
+                    cmd.CommandType = CommandType.TableDirect;
+                    cmd.CommandText = tableName;
+                    cmd.Connection = conn;
+                    cmd.IndexName = indexName;
 
-            return (Case)readAccessory(sql, lampId, createCase);
+                    using (var result = cmd.ExecuteResultSet(READ_ONLY_RESULT_SET_OPTIONS))
+                        {
+                        if (result.Seek(DbSeekOptions.FirstEqual, predicateValue))
+                            {
+                            result.Read();
+
+                            return createAccesoryMethod(result);
+                            }
+                        else
+                            {
+                            return null;
+                            }
+                        }
+                    }
+                }
             }
 
         public Case FintCaseByUnit(int unitId)
@@ -464,11 +454,7 @@ where Id = @Id";
                 return null;
                 }
 
-            const string sql =
-               @"select Id, Lamp, Unit, Model, Party, WarrantyExpiryDate, Status, RepairWarranty, Map, Register, Position from Cases 
-                where Unit = @Predicate";
-
-            return (Case)readAccessory(sql, unitId, createCase);
+            return (Case)getAccessory("Cases", "Cases_Unit", unitId, createCase);
             }
 
         public Unit ReadUnit(int id)
@@ -478,10 +464,7 @@ where Id = @Id";
                 return null;
                 }
 
-            const string sql =
-               "select Id, Model, Party, WarrantyExpiryDate, Status, Barcode, RepairWarranty from Units where Id = @Predicate";
-
-            return (Unit)readAccessory(sql, id, createUnit);
+            return (Unit)getAccessory("Units", "PK_Units", id, createUnit);
             }
 
         public Unit ReadUnitByBarcode(int barcode)
@@ -491,10 +474,7 @@ where Id = @Id";
                 return null;
                 }
 
-            const string sql =
-                "select Id, Model, Party, WarrantyExpiryDate, Status, Barcode, RepairWarranty from Units where Barcode = @Predicate";
-
-            return (Unit)readAccessory(sql, barcode, createUnit);
+            return (Unit)getAccessory("Units", "Units_Barcode", barcode, createUnit);
             }
 
         public Lamp ReadLamp(int id)
@@ -504,10 +484,7 @@ where Id = @Id";
                 return null;
                 }
 
-            const string sql =
-                 "select Id, Model, Party, WarrantyExpiryDate, Status, Barcode from Lamps where Id = @Predicate";
-
-            return (Lamp)readAccessory(sql, id, createLamp);
+            return (Lamp)getAccessory("Lamps", "PK_Lamps", id, createLamp);
             }
 
         public Lamp ReadLampByBarcode(int barcode)
@@ -517,10 +494,7 @@ where Id = @Id";
                 return null;
                 }
 
-            const string sql =
-                "select Id, Model, Party, WarrantyExpiryDate, Status, Barcode from Lamps where Barcode = @Predicate";
-
-            return (Lamp)readAccessory(sql, barcode, createLamp);
+            return (Lamp)getAccessory("Lamps", "Lamps_Barcode", barcode, createLamp);
             }
 
         #region private
@@ -556,7 +530,8 @@ where Id = @Id";
         private readonly int minLampUnitId;
         private readonly int maxLampUnitId;
 
-        public const ResultSetOptions RESULT_SET_OPTIONS = ResultSetOptions.Scrollable | ResultSetOptions.Sensitive | ResultSetOptions.Updatable;
+        public const ResultSetOptions UPDATABLE_RESULT_SET_OPTIONS = ResultSetOptions.Scrollable | ResultSetOptions.Sensitive | ResultSetOptions.Updatable;
+        public const ResultSetOptions READ_ONLY_RESULT_SET_OPTIONS = ResultSetOptions.Scrollable | ResultSetOptions.Sensitive;
 
         private CatalogCache<int, PartyModel> partiesCache;
         private CatalogCache<int, Map> mapsCache;
@@ -679,55 +654,69 @@ where Id = @Id";
                 }
             }
 
-        private Case createCase(SqlCeDataReader reader)
+        private Case createCase(SqlCeResultSet resultSet)
             {
-            var _case = new Case();
+            var _Case = new Case();
 
-            fillAccessoryFromDataReader(_case, reader);
-            fillFixableAccessoryFromDataReader(_case, reader);
+            _Case.Id = resultSet.GetInt32(CasesTable.Id);
+            _Case.Lamp = resultSet.GetInt32(CasesTable.Lamp);
+            _Case.Unit = resultSet.GetInt32(CasesTable.Unit);
 
-            _case.Lamp = (int)reader["Lamp"];
-            _case.Unit = (int)reader["Unit"];
-            _case.Map = (int)reader["Map"];
-            _case.Register = (Int16)reader["Register"];
-            _case.Position = (byte)reader["Position"];
+            _Case.Model = resultSet.GetInt16(CasesTable.Model);
+            _Case.Party = resultSet.GetInt32(CasesTable.Party);
 
-            return _case;
+            object warrantyExpiryDateObj = resultSet.GetValue(CasesTable.WarrantyExpiryDate);
+            _Case.WarrantyExpiryDate = DBNull.Value.Equals(warrantyExpiryDateObj)
+                ? DateTime.MinValue
+                : (DateTime)warrantyExpiryDateObj;
+
+            _Case.Status = resultSet.GetByte(CasesTable.Status);
+            _Case.RepairWarranty = resultSet.GetBoolean(CasesTable.RepairWarranty);
+
+            _Case.Map = resultSet.GetInt32(CasesTable.Map);
+            _Case.Register = resultSet.GetInt16(CasesTable.Register);
+            _Case.Position = resultSet.GetByte(CasesTable.Position);
+
+            return _Case;
             }
 
-        private Unit createUnit(SqlCeDataReader reader)
+        private Unit createUnit(SqlCeResultSet resultSet)
             {
             var unit = new Unit();
 
-            fillAccessoryFromDataReader(unit, reader);
-            fillBarcodeAccessoryFromDataReader(unit, reader);
-            fillFixableAccessoryFromDataReader(unit, reader);
+            unit.Id = resultSet.GetInt32(UnitsTable.Id);
+            unit.Model = resultSet.GetInt16(UnitsTable.Model);
+            unit.Party = resultSet.GetInt32(UnitsTable.Party);
+
+            object warrantyExpiryDateObj = resultSet.GetValue(UnitsTable.WarrantyExpiryDate);
+            unit.WarrantyExpiryDate = DBNull.Value.Equals(warrantyExpiryDateObj)
+                ? DateTime.MinValue
+                : (DateTime)warrantyExpiryDateObj;
+
+            unit.Status = resultSet.GetByte(UnitsTable.Status);
+            unit.RepairWarranty = resultSet.GetBoolean(UnitsTable.RepairWarranty);
+            unit.Barcode = resultSet.GetInt32(UnitsTable.Barcode);
 
             return unit;
             }
 
-        private Lamp createLamp(SqlCeDataReader reader)
+        private Lamp createLamp(SqlCeResultSet resultSet)
             {
             var lamp = new Lamp();
 
-            fillAccessoryFromDataReader(lamp, reader);
-            fillBarcodeAccessoryFromDataReader(lamp, reader);
+            lamp.Id = resultSet.GetInt32(LampsTable.Id);
+            lamp.Model = resultSet.GetInt16(LampsTable.Model);
+            lamp.Party = resultSet.GetInt32(LampsTable.Party);
 
-            return lamp;
-            }
-
-        private void fillAccessoryFromDataReader(IAccessory accessory, SqlCeDataReader reader)
-            {
-            accessory.Id = (int)reader["Id"];
-            accessory.Model = (Int16)reader["Model"];
-            accessory.Party = (int)reader["Party"];
-
-            object warrantyExpiryDateObj = reader["WarrantyExpiryDate"];
-            accessory.WarrantyExpiryDate = DBNull.Value.Equals(warrantyExpiryDateObj)
+            object warrantyExpiryDateObj = resultSet.GetValue(LampsTable.WarrantyExpiryDate);
+            lamp.WarrantyExpiryDate = DBNull.Value.Equals(warrantyExpiryDateObj)
                 ? DateTime.MinValue
                 : (DateTime)warrantyExpiryDateObj;
 
-            accessory.Status = (byte)reader["Status"];
+            lamp.Status = resultSet.GetByte(LampsTable.Status);
+            lamp.Barcode = resultSet.GetInt32(LampsTable.Barcode);
+
+            return lamp;
             }
 
         private void fillSqlCmdParametersFromAccessory(SqlCeParameterCollection parameters, IAccessory accessory)
@@ -755,15 +744,9 @@ where Id = @Id";
             parameters.AddWithValue("Barcode", accessory.Barcode);
             }
 
-        private void fillBarcodeAccessoryFromDataReader(IBarcodeAccessory accessory, SqlCeDataReader reader)
-            {
-            accessory.Barcode = (int)reader["Barcode"];
-            }
 
-        private void fillFixableAccessoryFromDataReader(IFixableAccessory accessory, SqlCeDataReader reader)
-            {
-            accessory.RepairWarranty = (bool)reader["RepairWarranty"];
-            }
+
+
 
         private int getNextId(string tableName)
             {

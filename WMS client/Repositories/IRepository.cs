@@ -48,12 +48,12 @@ namespace WMS_client.Repositories
 
         Lamp ReadLamp(int id);
 
-        bool UpdateCase(Case _case);
+        bool UpdateCase(Case _Case);
 
         bool WriteMap(Map map);
 
-        bool SaveAccessoriesSet(Case _case, Lamp lamp, Unit unit);
+        bool SaveAccessoriesSet(Case _Case, Lamp lamp, Unit unit);
 
-        bool SaveGroupOfSets(Case _case, Lamp lamp, Unit unit, List<int> barcodes);
+        bool SaveGroupOfSets(Case _Case, Lamp lamp, Unit unit, List<int> barcodes);
         }
     }

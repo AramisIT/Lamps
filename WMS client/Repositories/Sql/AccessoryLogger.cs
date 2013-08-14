@@ -39,7 +39,7 @@ namespace WMS_client.Repositories
                         {
                         sqlCeSelectCommand.CommandText = tableName;
                         sqlCeSelectCommand.CommandType = System.Data.CommandType.TableDirect;
-                        sqlCeSelectCommand.ExecuteResultSet(SqlCeRepository.RESULT_SET_OPTIONS, this);
+                        sqlCeSelectCommand.ExecuteResultSet(SqlCeRepository.UPDATABLE_RESULT_SET_OPTIONS, this);
 
                         foreach (var accessory in accessotyList)
                             {

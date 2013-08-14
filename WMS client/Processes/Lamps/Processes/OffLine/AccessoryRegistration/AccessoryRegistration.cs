@@ -37,6 +37,7 @@ namespace WMS_client
         private bool newAccesory;
         private bool registrationAdditionalAccessory;
         private bool waitingForBarcode;
+        private MobileLabel positionLabel;
 
         /// <summary>Напис кнопки для збереження данних (завершення гілки)</summary>
         private const string okBtnText = "Ок";
@@ -275,6 +276,9 @@ namespace WMS_client
             warrantyExpiryDateButton = MainProcess.CreateButton(string.Empty, 5, top, 230, 20, string.Empty, propertyButton_Click,
                 new PropertyButtonInfo() { PropertyName = "WarrantyExpiryDate", PropertyDescription = "Завершення гарантії", PropertyType = typeof(DateTime) });
 
+            top += delta;
+
+            positionLabel = MainProcess.CreateLabel("", 5, top + 5, 230, ControlsStyle.LabelSmall);
             updatePropertiesButtonsText();
             }
 
@@ -287,6 +291,25 @@ namespace WMS_client
             partyDateButton.Text = string.Format("Дата партії: {0}", accessoriesSet.CurrentAccessory.GetPartyDate());
             warrantyTypeButton.Text = string.Format("Тип гарантії: {0}", accessoriesSet.CurrentAccessory.GetWarrantyType());
             warrantyExpiryDateButton.Text = string.Format("Завершення гарантії: {0}", accessoriesSet.CurrentAccessory.GetWarrantyExpiryDate());
+
+            if (accessoriesSet.Case != null)
+                {
+                string position = string.Empty;
+                if (accessoriesSet.CurrentAccessory is Case)
+                    {
+                    if (accessoriesSet.Case.Map > 0)
+                        {
+                        position = string.Format("Карта {0}; регістр: {1}; позиція: {2}",
+                            accessoriesSet.Case.GetMapDescription(),
+                            accessoriesSet.Case.Register, accessoriesSet.Case.Position);
+                        }
+                    else
+                        {
+                        position = "Не встановлений на карті";
+                        }
+                    }
+                positionLabel.Text = position;
+                }
             }
 
         private void propertyButton_Click(object sender)
@@ -302,7 +325,7 @@ namespace WMS_client
         /// </summary>
         private void drawActionButtons()
             {
-            const int top = 235;
+            const int top = 280;
             const int height = 35;
 
             caseButton = MainProcess.CreateButton("Корпус", 5, top, 60, height, string.Empty, caseButton_click);
@@ -363,6 +386,12 @@ namespace WMS_client
 
         private void okButton_click()
             {
+            if (!checkModels())
+                {
+                MessageBox.Show("Необхідно заповнити моделі");
+                return;
+                }
+
             if (
                 !Configuration.Current.Repository.SaveAccessoriesSet(accessoriesSet.Case, accessoriesSet.Lamp,
                     accessoriesSet.Unit))
@@ -374,20 +403,29 @@ namespace WMS_client
             exit();
             }
 
+        private bool checkModels()
+            {
+            if (accessoriesSet.Case != null && accessoriesSet.Case.Model <= 0)
+                {
+                return false;
+                }
+
+            if (accessoriesSet.Lamp != null && accessoriesSet.Lamp.Model <= 0)
+                {
+                return false;
+                }
+
+            if (accessoriesSet.Unit != null && accessoriesSet.Unit.Model <= 0)
+                {
+                return false;
+                }
+
+            return true;
+            }
+
         private void exit()
             {
             OnHotKey(KeyAction.Esc);
-            }
-
-        private void showWriteErrorMessage()
-            {
-            //Для того щоб не зберігали "пусті" документи
-            MessageBox.Show(
-                "Комплектуюче без моделі збережено не буде!\r\nВідредагуйте дані!",
-                "Збереження..",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Asterisk,
-                MessageBoxDefaultButton.Button1);
             }
 
         /// <summary>Чи вірні дані про гарантію?</summary>
