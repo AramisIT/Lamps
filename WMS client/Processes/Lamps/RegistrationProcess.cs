@@ -43,184 +43,184 @@ namespace WMS_client
 
         private void checkAllLamps()
             {
-            #region sql command
-            const string sql = @"
-select
+//            #region sql command
+//            const string sql = @"
+//select
+//
+//Cast(SUBSTRING(c.barcode, 2, 24) as int) Id,
+//c.Model CaseModel, c.Party CaseParty, 
+//c.DateOfWarrantyEnd CaseWarrantyExpiryDate,
+//c.Status CaseStatus, 
+//c.TypeOfWarrantly CaseWarrantyType,
+//cast(c.map as int) [Map],
+//cast(c.Register as smallint) Register,
+//cast(c.Position as TinyInt) Position,
+//
+//
+//case when l.Model is null then 0 else l.Model end LampModel,
+//case when l.Party is null then 0 else l.Party end LampParty,
+//case when l.Status is null then 0 else l.Status end LampStatus,
+//case when l.DateOfWarrantyEnd = cast('1753-01-01' as datetime) then null else l.DateOfWarrantyEnd end LampWarrantyExpiryDate,
+//
+//case when u.Model is null then 0 else u.Model end UnitModel,
+//case when u.Party is null then 0 else u.Party end UnitParty,
+//case when u.Status is null then 0 else u.Status end UnitStatus,
+//case when u.TypeOfWarrantly is null then 0 else u.TypeOfWarrantly end UnitWarrantyType,
+//
+//case when u.DateOfWarrantyEnd = cast('1753-01-01' as datetime) then null else u.DateOfWarrantyEnd end UnitWarrantyExpiryDate,
+//
+//case when (u.barcode is null) or RTrim(u.barcode) = '' then 0 else Cast(SUBSTRING(u.barcode, 2, 24) as int) end UnitBarcode
+//
+//
+//from cases c
+//left join Lamps l on c.Lamp = l.Id
+//left join ElectronicUnits u on c.ElectronicUnit = u.Id
+//
+//order by LampWarrantyExpiryDate
+//";
+//            #endregion
 
-Cast(SUBSTRING(c.barcode, 2, 24) as int) Id,
-c.Model CaseModel, c.Party CaseParty, 
-c.DateOfWarrantyEnd CaseWarrantyExpiryDate,
-c.Status CaseStatus, 
-c.TypeOfWarrantly CaseWarrantyType,
-cast(c.map as int) [Map],
-cast(c.Register as smallint) Register,
-cast(c.Position as TinyInt) Position,
+//            Dictionary<int, CaseInfo> existsCases = getExistsCases();
+
+//            var cases = new List<Case>();
+//            var lamps = new List<Lamp>();
+//            var units = new List<Unit>();
+//            int rowNumber = 1;
+
+//            string fileRow;
+//            var namedValues = new Dictionary<string, object>();
+
+//            using (StreamReader sqlResultFile = File.OpenText(
+//                Configuration.Current.PathToApplication + @"\result2.txt"))
+//                {
+//                while ((fileRow = sqlResultFile.ReadLine()) != null)
+//                    {
+//                    namedValues.Clear();
+//                    string[] values = fileRow.Split('\t');
+
+//                    int caseId = Convert.ToInt32(values[0]);
+
+//                    CaseInfo caseInfo;
+//                    existsCases.TryGetValue(caseId, out caseInfo);
+
+//                    bool caseExists = caseInfo != null;
+//                    if (caseExists && !caseInfo.HasNotLamp && !caseInfo.HasNotUnit && !caseInfo.HasNotPosition)
+//                        {
+//                        Trace.WriteLine("Skiped");
+//                        continue;
+//                        }
+
+//                    namedValues.Add("Id", caseId);
+//                    namedValues.Add("CaseModel", values[1]);
+//                    namedValues.Add("CaseParty", values[2]);
+//                    namedValues.Add("CaseWarrantyExpiryDate", values[3]);
+//                    namedValues.Add("CaseStatus", values[4]);
+//                    namedValues.Add("CaseWarrantyType", values[5]);
+//                    namedValues.Add("Map", values[6]);
+//                    namedValues.Add("Register", values[7]);
+//                    namedValues.Add("Position", values[8]);
+//                    namedValues.Add("LampModel", values[9]);
+//                    namedValues.Add("LampParty", values[10]);
+//                    namedValues.Add("LampStatus", values[11]);
+//                    namedValues.Add("LampWarrantyExpiryDate", values[12]);
+//                    namedValues.Add("UnitModel", values[13]);
+//                    namedValues.Add("UnitParty", values[14]);
+//                    namedValues.Add("UnitStatus", values[15]);
+//                    namedValues.Add("UnitWarrantyType", values[16]);
+//                    namedValues.Add("UnitWarrantyExpiryDate", values[17]);
+//                    namedValues.Add("UnitBarcode", values[18]);
 
 
-case when l.Model is null then 0 else l.Model end LampModel,
-case when l.Party is null then 0 else l.Party end LampParty,
-case when l.Status is null then 0 else l.Status end LampStatus,
-case when l.DateOfWarrantyEnd = cast('1753-01-01' as datetime) then null else l.DateOfWarrantyEnd end LampWarrantyExpiryDate,
+//                    //using (SqlCeCommand query = dbWorker.NewQuery(sql))
+//                    //    {
+//                    //    using (var reader = query.ExecuteReader())
+//                    //        {
+//                    //        while (reader.Read())
 
-case when u.Model is null then 0 else u.Model end UnitModel,
-case when u.Party is null then 0 else u.Party end UnitParty,
-case when u.Status is null then 0 else u.Status end UnitStatus,
-case when u.TypeOfWarrantly is null then 0 else u.TypeOfWarrantly end UnitWarrantyType,
+//                    var lamp = new Lamp();
+//                    var unit = new Unit();
+//                    var _Case = new Case();
 
-case when u.DateOfWarrantyEnd = cast('1753-01-01' as datetime) then null else u.DateOfWarrantyEnd end UnitWarrantyExpiryDate,
+//                    fillCase(_Case, namedValues);
+//                    fillLamp(lamp, namedValues);
+//                    fillUnit(unit, namedValues);
 
-case when (u.barcode is null) or RTrim(u.barcode) = '' then 0 else Cast(SUBSTRING(u.barcode, 2, 24) as int) end UnitBarcode
+//                    if (caseExists)
+//                        {
+//                        bool updateCase = false;
 
+//                        if (caseInfo.HasNotLamp)
+//                            {
+//                            if (lamp.Model <= 0)
+//                                {
+//                                lamp = null;
+//                                }
+//                            else
+//                                {
+//                                updateCase = true; // lamp will be written
+//                                }
+//                            }
+//                        else
+//                            {
+//                            lamp.Id = caseInfo.Lamp;
+//                            }
 
-from cases c
-left join Lamps l on c.Lamp = l.Id
-left join ElectronicUnits u on c.ElectronicUnit = u.Id
+//                        if (caseInfo.HasNotUnit)
+//                            {
+//                            if (unit.Model <= 0)
+//                                {
+//                                unit = null;
+//                                }
+//                            else
+//                                {
+//                                updateCase = true; // unit will be written
+//                                }
+//                            }
+//                        else
+//                            {
+//                            unit.Id = caseInfo.Unit;
+//                            }
 
-order by LampWarrantyExpiryDate
-";
-            #endregion
+//                        if (caseInfo.HasNotPosition && _Case.Map > 0)
+//                            {
+//                            updateCase = true;
+//                            }
 
-            Dictionary<int, CaseInfo> existsCases = getExistsCases();
+//                        if (updateCase)
+//                            {
+//                            Trace.WriteLine("Updated");
+//                            Configuration.Current.Repository.SaveAccessoriesSet(_Case, lamp, unit);
+//                            }
+//                        }
+//                    else
+//                        {
+//                        if (lamp.Model > 0)
+//                            {
+//                            lamp.Id = Configuration.Current.Repository.GetNextLampId();
+//                            _Case.Lamp = lamp.Id;
+//                            lamps.Add(lamp);
+//                            }
 
-            var cases = new List<Case>();
-            var lamps = new List<Lamp>();
-            var units = new List<Unit>();
-            int rowNumber = 1;
+//                        if (unit.Model > 0)
+//                            {
+//                            unit.Id = Configuration.Current.Repository.GetNextUnitId();
+//                            _Case.Unit = unit.Id;
+//                            units.Add(unit);
+//                            }
 
-            string fileRow;
-            var namedValues = new Dictionary<string, object>();
+//                        cases.Add(_Case);
+//                        Trace.WriteLine(rowNumber);
+//                        rowNumber++;
+//                        }
 
-            using (StreamReader sqlResultFile = File.OpenText(
-                Configuration.Current.PathToApplication + @"\result2.txt"))
-                {
-                while ((fileRow = sqlResultFile.ReadLine()) != null)
-                    {
-                    namedValues.Clear();
-                    string[] values = fileRow.Split('\t');
+//                    }
+//                }
 
-                    int caseId = Convert.ToInt32(values[0]);
+//            bool ok = Configuration.Current.Repository.UpdateLamps(lamps, true);
+//            ok = Configuration.Current.Repository.UpdateUnits(units, true) && ok;
+//            ok = Configuration.Current.Repository.UpdateCases(cases, true) && ok;
 
-                    CaseInfo caseInfo;
-                    existsCases.TryGetValue(caseId, out caseInfo);
-
-                    bool caseExists = caseInfo != null;
-                    if (caseExists && !caseInfo.HasNotLamp && !caseInfo.HasNotUnit && !caseInfo.HasNotPosition)
-                        {
-                        Trace.WriteLine("Skiped");
-                        continue;
-                        }
-
-                    namedValues.Add("Id", caseId);
-                    namedValues.Add("CaseModel", values[1]);
-                    namedValues.Add("CaseParty", values[2]);
-                    namedValues.Add("CaseWarrantyExpiryDate", values[3]);
-                    namedValues.Add("CaseStatus", values[4]);
-                    namedValues.Add("CaseWarrantyType", values[5]);
-                    namedValues.Add("Map", values[6]);
-                    namedValues.Add("Register", values[7]);
-                    namedValues.Add("Position", values[8]);
-                    namedValues.Add("LampModel", values[9]);
-                    namedValues.Add("LampParty", values[10]);
-                    namedValues.Add("LampStatus", values[11]);
-                    namedValues.Add("LampWarrantyExpiryDate", values[12]);
-                    namedValues.Add("UnitModel", values[13]);
-                    namedValues.Add("UnitParty", values[14]);
-                    namedValues.Add("UnitStatus", values[15]);
-                    namedValues.Add("UnitWarrantyType", values[16]);
-                    namedValues.Add("UnitWarrantyExpiryDate", values[17]);
-                    namedValues.Add("UnitBarcode", values[18]);
-
-
-                    //using (SqlCeCommand query = dbWorker.NewQuery(sql))
-                    //    {
-                    //    using (var reader = query.ExecuteReader())
-                    //        {
-                    //        while (reader.Read())
-
-                    var lamp = new Lamp();
-                    var unit = new Unit();
-                    var _Case = new Case();
-
-                    fillCase(_Case, namedValues);
-                    fillLamp(lamp, namedValues);
-                    fillUnit(unit, namedValues);
-
-                    if (caseExists)
-                        {
-                        bool updateCase = false;
-
-                        if (caseInfo.HasNotLamp)
-                            {
-                            if (lamp.Model <= 0)
-                                {
-                                lamp = null;
-                                }
-                            else
-                                {
-                                updateCase = true; // lamp will be written
-                                }
-                            }
-                        else
-                            {
-                            lamp.Id = caseInfo.Lamp;
-                            }
-
-                        if (caseInfo.HasNotUnit)
-                            {
-                            if (unit.Model <= 0)
-                                {
-                                unit = null;
-                                }
-                            else
-                                {
-                                updateCase = true; // unit will be written
-                                }
-                            }
-                        else
-                            {
-                            unit.Id = caseInfo.Unit;
-                            }
-
-                        if (caseInfo.HasNotPosition && _Case.Map > 0)
-                            {
-                            updateCase = true;
-                            }
-
-                        if (updateCase)
-                            {
-                            Trace.WriteLine("Updated");
-                            Configuration.Current.Repository.SaveAccessoriesSet(_Case, lamp, unit);
-                            }
-                        }
-                    else
-                        {
-                        if (lamp.Model > 0)
-                            {
-                            lamp.Id = Configuration.Current.Repository.GetNextLampId();
-                            _Case.Lamp = lamp.Id;
-                            lamps.Add(lamp);
-                            }
-
-                        if (unit.Model > 0)
-                            {
-                            unit.Id = Configuration.Current.Repository.GetNextUnitId();
-                            _Case.Unit = unit.Id;
-                            units.Add(unit);
-                            }
-
-                        cases.Add(_Case);
-                        Trace.WriteLine(rowNumber);
-                        rowNumber++;
-                        }
-
-                    }
-                }
-
-            bool ok = Configuration.Current.Repository.UpdateLamps(lamps, true);
-            ok = Configuration.Current.Repository.UpdateUnits(units, true) && ok;
-            ok = Configuration.Current.Repository.UpdateCases(cases, true) && ok;
-
-            Trace.WriteLine(string.Format("Total result: {0}", ok ? "OK" : "Failure"));
+//            Trace.WriteLine(string.Format("Total result: {0}", ok ? "OK" : "Failure"));
 
             return;
             }

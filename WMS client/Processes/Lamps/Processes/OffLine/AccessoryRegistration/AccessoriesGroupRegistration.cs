@@ -8,6 +8,7 @@ using WMS_client.Enums;
 using WMS_client.db;
 using WMS_client.Models;
 using WMS_client.Processes;
+using WMS_client.Repositories;
 
 namespace WMS_client
     {
@@ -104,7 +105,7 @@ namespace WMS_client
 
         private void complateOperation()
             {
-            if (Configuration.Current.Repository.SaveGroupOfSets(_Case, lamp, unit, barcodes))
+            if (SaveGroupOfSets())
                 {
                 barcodes.Clear();
                 exit();
@@ -113,6 +114,34 @@ namespace WMS_client
                 {
                 MessageBox.Show("Не вдалося зберегти дані");
                 }
+            }
+
+        public bool SaveGroupOfSets()
+            {
+            IRepository repository = Configuration.Current.Repository;
+
+            List<Unit> units = new List<Unit>();
+            List<Lamp> lamps = new List<Lamp>();
+            List<Case> cases = new List<Case>();
+
+            foreach (int barcode in barcodes)
+                {
+                var newLamp = lamp.Copy<Lamp>();
+                newLamp.Id = repository.GetNextLampId();
+                lamps.Add(newLamp);
+
+                var newUnit = unit.Copy<Unit>();
+                newUnit.Id = repository.GetNextUnitId();
+                units.Add(newUnit);
+
+                var newCase = _Case.Copy<Case>();
+                newCase.Id = barcode;
+                newCase.Lamp = newLamp.Id;
+                newCase.Unit = newUnit.Id;
+                cases.Add(newCase);
+                }
+
+            return repository.UpdateUnits(units, true) && repository.UpdateLamps(lamps, true) && repository.UpdateCases(cases, true);
             }
 
         private void updateUserInfo()

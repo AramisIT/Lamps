@@ -393,8 +393,7 @@ namespace WMS_client
                 }
 
             if (
-                !Configuration.Current.Repository.SaveAccessoriesSet(accessoriesSet.Case, accessoriesSet.Lamp,
-                    accessoriesSet.Unit))
+                !SaveAccessoriesSet(accessoriesSet.Case, accessoriesSet.Lamp, accessoriesSet.Unit))
                 {
                 MessageBox.Show("Не вдалося зберегти світильник");
                 return;
@@ -402,6 +401,59 @@ namespace WMS_client
 
             exit();
             }
+
+        public bool SaveAccessoriesSet(Case _Case, Lamp lamp, Unit unit)
+            {
+            bool ok = true;
+
+            var repository = Configuration.Current.Repository;
+
+            if (unit != null)
+                {
+                if (unit.Id <= 0)
+                    {
+                    unit.Id = repository.GetNextUnitId();
+                    ok = ok && repository.UpdateUnits(new List<Unit>() { unit }, true);
+                    }
+                else
+                    {
+                    ok = ok && repository.UpdateUnits(new List<Unit>() { unit }, false);
+                    }
+                }
+            if (!ok)
+                {
+                return false;
+                }
+
+
+            if (lamp != null)
+                {
+                if (lamp.Id <= 0)
+                    {
+                    lamp.Id = repository.GetNextLampId();
+                    ok = ok && repository.UpdateLamps(new List<Lamp>() { lamp }, true);
+                    }
+                else
+                    {
+                    ok = ok && repository.UpdateLamps(new List<Lamp>() { lamp }, false);
+                    }
+                }
+            if (!ok)
+                {
+                return false;
+                }
+
+
+            if (_Case != null)
+                {
+                _Case.Lamp = lamp == null ? 0 : lamp.Id;
+                _Case.Unit = unit == null ? 0 : unit.Id;
+                ok = ok && repository.UpdateCases(new List<Case>() { _Case }, false);
+                }
+
+            return ok;
+            }
+
 
         private bool checkModels()
             {
