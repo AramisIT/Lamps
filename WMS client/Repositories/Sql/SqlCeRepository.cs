@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Forms;
 using WMS_client.db;
 using WMS_client.Models;
+using System.Data;
 
 namespace WMS_client.Repositories
     {
@@ -203,22 +204,85 @@ namespace WMS_client.Repositories
 
         public bool UpdateCase(Case _case)
             {
-            const string sql = @"update Cases 
-set Model = @Model, Party = @Party, WarrantyExpiryDate = @WarrantyExpiryDate, Status = @Status,
-RepairWarranty = @RepairWarranty, Lamp = @Lamp, Unit = @Unit, Map = @Map, Register = @Register, Position = @Position
-where Id = @Id";
-
-            return updateAccessory(true, _case.Id, "CasesUpdating", sql, (parameters) =>
+            using (var conn = getOpenedConnection())
                 {
-                    fillSqlCmdParametersFromAccessory(parameters, _case);
-                    fillSqlCmdParametersFromFixableAccessory(parameters, _case);
+                using (var cmd = conn.CreateCommand())
+                    {
+                    cmd.CommandType = CommandType.TableDirect;
+                    cmd.CommandText = "Cases";
+                    cmd.Connection = conn;
+                    cmd.IndexName = "Id";
 
-                    parameters.AddWithValue("Lamp", _case.Lamp);
-                    parameters.AddWithValue("Unit", _case.Unit);
-                    parameters.AddWithValue("Map", _case.Map);
-                    parameters.AddWithValue("Register", _case.Register);
-                    parameters.AddWithValue("Position", _case.Position);
-                });
+                    using (var result = cmd.ExecuteResultSet(RESULT_SET_OPTIONS))
+                        {
+                        if (result.Seek(DbSeekOptions.FirstEqual, _case.Id))
+                            {
+                            result.Read();
+                            
+                            result.SetInt32(result.GetOrdinal("Map"), _case.Map);
+                            result.SetInt16(result.GetOrdinal("Register"), _case.Register);
+                            result.SetByte(result.GetOrdinal("Position"), _case.Position);
+
+                            result.Update();
+                            }
+                        }
+                    }
+                }
+
+            return false;
+
+            //        using (var cmd = new getop)
+            //{
+            //    cmd.CommandType = CommandType.TableDirect;
+            //    cmd.CommandText = "MyTableName";
+            //    cmd.Connection = connection;
+            //    cmd.IndexName = "PrimakryKeyIndexName";
+
+            //    using (var result = cmd.ExecuteResultSet(
+            //                        ResultSetOptions.Scrollable | ResultSetOptions.Updatable))
+            //    {
+            //        int pkValue = 100; // set this, obviously
+
+            //        if (result.Seek(DbSeekOptions.FirstEqual, pkValue))
+            //        {
+            //            // row exists, need to update
+            //            result.Read();
+
+            //            // set values
+            //            result.SetInt32(0, 1);
+            //            // etc. 
+
+            //            result.Update();
+            //        }
+            //        else
+            //        {
+            //            // row doesn't exist, insert
+            //            var record = result.CreateRecord();
+
+            //            // set values
+            //            record.SetInt32(0, 1);
+            //            // etc. 
+
+            //            result.Insert(record);
+            //        }
+
+
+            //            const string sql = @"update Cases 
+            //set Model = @Model, Party = @Party, WarrantyExpiryDate = @WarrantyExpiryDate, Status = @Status,
+            //RepairWarranty = @RepairWarranty, Lamp = @Lamp, Unit = @Unit, Map = @Map, Register = @Register, Position = @Position
+            //where Id = @Id";
+
+            //            return updateAccessory(true, _case.Id, "CasesUpdating", sql, (parameters) =>
+            //                {
+            //                    fillSqlCmdParametersFromAccessory(parameters, _case);
+            //                    fillSqlCmdParametersFromFixableAccessory(parameters, _case);
+
+            //                    parameters.AddWithValue("Lamp", _case.Lamp);
+            //                    parameters.AddWithValue("Unit", _case.Unit);
+            //                    parameters.AddWithValue("Map", _case.Map);
+            //                    parameters.AddWithValue("Register", _case.Register);
+            //                    parameters.AddWithValue("Position", _case.Position);
+            //                });
             }
 
         private bool updateLamp(Lamp lamp)
@@ -491,6 +555,8 @@ where Id = @Id";
 
         private readonly int minLampUnitId;
         private readonly int maxLampUnitId;
+
+        public const ResultSetOptions RESULT_SET_OPTIONS = ResultSetOptions.Scrollable | ResultSetOptions.Sensitive | ResultSetOptions.Updatable;
 
         private CatalogCache<int, PartyModel> partiesCache;
         private CatalogCache<int, Map> mapsCache;

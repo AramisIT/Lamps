@@ -11,7 +11,6 @@ namespace WMS_client.Repositories
     {
     class AccessoryLogger<T> : SqlCeResultSet where T : IAccessory
         {
-        private readonly ResultSetOptions RESULT_SET_OPTIONS = ResultSetOptions.Scrollable | ResultSetOptions.Sensitive | ResultSetOptions.Updatable;
         private Func<SqlCeConnection> getSqlConnection;
         private List<T> accessotyList;
         private string tableName;
@@ -40,7 +39,7 @@ namespace WMS_client.Repositories
                         {
                         sqlCeSelectCommand.CommandText = tableName;
                         sqlCeSelectCommand.CommandType = System.Data.CommandType.TableDirect;
-                        sqlCeSelectCommand.ExecuteResultSet(RESULT_SET_OPTIONS, this);
+                        sqlCeSelectCommand.ExecuteResultSet(SqlCeRepository.RESULT_SET_OPTIONS, this);
 
                         foreach (var accessory in accessotyList)
                             {
