@@ -65,7 +65,12 @@ namespace WMS_client.Processes.Lamps
                 _Case.Register = register;
                 _Case.Position = position;
                 _Case.Status = (int)TypesOfLampsStatus.IsWorking;
-                Configuration.Current.Repository.UpdateCase(_Case);
+
+                if (!Configuration.Current.Repository.UpdateCases(new List<Case> { _Case }, false))
+                    {
+                    ShowMessage("Не вдалося оновити світильник!");
+                    return;
+                    }
 
                 leaveProcess();
                 }

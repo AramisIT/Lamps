@@ -16,11 +16,11 @@ namespace WMS_client.Repositories
 
         bool WriteParty(PartyModel party);
 
-        bool InsertCases(List<Case> list);
+        bool UpdateLamps(List<Lamp> list, bool justInsert);
 
-        bool InsertLamps(List<Lamp> list);
+        bool UpdateUnits(List<Unit> list, bool justInsert);
 
-        bool InsertUnits(List<Unit> list);
+        bool UpdateCases(List<Case> cases, bool justInsert);
 
         List<Model> ModelsList { get; }
 
@@ -47,8 +47,6 @@ namespace WMS_client.Repositories
         Unit ReadUnit(int id);
 
         Lamp ReadLamp(int id);
-
-        bool UpdateCase(Case _Case);
 
         bool WriteMap(Map map);
 

@@ -218,11 +218,14 @@
     <Compile Include="Repositories\Sql\AccessoriesTables\CasesTable.cs" />
     <Compile Include="Repositories\Sql\AccessoriesTables\LampsTable.cs" />
     <Compile Include="Repositories\Sql\AccessoriesTables\UnitsTable.cs" />
-    <Compile Include="Repositories\Sql\AccessoryInserter.cs" />
+    <Compile Include="Repositories\Sql\Updaters\AccessoryUpdater.cs" />
     <Compile Include="Repositories\Sql\CatalogCache.cs" />
     <Compile Include="Repositories\IRepository.cs" />
     <Compile Include="Repositories\Sql\AccessoryLogger.cs" />
     <Compile Include="Repositories\Sql\SqlCeRepository.cs" />
+    <Compile Include="Repositories\Sql\Updaters\CasesUpdater.cs" />
+    <Compile Include="Repositories\Sql\Updaters\LampsUpdater.cs" />
+    <Compile Include="Repositories\Sql\Updaters\UnitsUpdater.cs" />
     <Compile Include="Utils\AccessoryHelper.cs" />
     <Compile Include="Utils\CatalogHelper.cs" />
     <Compile Include="Utils\StringParser.cs" />

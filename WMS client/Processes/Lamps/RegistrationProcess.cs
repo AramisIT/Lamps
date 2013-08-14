@@ -216,9 +216,9 @@ order by LampWarrantyExpiryDate
                     }
                 }
 
-            bool ok = Configuration.Current.Repository.InsertLamps(lamps);
-            ok = Configuration.Current.Repository.InsertUnits(units) && ok;
-            ok = Configuration.Current.Repository.InsertCases(cases) && ok;
+            bool ok = Configuration.Current.Repository.UpdateLamps(lamps, true);
+            ok = Configuration.Current.Repository.UpdateUnits(units, true) && ok;
+            ok = Configuration.Current.Repository.UpdateCases(cases, true) && ok;
 
             Trace.WriteLine(string.Format("Total result: {0}", ok ? "OK" : "Failure"));
 
@@ -424,7 +424,7 @@ left join Contractors on Contractors.Id = p.Contractor"))
 
 
 
-           // MainProcess.CreateButton("Load database", 10, 220, 220, 35, "WifiOff", checkAllLamps);
+            // MainProcess.CreateButton("Load database", 10, 220, 220, 35, "WifiOff", checkAllLamps);
 
             wifiOffButton = MainProcess.CreateButton("Wifi on/off", 10, 65, 220, 35, "WifiOff", () =>
                 {
