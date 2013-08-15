@@ -63,6 +63,36 @@ namespace WMS_client.Repositories
                 }
             }
 
+        private void updateDatabaseParameter(int parameterId, int value)
+            {
+            using (var conn = getOpenedConnection())
+                {
+                using (var cmd = conn.CreateCommand())
+                    {
+                    cmd.CommandType = CommandType.TableDirect;
+                    cmd.CommandText = "DatabaseParameters";
+                    cmd.IndexName = "PK_DatabaseParameters";
+
+                    using (var result = cmd.ExecuteResultSet(UPDATABLE_RESULT_SET_OPTIONS))
+                        {
+                        if (result.Seek(DbSeekOptions.FirstEqual, parameterId))
+                            {
+                            result.Read();
+                            result.SetInt32(DatabaseParameters.Value, value);
+                            result.Update();
+                            }
+                        else
+                            {
+                            var newRow = result.CreateRecord();
+                            newRow.SetInt32(DatabaseParameters.Value, value);
+                            newRow.SetInt32(DatabaseParameters.Id, parameterId);
+                            result.Insert(newRow);
+                            }
+                        }
+                    }
+                }
+            }
+
         public bool LoadingDataFromGreenhouse { get; set; }
 
         public bool WriteModel(Model model)
@@ -102,7 +132,8 @@ namespace WMS_client.Repositories
                 {
                 using (var cmd = conn.CreateCommand())
                     {
-                    cmd.CommandText = @"update Parties set Date = @Date, DateOfActSet = @DateOfActSet, ContractorDescription=@ContractorDescription, Description=@Description, WarrantyHours=@WarrantyHours, WarrantyYears=@WarrantyYears where Id=@Id";
+                    cmd.CommandText =
+                        @"update Parties set Date = @Date, DateOfActSet = @DateOfActSet, ContractorDescription=@ContractorDescription, Description=@Description, WarrantyHours=@WarrantyHours, WarrantyYears=@WarrantyYears where Id=@Id";
                     cmd.Parameters.AddWithValue("Description", party.Description);
                     cmd.Parameters.AddWithValue("Id", party.Id);
                     cmd.Parameters.AddWithValue("WarrantyHours", party.WarrantyHours);
@@ -115,7 +146,8 @@ namespace WMS_client.Repositories
 
                     if (!rowExists)
                         {
-                        cmd.CommandText = @"insert into Parties(Id, Description, ContractorDescription, [Date], DateOfActSet, WarrantyHours, WarrantyYears) Values(@Id,@Description,@ContractorDescription,@Date,@DateOfActSet,@WarrantyHours,@WarrantyYears);";
+                        cmd.CommandText =
+                            @"insert into Parties(Id, Description, ContractorDescription, [Date], DateOfActSet, WarrantyHours, WarrantyYears) Values(@Id,@Description,@ContractorDescription,@Date,@DateOfActSet,@WarrantyHours,@WarrantyYears);";
                         try
                             {
                             return cmd.ExecuteNonQuery() > 0;
@@ -165,7 +197,11 @@ namespace WMS_client.Repositories
 
         public bool UpdateCases(List<Case> cases, bool justInsert)
             {
-            var updater = new CasesUpdater() { JustInsert = justInsert, LoadingDataFromGreenhouse = this.LoadingDataFromGreenhouse };
+            var updater = new CasesUpdater()
+            {
+                JustInsert = justInsert,
+                LoadingDataFromGreenhouse = this.LoadingDataFromGreenhouse
+            };
             updater.InitUpdater(cases, getOpenedConnection);
 
             return updater.Update();
@@ -173,7 +209,11 @@ namespace WMS_client.Repositories
 
         public bool UpdateLamps(List<Lamp> lamps, bool justInsert)
             {
-            var updater = new LampsUpdater() { JustInsert = justInsert, LoadingDataFromGreenhouse = this.LoadingDataFromGreenhouse };
+            var updater = new LampsUpdater()
+            {
+                JustInsert = justInsert,
+                LoadingDataFromGreenhouse = this.LoadingDataFromGreenhouse
+            };
             updater.Don_tAddNewToLog = true;
             updater.LastUploadedToGreenhouseId = lastUpdatedLampId;
             updater.MinAccessoryIdForCurrentPdt = minAccessoryId;
@@ -185,7 +225,11 @@ namespace WMS_client.Repositories
 
         public bool UpdateUnits(List<Unit> units, bool justInsert)
             {
-            var updater = new UnitsUpdater() { JustInsert = justInsert, LoadingDataFromGreenhouse = this.LoadingDataFromGreenhouse };
+            var updater = new UnitsUpdater()
+            {
+                JustInsert = justInsert,
+                LoadingDataFromGreenhouse = this.LoadingDataFromGreenhouse
+            };
             updater.Don_tAddNewToLog = true;
             updater.LastUploadedToGreenhouseId = lastUpdatedUnitId;
             updater.MinAccessoryIdForCurrentPdt = minAccessoryId;
@@ -300,7 +344,8 @@ namespace WMS_client.Repositories
             return result.Count > 0 ? result[0] : null;
             }
 
-        private List<T> getAccessories<T>(string tableName, string indexName, List<int> predicateValues, Func<SqlCeResultSet, T> createAccesoryMethod)
+        private List<T> getAccessories<T>(string tableName, string indexName, List<int> predicateValues,
+            Func<SqlCeResultSet, T> createAccesoryMethod)
             {
             var resultList = new List<T>();
 
@@ -372,7 +417,8 @@ namespace WMS_client.Repositories
 
         private void initConnectionString()
             {
-            connectionString = String.Format("Data Source='{0}';", Configuration.Current.PathToApplication + '\\' + DATABASE_FILE_NAME);
+            connectionString = String.Format("Data Source='{0}';",
+                Configuration.Current.PathToApplication + '\\' + DATABASE_FILE_NAME);
             }
 
         private SqlCeConnection getOpenedConnection()
@@ -394,8 +440,11 @@ namespace WMS_client.Repositories
         private readonly int minAccessoryId;
         private readonly int maxAccessoryId;
 
-        public const ResultSetOptions UPDATABLE_RESULT_SET_OPTIONS = ResultSetOptions.Scrollable | ResultSetOptions.Sensitive | ResultSetOptions.Updatable;
-        public const ResultSetOptions READ_ONLY_RESULT_SET_OPTIONS = ResultSetOptions.Scrollable | ResultSetOptions.Sensitive;
+        public const ResultSetOptions UPDATABLE_RESULT_SET_OPTIONS =
+            ResultSetOptions.Scrollable | ResultSetOptions.Sensitive | ResultSetOptions.Updatable;
+
+        public const ResultSetOptions READ_ONLY_RESULT_SET_OPTIONS =
+            ResultSetOptions.Scrollable | ResultSetOptions.Sensitive;
 
         private CatalogCache<int, PartyModel> partiesCache;
         private CatalogCache<int, Map> mapsCache;
@@ -411,15 +460,15 @@ namespace WMS_client.Repositories
                 "select Id, Description, ContractorDescription, DateOfActSet, Date, WarrantyHours, WarrantyYears from Parties order by Date desc";
 
             result.Load(sql, getOpenedConnection, (reader, catalog) =>
-                {
-                    catalog.Id = Convert.ToInt32(reader["Id"]);
-                    catalog.WarrantyHours = Convert.ToInt16(reader["WarrantyHours"]);
-                    catalog.WarrantyYears = Convert.ToInt16(reader["WarrantyYears"]);
-                    catalog.Description = (reader["Description"] as string).TrimEnd();
-                    catalog.ContractorDescription = (reader["ContractorDescription"] as string).TrimEnd();
-                    catalog.Date = (DateTime)(reader["Date"]);
-                    catalog.DateOfActSet = (DateTime)(reader["DateOfActSet"]);
-                });
+            {
+                catalog.Id = Convert.ToInt32(reader["Id"]);
+                catalog.WarrantyHours = Convert.ToInt16(reader["WarrantyHours"]);
+                catalog.WarrantyYears = Convert.ToInt16(reader["WarrantyYears"]);
+                catalog.Description = (reader["Description"] as string).TrimEnd();
+                catalog.ContractorDescription = (reader["ContractorDescription"] as string).TrimEnd();
+                catalog.Date = (DateTime)(reader["Date"]);
+                catalog.DateOfActSet = (DateTime)(reader["DateOfActSet"]);
+            });
 
             return result;
             }
@@ -431,10 +480,10 @@ namespace WMS_client.Repositories
             const string sql = "select Id, Description from Maps order by Description";
 
             result.Load(sql, getOpenedConnection, (reader, catalog) =>
-                {
-                    catalog.Description = (reader["Description"] as string).Trim();
-                    catalog.Id = Convert.ToInt32(reader["Id"]);
-                });
+            {
+                catalog.Description = (reader["Description"] as string).Trim();
+                catalog.Id = Convert.ToInt32(reader["Id"]);
+            });
 
             return result;
             }
@@ -446,15 +495,16 @@ namespace WMS_client.Repositories
             const string sql = "select Id, Description from Models order by Description";
 
             result.Load(sql, getOpenedConnection, (reader, catalog) =>
-                {
-                    catalog.Description = (reader["Description"] as string).Trim();
-                    catalog.Id = Convert.ToInt16(reader["Id"]);
-                });
+            {
+                catalog.Description = (reader["Description"] as string).Trim();
+                catalog.Id = Convert.ToInt16(reader["Id"]);
+            });
 
             return result;
             }
 
-        private IAccessory readAccessory(string sqlCommand, int predicateValue, Func<SqlCeDataReader, IAccessory> createAccesoryMethod)
+        private IAccessory readAccessory(string sqlCommand, int predicateValue,
+            Func<SqlCeDataReader, IAccessory> createAccesoryMethod)
             {
             using (var conn = getOpenedConnection())
                 {
@@ -556,12 +606,14 @@ namespace WMS_client.Repositories
             parameters.AddWithValue("WarrantyExpiryDate", warrantyExpiryDate);
             }
 
-        private void fillSqlCmdParametersFromFixableAccessory(SqlCeParameterCollection parameters, IFixableAccessory accessory)
+        private void fillSqlCmdParametersFromFixableAccessory(SqlCeParameterCollection parameters,
+            IFixableAccessory accessory)
             {
             parameters.AddWithValue("RepairWarranty", accessory.RepairWarranty);
             }
 
-        private void fillSqlCmdParametersFromBarcodeAccessory(SqlCeParameterCollection parameters, IBarcodeAccessory accessory)
+        private void fillSqlCmdParametersFromBarcodeAccessory(SqlCeParameterCollection parameters,
+            IBarcodeAccessory accessory)
             {
             parameters.AddWithValue("Barcode", accessory.Barcode);
             }
@@ -572,7 +624,8 @@ namespace WMS_client.Repositories
 
         private int getNextId(string tableName)
             {
-            string sqlCommand = string.Format("select max(Id) from {0} where Id>=@minLampUnitId and Id<=@maxLampUnitId", tableName);
+            string sqlCommand =
+                string.Format("select max(Id) from {0} where Id>=@minLampUnitId and Id<=@maxLampUnitId", tableName);
             using (var conn = getOpenedConnection())
                 {
                 using (var cmd = conn.CreateCommand())
@@ -674,8 +727,76 @@ select Id from Units where Id between @minId and @maxId";
             return result;
             }
 
-       
+        public bool ResetUpdateLog(TypeOfAccessories accessoriesType)
+            {
+            string tableName;
+            string getLastIdSql = string.Empty;
+            int parameterId = -1;
 
+            switch (accessoriesType)
+                {
+                case TypeOfAccessories.Lamp:
+                    tableName = "LampsUpdating";
+                    parameterId = LAST_UPDATED_LAMP_ID;
+                    getLastIdSql = "select Max(Id) from Lamps where Id between @minId and @maxId";
+                    break;
 
+                case TypeOfAccessories.ElectronicUnit:
+                    tableName = "UnitsUpdating";
+                    parameterId = LAST_UPDATED_UNIT_ID;
+                    getLastIdSql = "select Max(Id) from Units where Id between @minId and @maxId";
+                    break;
+
+                default:
+                    tableName = "CasesUpdating";
+                    break;
+                }
+
+            string sql = string.Format("delete from {0};", tableName);
+
+            using (var conn = getOpenedConnection())
+                {
+                using (var cmd = conn.CreateCommand())
+                    {
+                    cmd.CommandText = sql;
+                    try
+                        {
+                        cmd.ExecuteNonQuery();
+
+                        if (!string.IsNullOrEmpty(getLastIdSql))
+                            {
+                            cmd.CommandText = getLastIdSql;
+                            cmd.AddParameter("minId", minAccessoryId);
+                            cmd.AddParameter("maxId", maxAccessoryId);
+                            object lastIdObj = cmd.ExecuteScalar();
+                            if (DBNull.Value.Equals(lastIdObj) || lastIdObj == null)
+                                {
+                                lastIdObj = 0;
+                                }
+                            int lastId = Convert.ToInt32(lastIdObj);
+                            updateDatabaseParameter(parameterId, lastId);
+
+                            switch (accessoriesType)
+                                {
+                                case TypeOfAccessories.Lamp:
+                                    lastUpdatedLampId = lastId;
+                                    break;
+
+                                case TypeOfAccessories.ElectronicUnit:
+                                    lastUpdatedUnitId = lastId;
+                                    break;
+                                }
+                            }
+                        }
+                    catch (Exception exp)
+                        {
+                        return false;
+                        }
+                    }
+                }
+
+            return true;
+            }
         }
+
     }

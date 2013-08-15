@@ -10,6 +10,8 @@ namespace WMS_client.Repositories
     {
     public interface IRepository
         {
+        bool LoadingDataFromGreenhouse { get; set; }
+
         int GetNextUnitId();
 
         int GetNextLampId();
@@ -53,5 +55,7 @@ namespace WMS_client.Repositories
         bool WriteMap(Map map);
 
         List<List<int>> GetUpdateTasks(TypeOfAccessories accessoryType, int recordsQuantityInTask);
+
+        bool ResetUpdateLog(TypeOfAccessories accessoriesType);
         }
     }

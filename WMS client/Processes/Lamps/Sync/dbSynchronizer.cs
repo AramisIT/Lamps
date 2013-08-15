@@ -49,7 +49,9 @@ namespace WMS_client
 
             deferredProperty = new List<DataAboutDeferredProperty>();
 
+            Configuration.Current.Repository.LoadingDataFromGreenhouse = true;
             SynchronizeWithGreenhouse(serverIdProvider);
+            Configuration.Current.Repository.LoadingDataFromGreenhouse = false;
             }
 
         private void SynchronizeWithGreenhouse(IServerIdProvider serverIdProvider)
@@ -62,13 +64,22 @@ namespace WMS_client
             totalTime.Start();
 
             infoLabel.Text = "Лампи";
-            syncAccessories(TypeOfAccessories.Lamp, "UpdateLamps");
+            if (!syncAccessories(TypeOfAccessories.Lamp, "UpdateLamps"))
+                {
+                return;
+                }
 
             infoLabel.Text = "Електронні блоки";
-            syncAccessories(TypeOfAccessories.ElectronicUnit, "UpdateUnits");
+            if (!syncAccessories(TypeOfAccessories.ElectronicUnit, "UpdateUnits"))
+                {
+                return;
+                }
 
             infoLabel.Text = "Корпуси";
-            syncAccessories(TypeOfAccessories.Case, "UpdateCases");
+            if (!syncAccessories(TypeOfAccessories.Case, "UpdateCases"))
+                {
+                return;
+                }
 
             return;
 
@@ -162,7 +173,7 @@ namespace WMS_client
 
 
 
-        private const int RECORDS_QUANTITY_IN_TASK = 200;
+        private const int RECORDS_QUANTITY_IN_TASK = 100;
 
         private bool syncAccessories(TypeOfAccessories accessoriesType, string remoteMethodName)
             {
@@ -201,7 +212,7 @@ namespace WMS_client
                 ShowProgress(taskIndex + 1, totalTasks);
                 }
 
-            return true;
+            return Configuration.Current.Repository.ResetUpdateLog(accessoriesType);
             }
 
         private DataTable buildDataTable<T>(List<T> list) where T : IAccessory
@@ -221,7 +232,7 @@ namespace WMS_client
 
             bool barcodeAccessory = list[0] is IBarcodeAccessory;
             bool fixableAccessory = list[0] is IFixableAccessory;
-            bool isCase = typeof(T) == typeof(Cases);
+            bool isCase = typeof(T) == typeof(Case);
 
             if (barcodeAccessory)
                 {
