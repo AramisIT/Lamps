@@ -129,18 +129,18 @@ namespace WMS_client
             MainProcess.ClearControls();
             }
 
-        public void ShortQuery(string QueryName, params object[] parameters)
-            {
-            object[] NewParameters = new object[parameters.Length + 3];
-            NewParameters[0] = "#<PDT>#";
-            NewParameters[1] = (int)BusinessProcessType;
-            NewParameters[2] = DocumentNumber;
-            for (int i = 0; i < parameters.Length; i++)
-                {
-                NewParameters[i + 3] = parameters[i];
-                }
-            PerformQuery(QueryName, NewParameters);
-            }
+        //public void ShortQuery(string QueryName, params object[] parameters)
+        //    {
+        //    object[] NewParameters = new object[parameters.Length + 3];
+        //    NewParameters[0] = "#<PDT>#";
+        //    NewParameters[1] = (int)BusinessProcessType;
+        //    NewParameters[2] = DocumentNumber;
+        //    for (int i = 0; i < parameters.Length; i++)
+        //        {
+        //        NewParameters[i + 3] = parameters[i];
+        //        }
+        //    PerformQuery(QueryName, NewParameters);
+        //    }
 
         public void BarCodeByHands()
             {

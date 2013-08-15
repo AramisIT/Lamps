@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 using WMS_client.db;
+using WMS_client.Enums;
 using WMS_client.Models;
 using System.Data;
 using WMS_client.Repositories.Sql;
@@ -257,7 +258,7 @@ namespace WMS_client.Repositories
 
         public IAccessory FindAccessory(int accessoryBarcode)
             {
-            IAccessory accessory = ReadCase(accessoryBarcode);
+            IAccessory accessory = this.ReadCase(accessoryBarcode);
             if (accessory != null)
                 {
                 return accessory;
@@ -274,26 +275,35 @@ namespace WMS_client.Repositories
             return accessory;
             }
 
-        public Case ReadCase(int id)
+        public List<Lamp> ReadLamps(List<int> ids)
             {
-            if (id <= 0)
-                {
-                return null;
-                }
-            return (Case)getAccessory("Cases", "PK_Cases", id, createCase);
+            return getAccessories<Lamp>("Lamps", "PK_Lamps", ids, createLamp);
+            }
+
+        public List<Case> ReadCases(List<int> ids)
+            {
+            return getAccessories<Case>("Cases", "PK_Cases", ids, createCase);
+            }
+
+        public List<Unit> ReadUnits(List<int> ids)
+            {
+            return getAccessories<Unit>("Units", "PK_Units", ids, createUnit);
             }
 
         public Case FintCaseByLamp(int lampId)
             {
-            if (lampId <= 0)
+            if (lampId == 0)
                 {
                 return null;
                 }
-            return (Case)getAccessory("Cases", "Cases_Lamp", lampId, createCase);
+            var result = getAccessories<Case>("Cases", "Cases_Lamp", new List<int>() { lampId }, createCase);
+            return result.Count > 0 ? result[0] : null;
             }
 
-        private IAccessory getAccessory(string tableName, string indexName, int predicateValue, Func<SqlCeResultSet, IAccessory> createAccesoryMethod)
+        private List<T> getAccessories<T>(string tableName, string indexName, List<int> predicateValues, Func<SqlCeResultSet, T> createAccesoryMethod)
             {
+            var resultList = new List<T>();
+
             using (var conn = getOpenedConnection())
                 {
                 using (var cmd = conn.CreateCommand())
@@ -305,69 +315,50 @@ namespace WMS_client.Repositories
 
                     using (var result = cmd.ExecuteResultSet(READ_ONLY_RESULT_SET_OPTIONS))
                         {
-                        if (result.Seek(DbSeekOptions.FirstEqual, predicateValue))
+                        foreach (var predicateValue in predicateValues)
                             {
-                            result.Read();
+                            if (result.Seek(DbSeekOptions.FirstEqual, predicateValue))
+                                {
+                                result.Read();
 
-                            return createAccesoryMethod(result);
-                            }
-                        else
-                            {
-                            return null;
+                                resultList.Add(createAccesoryMethod(result));
+                                }
                             }
                         }
                     }
                 }
+
+            return resultList;
             }
 
         public Case FintCaseByUnit(int unitId)
             {
-            if (unitId <= 0)
+            if (unitId == 0)
                 {
                 return null;
                 }
-
-            return (Case)getAccessory("Cases", "Cases_Unit", unitId, createCase);
-            }
-
-        public Unit ReadUnit(int id)
-            {
-            if (id <= 0)
-                {
-                return null;
-                }
-
-            return (Unit)getAccessory("Units", "PK_Units", id, createUnit);
+            var result = getAccessories<Case>("Cases", "Cases_Unit", new List<int>() { unitId }, createCase);
+            return result.Count > 0 ? result[0] : null;
             }
 
         public Unit ReadUnitByBarcode(int barcode)
             {
-            if (barcode <= 0)
+            if (barcode == 0)
                 {
                 return null;
                 }
-
-            return (Unit)getAccessory("Units", "Units_Barcode", barcode, createUnit);
-            }
-
-        public Lamp ReadLamp(int id)
-            {
-            if (id <= 0)
-                {
-                return null;
-                }
-
-            return (Lamp)getAccessory("Lamps", "PK_Lamps", id, createLamp);
+            var result = getAccessories<Unit>("Units", "Units_Barcode", new List<int>() { barcode }, createUnit);
+            return result.Count > 0 ? result[0] : null;
             }
 
         public Lamp ReadLampByBarcode(int barcode)
             {
-            if (barcode <= 0)
+            if (barcode == 0)
                 {
                 return null;
                 }
-
-            return (Lamp)getAccessory("Lamps", "Lamps_Barcode", barcode, createLamp);
+            var result = getAccessories<Lamp>("Lamps", "Lamps_Barcode", new List<int>() { barcode }, createLamp);
+            return result.Count > 0 ? result[0] : null;
             }
 
         #region private
@@ -605,7 +596,88 @@ namespace WMS_client.Repositories
         #endregion
 
 
+        public List<List<int>> GetUpdateTasks(TypeOfAccessories accessoryType, int recordsQuantityInTask)
+            {
+            var result = new List<List<int>>();
 
+            string sql = string.Empty;
+            int minId = 0;
+            int maxId = 0;
+
+            switch (accessoryType)
+                {
+                case TypeOfAccessories.Case:
+                    sql = @"select Id from CasesUpdating";
+                    break;
+
+                case TypeOfAccessories.Lamp:
+                    minId = Math.Max(lastUpdatedLampId + 1, minAccessoryId);
+                    maxId = maxAccessoryId;
+                    sql = @"
+select Id from LampsUpdating
+union all
+select Id from Lamps where Id between @minId and @maxId";
+                    break;
+
+                case TypeOfAccessories.ElectronicUnit:
+                    minId = Math.Max(lastUpdatedUnitId + 1, minAccessoryId);
+                    maxId = maxAccessoryId;
+                    sql = @"
+select Id from UnitsUpdating
+union all
+select Id from Units where Id between @minId and @maxId";
+                    break;
+                }
+
+            using (var conn = getOpenedConnection())
+                {
+                using (var cmd = conn.CreateCommand())
+                    {
+                    cmd.CommandText = sql;
+
+                    if (minId != maxId)
+                        {
+                        cmd.Parameters.AddWithValue("maxId", maxId);
+                        cmd.Parameters.AddWithValue("minId", minId);
+                        }
+
+                    using (var reader = cmd.ExecuteReader())
+                        {
+                        int countInTask = 0;
+                        List<int> currentTask = null;
+                        while (reader.Read())
+                            {
+                            if (countInTask % recordsQuantityInTask == 0)
+                                {
+                                if (currentTask != null)
+                                    {
+                                    result.Add(currentTask);
+                                    }
+                                currentTask = new List<int>();
+                                countInTask = 0;
+                                }
+
+                            int id = (int)(reader[0]);
+
+                            currentTask.Add(id);
+                            countInTask++;
+                            }
+
+                        if (currentTask != null)
+                            {
+                            result.Add(currentTask);
+                            }
+                        }
+                    }
+                }
+
+            return result;
+            }
+
+        public DataTable GetAccessoriesTable(List<int> task, TypeOfAccessories typeOfAccessories)
+            {
+            throw new NotImplementedException();
+            }
 
 
         }

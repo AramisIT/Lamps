@@ -215,6 +215,7 @@
     </Compile>
     <Compile Include="Processes\Lamps\RegistrationProcess.cs" />
     <Compile Include="Base\ServerAgent.cs" />
+    <Compile Include="Repositories\RepositoryHelper.cs" />
     <Compile Include="Repositories\Sql\TablesColumns\CasesTable.cs" />
     <Compile Include="Repositories\Sql\TablesColumns\DatabaseParameters.cs" />
     <Compile Include="Repositories\Sql\TablesColumns\LampsTable.cs" />
@@ -234,7 +235,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="LampsBase.sdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="media_player.ico" />
     <Content Include="PDT_ID.txt">

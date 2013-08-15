@@ -53,10 +53,20 @@ namespace WMS_client
 
         private void SynchronizeWithGreenhouse(IServerIdProvider serverIdProvider)
             {
+            long lastUpdateRowId = getLastUpdateRowId();
+
             logBuilder = new StringBuilder(string.Format("Synchronizing start: {0}", DateTime.Now.ToString("HH:mm:ss dd.MM.yyyy")));
             logBuilder.AppendLine();
             Stopwatch totalTime = new Stopwatch();
             totalTime.Start();
+
+
+            syncUnits();
+            syncLamps();
+
+            syncCases();
+            return;
+
             //Документи
             infoLabel.Text = "Контрагенти";
             if (!SyncObjects<Contractors>(WaysOfSync.OneWay, FilterSettings.CanSynced))
@@ -142,6 +152,40 @@ namespace WMS_client
             logBuilder.AppendLine();
             logBuilder.AppendLine(string.Format("Total: {0}", (int)(totalTime.ElapsedMilliseconds * 0.001)));
             logToFile("SynchLog.txt", logBuilder);
+            }
+
+        private void syncUnits()
+            {
+            List<List<int>> tasks = Configuration.Current.Repository.GetUpdateTasks(TypeOfAccessories.ElectronicUnit, RECORDS_QUANTITY_IN_TASK);
+            }
+
+        private const int RECORDS_QUANTITY_IN_TASK = 100;
+        private void syncCases()
+            {
+            List<List<int>> tasks = Configuration.Current.Repository.GetUpdateTasks(TypeOfAccessories.Case, RECORDS_QUANTITY_IN_TASK);
+            }
+
+        private void syncLamps()
+            {
+            List<List<int>> tasks = Configuration.Current.Repository.GetUpdateTasks(TypeOfAccessories.Lamp, RECORDS_QUANTITY_IN_TASK);
+
+            foreach (var task in tasks)
+                {
+                DataTable table = Configuration.Current.Repository.GetAccessoriesTable(task, TypeOfAccessories.Lamp);
+                }
+            }
+
+        private long getLastUpdateRowId()
+            {
+            PerformQuery("GetLastTSDSyncronizationRowId");
+            if (SuccessQueryResult)
+                {
+                return Convert.ToInt64(ResultParameters[1] ?? -1);
+                }
+            else
+                {
+                return -1;
+                }
             }
 
         private void logToFile(string fileName, StringBuilder logBuilder)

@@ -10,7 +10,6 @@ namespace WMS_client
     {
     static class AccessoryHelper
         {
-
         public static T Copy<T>(this IAccessory accessory) where T : IAccessory, new()
             {
             T copy = new T();

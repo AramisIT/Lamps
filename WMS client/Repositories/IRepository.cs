@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
+using WMS_client.Enums;
 using WMS_client.Models;
 
 namespace WMS_client.Repositories
@@ -33,9 +35,7 @@ namespace WMS_client.Repositories
         PartyModel GetParty(int partyId);
 
         IAccessory FindAccessory(int accessoryBarcode);
-
-        Case ReadCase(int id);
-
+          
         Case FintCaseByLamp(int lampId);
 
         Case FintCaseByUnit(int unitId);
@@ -44,10 +44,16 @@ namespace WMS_client.Repositories
 
         Lamp ReadLampByBarcode(int barcode);
 
-        Unit ReadUnit(int id);
+        List<Case> ReadCases(List<int> idsList);
 
-        Lamp ReadLamp(int id);
+        List<Unit> ReadUnits(List<int> idsList);
+
+        List<Lamp> ReadLamps(List<int> idsList);
 
         bool WriteMap(Map map);
+
+        List<List<int>> GetUpdateTasks(TypeOfAccessories accessoryType, int recordsQuantityInTask);
+
+        DataTable GetAccessoriesTable(List<int> task, TypeOfAccessories typeOfAccessories);
         }
     }
