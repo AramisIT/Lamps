@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using WMS_client.Enums;
 using WMS_client.db;
+using WMS_client.Models;
 using WMS_client.Processes.Lamps.Sync;
 using System.Diagnostics;
 using WMS_client.Utils;
@@ -60,11 +61,15 @@ namespace WMS_client
             Stopwatch totalTime = new Stopwatch();
             totalTime.Start();
 
+            infoLabel.Text = "Лампи";
+            syncAccessories(TypeOfAccessories.Lamp, "UpdateLamps");
 
-            syncUnits();
-            syncLamps();
+            infoLabel.Text = "Електронні блоки";
+            syncAccessories(TypeOfAccessories.ElectronicUnit, "UpdateUnits");
 
-            syncCases();
+            infoLabel.Text = "Корпуси";
+            syncAccessories(TypeOfAccessories.Case, "UpdateCases");
+
             return;
 
             //Документи
@@ -154,25 +159,124 @@ namespace WMS_client
             logToFile("SynchLog.txt", logBuilder);
             }
 
-        private void syncUnits()
-            {
-            List<List<int>> tasks = Configuration.Current.Repository.GetUpdateTasks(TypeOfAccessories.ElectronicUnit, RECORDS_QUANTITY_IN_TASK);
-            }
 
-        private const int RECORDS_QUANTITY_IN_TASK = 100;
-        private void syncCases()
-            {
-            List<List<int>> tasks = Configuration.Current.Repository.GetUpdateTasks(TypeOfAccessories.Case, RECORDS_QUANTITY_IN_TASK);
-            }
 
-        private void syncLamps()
-            {
-            List<List<int>> tasks = Configuration.Current.Repository.GetUpdateTasks(TypeOfAccessories.Lamp, RECORDS_QUANTITY_IN_TASK);
 
-            foreach (var task in tasks)
+        private const int RECORDS_QUANTITY_IN_TASK = 200;
+
+        private bool syncAccessories(TypeOfAccessories accessoriesType, string remoteMethodName)
+            {
+            List<List<int>> tasks = Configuration.Current.Repository.GetUpdateTasks(accessoriesType, RECORDS_QUANTITY_IN_TASK);
+
+            int totalTasks = tasks.Count;
+            ShowProgress(0, totalTasks);
+
+            for (int taskIndex = 0; taskIndex < totalTasks; taskIndex++)
                 {
-                DataTable table = Configuration.Current.Repository.GetAccessoriesTable(task, TypeOfAccessories.Lamp);
+                var task = tasks[taskIndex];
+
+                DataTable table;
+                switch (accessoriesType)
+                    {
+                    case TypeOfAccessories.Lamp:
+                        table = buildDataTable<Lamp>(Configuration.Current.Repository.ReadLamps(task));
+                        break;
+
+                    case TypeOfAccessories.ElectronicUnit:
+                        table = buildDataTable<Unit>(Configuration.Current.Repository.ReadUnits(task));
+                        break;
+
+                    default:
+                        table = buildDataTable<Case>(Configuration.Current.Repository.ReadCases(task));
+                        break;
+                    }
+
+                PerformQuery(remoteMethodName, table);
+
+                if (!SuccessQueryResult)
+                    {
+                    return false;
+                    }
+
+                ShowProgress(taskIndex + 1, totalTasks);
                 }
+
+            return true;
+            }
+
+        private DataTable buildDataTable<T>(List<T> list) where T : IAccessory
+            {
+            if (list == null || list.Count == 0)
+                {
+                return null;
+                }
+
+            var resultTable = new DataTable("Accessories");
+            resultTable.Columns.AddRange(new DataColumn[] {
+            new DataColumn("Id", typeof(int)), 
+            new DataColumn("Model", typeof(int)), 
+            new DataColumn("Party", typeof(int)), 
+            new DataColumn("Status", typeof(int)), 
+            new DataColumn("WarrantyExpiryDate", typeof(string))});
+
+            bool barcodeAccessory = list[0] is IBarcodeAccessory;
+            bool fixableAccessory = list[0] is IFixableAccessory;
+            bool isCase = typeof(T) == typeof(Cases);
+
+            if (barcodeAccessory)
+                {
+                resultTable.Columns.Add(new DataColumn("Barcode", typeof(Int32)));
+                }
+
+            if (fixableAccessory)
+                {
+                resultTable.Columns.Add(new DataColumn("RepairWarranty", typeof(bool)));
+                }
+
+            if (isCase)
+                {
+                resultTable.Columns.Add(new DataColumn("Lamp", typeof(Int32)));
+                resultTable.Columns.Add(new DataColumn("Unit", typeof(Int32)));
+                resultTable.Columns.Add(new DataColumn("Map", typeof(Int32)));
+                resultTable.Columns.Add(new DataColumn("Register", typeof(Int32)));
+                resultTable.Columns.Add(new DataColumn("Position", typeof(Int32)));
+                }
+
+            foreach (var accessory in list)
+                {
+                var newRow = resultTable.NewRow();
+
+                newRow["Id"] = Convert.ToInt32(accessory.Id);
+                newRow["Model"] = Convert.ToInt32(accessory.Model);
+                newRow["Party"] = Convert.ToInt32(accessory.Party);
+                newRow["Status"] = Convert.ToInt32(accessory.Status);
+                newRow["WarrantyExpiryDate"] = accessory.WarrantyExpiryDate.ToString("dd.MM.yyyy");
+
+                if (barcodeAccessory)
+                    {
+                    newRow["Barcode"] = Convert.ToInt32(((IBarcodeAccessory)accessory).Barcode);
+                    }
+
+                if (fixableAccessory)
+                    {
+                    newRow["RepairWarranty"] = ((IFixableAccessory)accessory).RepairWarranty;
+                    }
+
+                if (isCase)
+                    {
+                    var _Case = accessory as Case;
+
+                    newRow["Unit"] = _Case.Unit;
+                    newRow["Lamp"] = _Case.Lamp;
+                    newRow["Map"] = _Case.Map;
+                    newRow["Register"] = Convert.ToInt32(_Case.Register);
+                    newRow["Position"] = Convert.ToInt32(_Case.Position);
+                    }
+
+                resultTable.Rows.Add(newRow);
+                }
+
+            return resultTable;
             }
 
         private long getLastUpdateRowId()

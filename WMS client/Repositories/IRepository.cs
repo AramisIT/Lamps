@@ -35,7 +35,7 @@ namespace WMS_client.Repositories
         PartyModel GetParty(int partyId);
 
         IAccessory FindAccessory(int accessoryBarcode);
-          
+
         Case FintCaseByLamp(int lampId);
 
         Case FintCaseByUnit(int unitId);
@@ -53,7 +53,5 @@ namespace WMS_client.Repositories
         bool WriteMap(Map map);
 
         List<List<int>> GetUpdateTasks(TypeOfAccessories accessoryType, int recordsQuantityInTask);
-
-        DataTable GetAccessoriesTable(List<int> task, TypeOfAccessories typeOfAccessories);
         }
     }

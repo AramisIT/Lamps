@@ -674,10 +674,7 @@ select Id from Units where Id between @minId and @maxId";
             return result;
             }
 
-        public DataTable GetAccessoriesTable(List<int> task, TypeOfAccessories typeOfAccessories)
-            {
-            throw new NotImplementedException();
-            }
+       
 
 
         }

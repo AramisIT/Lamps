@@ -249,5 +249,22 @@ namespace WMS_client
         public abstract void OnBarcode(string barcode);
         public abstract void OnHotKey(KeyAction key);
         #endregion
+
+        /// <summary>
+        /// show progress bar status
+        /// </summary>
+        /// <param name="value">from 0 to 100 value</param>
+        protected void ShowProgress(int currentValue, int total)
+            {
+            if (total == currentValue || total == 0)
+                {
+                MainProcess.MainForm.ShowProgress(100);
+                }
+            else
+                {
+                var percent = (int)(100 * currentValue / total);
+                MainProcess.MainForm.ShowProgress(percent);
+                }
+            }
         }
     }

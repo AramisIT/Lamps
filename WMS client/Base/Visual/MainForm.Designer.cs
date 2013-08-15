@@ -35,7 +35,7 @@
         this.BarcodeTextBox = new System.Windows.Forms.TextBox();
         this.LogoOffLine = new System.Windows.Forms.PictureBox();
         this.LogoOnLine = new System.Windows.Forms.PictureBox();
-        this.progressBar1 = new System.Windows.Forms.ProgressBar();
+        this.progressBar = new System.Windows.Forms.ProgressBar();
         this.progressText = new System.Windows.Forms.Label();
         this.SuspendLayout();
         // 
@@ -80,10 +80,10 @@
         this.LogoOnLine.Click += new System.EventHandler(this.pictureBox1_DoubleClick);
         this.LogoOnLine.Paint += new System.Windows.Forms.PaintEventHandler(this.LogoOnLine_Paint);
         // 
-        // progressBar1
+        // progressBar
         // 
-        resources.ApplyResources(this.progressBar1, "progressBar1");
-        this.progressBar1.Name = "progressBar1";
+        resources.ApplyResources(this.progressBar, "progressBar");
+        this.progressBar.Name = "progressBar";
         // 
         // progressText
         // 
@@ -99,7 +99,7 @@
         resources.ApplyResources(this, "$this");
         this.ControlBox = false;
         this.Controls.Add(this.progressText);
-        this.Controls.Add(this.progressBar1);
+        this.Controls.Add(this.progressBar);
         this.Controls.Add(this.LogoOnLine);
         this.Controls.Add(this.LogoOffLine);
         this.Controls.Add(this.BarcodeLabel);
@@ -127,7 +127,7 @@
         private System.Windows.Forms.PictureBox LogoOffLine;
         private System.Windows.Forms.PictureBox LogoOnLine;
         private System.Windows.Forms.TextBox BarcodeTextBox;
-        public System.Windows.Forms.ProgressBar progressBar1;
+        public System.Windows.Forms.ProgressBar progressBar;
         private System.Windows.Forms.Label progressText;
     }
 }
