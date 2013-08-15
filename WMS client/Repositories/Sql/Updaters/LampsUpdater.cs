@@ -10,7 +10,7 @@ namespace WMS_client.Repositories.Sql.Updaters
     class LampsUpdater : AccessoryUpdater<Lamp>
         {
         public LampsUpdater()
-            : base("Lamps", "PK_Lamps")
+            : base("Lamps", "PK_Lamps", "LampsUpdating", "PK_LampsUpdating")
         { }
 
         protected override void fillValues(SqlCeResultSet record, Lamp lamp)

@@ -8,22 +8,61 @@ using System.Windows.Forms;
 using WMS_client.db;
 using WMS_client.Models;
 using System.Data;
+using WMS_client.Repositories.Sql;
 using WMS_client.Repositories.Sql.Updaters;
 
 namespace WMS_client.Repositories
     {
     public class SqlCeRepository : IRepository
         {
+        private const int LAST_UPDATED_LAMP_ID = 0;
+        private const int LAST_UPDATED_UNIT_ID = 1;
+
         public SqlCeRepository()
             {
             initConnectionString();
 
-            minLampUnitId = Configuration.Current.TerminalId * 10 * 1000 * 1000;
-            maxLampUnitId = (Configuration.Current.TerminalId + 1) * 10 * 1000 * 1000 - 1;
+            minAccessoryId = Configuration.Current.TerminalId * 10 * 1000 * 1000;
+            maxAccessoryId = (Configuration.Current.TerminalId + 1) * 10 * 1000 * 1000 - 1;
 
             nextUnitId = getNextId("Units");
             nextLampId = getNextId("Lamps");
+
+            lastUpdatedLampId = readDatabaseParameter(LAST_UPDATED_LAMP_ID);
+            lastUpdatedUnitId = readDatabaseParameter(LAST_UPDATED_UNIT_ID);
             }
+
+        private int readDatabaseParameter(int parameterId)
+            {
+            using (var conn = getOpenedConnection())
+                {
+                using (var cmd = conn.CreateCommand())
+                    {
+                    cmd.CommandType = CommandType.TableDirect;
+                    cmd.CommandText = "DatabaseParameters";
+                    cmd.IndexName = "PK_DatabaseParameters";
+
+                    using (var result = cmd.ExecuteResultSet(UPDATABLE_RESULT_SET_OPTIONS))
+                        {
+                        if (result.Seek(DbSeekOptions.FirstEqual, parameterId))
+                            {
+                            result.Read();
+                            return result.GetInt32(DatabaseParameters.Value);
+                            }
+                        else
+                            {
+                            var newRow = result.CreateRecord();
+                            newRow.SetInt32(DatabaseParameters.Value, 0);
+                            newRow.SetInt32(DatabaseParameters.Id, parameterId);
+                            result.Insert(newRow);
+                            return 0;
+                            }
+                        }
+                    }
+                }
+            }
+
+        public bool LoadingDataFromGreenhouse { get; set; }
 
         public bool WriteModel(Model model)
             {
@@ -122,10 +161,10 @@ namespace WMS_client.Repositories
                     }
                 }
             }
-       
+
         public bool UpdateCases(List<Case> cases, bool justInsert)
             {
-            var updater = new CasesUpdater() { JustInsert = justInsert };
+            var updater = new CasesUpdater() { JustInsert = justInsert, LoadingDataFromGreenhouse = this.LoadingDataFromGreenhouse };
             updater.InitUpdater(cases, getOpenedConnection);
 
             return updater.Update();
@@ -133,17 +172,25 @@ namespace WMS_client.Repositories
 
         public bool UpdateLamps(List<Lamp> lamps, bool justInsert)
             {
-            var updater = new LampsUpdater() { JustInsert = justInsert };
-            updater.InitUpdater(lamps, getOpenedConnection);
+            var updater = new LampsUpdater() { JustInsert = justInsert, LoadingDataFromGreenhouse = this.LoadingDataFromGreenhouse };
+            updater.Don_tAddNewToLog = true;
+            updater.LastUploadedToGreenhouseId = lastUpdatedLampId;
+            updater.MinAccessoryIdForCurrentPdt = minAccessoryId;
+            updater.MaxAccessoryIdForCurrentPdt = maxAccessoryId;
 
+            updater.InitUpdater(lamps, getOpenedConnection);
             return updater.Update();
             }
 
         public bool UpdateUnits(List<Unit> units, bool justInsert)
             {
-            var updater = new UnitsUpdater() { JustInsert = justInsert };
-            updater.InitUpdater(units, getOpenedConnection);
+            var updater = new UnitsUpdater() { JustInsert = justInsert, LoadingDataFromGreenhouse = this.LoadingDataFromGreenhouse };
+            updater.Don_tAddNewToLog = true;
+            updater.LastUploadedToGreenhouseId = lastUpdatedUnitId;
+            updater.MinAccessoryIdForCurrentPdt = minAccessoryId;
+            updater.MaxAccessoryIdForCurrentPdt = maxAccessoryId;
 
+            updater.InitUpdater(units, getOpenedConnection);
             return updater.Update();
             }
 
@@ -353,8 +400,8 @@ namespace WMS_client.Repositories
             return conn;
             }
 
-        private readonly int minLampUnitId;
-        private readonly int maxLampUnitId;
+        private readonly int minAccessoryId;
+        private readonly int maxAccessoryId;
 
         public const ResultSetOptions UPDATABLE_RESULT_SET_OPTIONS = ResultSetOptions.Scrollable | ResultSetOptions.Sensitive | ResultSetOptions.Updatable;
         public const ResultSetOptions READ_ONLY_RESULT_SET_OPTIONS = ResultSetOptions.Scrollable | ResultSetOptions.Sensitive;
@@ -362,6 +409,8 @@ namespace WMS_client.Repositories
         private CatalogCache<int, PartyModel> partiesCache;
         private CatalogCache<int, Map> mapsCache;
         private CatalogCache<Int16, Model> modelsCache;
+        private int lastUpdatedUnitId;
+        private int lastUpdatedLampId;
 
         private CatalogCache<int, PartyModel> buildPartiesCache()
             {
@@ -538,14 +587,14 @@ namespace WMS_client.Repositories
                 using (var cmd = conn.CreateCommand())
                     {
                     cmd.CommandText = sqlCommand;
-                    cmd.Parameters.AddWithValue("minLampUnitId", minLampUnitId);
-                    cmd.Parameters.AddWithValue("maxLampUnitId", maxLampUnitId);
+                    cmd.Parameters.AddWithValue("minLampUnitId", minAccessoryId);
+                    cmd.Parameters.AddWithValue("maxLampUnitId", maxAccessoryId);
 
                     object lastId = cmd.ExecuteScalar();
 
                     if (lastId == null || System.DBNull.Value.Equals(lastId))
                         {
-                        return minLampUnitId;
+                        return minAccessoryId;
                         }
 
                     return Convert.ToInt32(lastId) + 1;

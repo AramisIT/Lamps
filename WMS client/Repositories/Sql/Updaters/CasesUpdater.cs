@@ -10,7 +10,7 @@ namespace WMS_client.Repositories.Sql.Updaters
     class CasesUpdater : AccessoryUpdater<Case>
         {
         public CasesUpdater()
-            : base("Cases", "PK_Cases")
+            : base("Cases", "PK_Cases", "CasesUpdating", "PK_CasesUpdating")
         { }
 
         protected override void fillValues(SqlCeResultSet record, Case _Case)

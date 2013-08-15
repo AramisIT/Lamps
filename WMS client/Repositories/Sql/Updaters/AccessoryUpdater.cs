@@ -13,12 +13,17 @@ namespace WMS_client.Repositories.Sql
         {
         private List<T> accessoriesList;
         private Func<SqlCeConnection> getSqlConnection;
+
         private readonly string tableName;
+        private readonly string tableIndexName;
+        private readonly string logTableIndexName;
+        private readonly string logTableName;
+
         private bool justInsert;
-        private string tableIndexName;
+        private bool don_tAddNewToLog;
         protected abstract void fillValues(SqlCeResultSet record, T accessory);
         protected abstract void fillValues(SqlCeUpdatableRecord record, T accessory);
-        
+
         protected object getSqlDateTime(DateTime dateTime)
             {
             object result = DBNull.Value;
@@ -29,10 +34,13 @@ namespace WMS_client.Repositories.Sql
             return result;
             }
 
-        public AccessoryUpdater(string tableName, string tableIndexName)
+        public AccessoryUpdater(string tableName, string tableIndexName, string logTableName,
+            string logTableIndexName)
             {
             this.tableName = tableName;
             this.tableIndexName = tableIndexName;
+            this.logTableName = logTableName;
+            this.logTableIndexName = logTableIndexName;
             }
 
         public bool JustInsert
@@ -40,6 +48,37 @@ namespace WMS_client.Repositories.Sql
             get { return justInsert; }
             set { justInsert = value; }
             }
+
+        public bool Don_tAddNewToLog
+            {
+            get { return don_tAddNewToLog; }
+            set { don_tAddNewToLog = value; }
+            }
+
+
+        private int lastUploadedToGreenhouseId;
+        private int minAccessoryIdForCurrentPdt;
+        private int maxAccessoryIdForCurrentPdt;
+
+        public int LastUploadedToGreenhouseId
+            {
+            get { return lastUploadedToGreenhouseId; }
+            set { lastUploadedToGreenhouseId = value; }
+            }
+
+        public int MinAccessoryIdForCurrentPdt
+            {
+            get { return minAccessoryIdForCurrentPdt; }
+            set { minAccessoryIdForCurrentPdt = value; }
+            }
+
+        public int MaxAccessoryIdForCurrentPdt
+            {
+            get { return maxAccessoryIdForCurrentPdt; }
+            set { maxAccessoryIdForCurrentPdt = value; }
+            }
+
+        public bool LoadingDataFromGreenhouse { get; set; }
 
         public void InitUpdater(List<T> accessories, Func<SqlCeConnection> getSqlConnection)
             {
@@ -64,7 +103,7 @@ namespace WMS_client.Repositories.Sql
                             if (!justInsert && resultSet.Seek(DbSeekOptions.FirstEqual, accessory.Id))
                                 {
                                 resultSet.Read();
-                                
+
                                 fillValues(resultSet, accessory);
 
                                 resultSet.Update();
@@ -72,7 +111,7 @@ namespace WMS_client.Repositories.Sql
                             else
                                 {
                                 var newRow = resultSet.CreateRecord();
-                                
+
                                 fillValues(newRow, accessory);
 
                                 try
@@ -89,6 +128,59 @@ namespace WMS_client.Repositories.Sql
                         }
                     }
                 }
+
+            return LoadingDataFromGreenhouse ? true : writeToUpdateLog();
+            }
+
+        private bool writeToUpdateLog()
+            {
+            try
+                {
+                using (var conn = getSqlConnection())
+                    {
+                    using (var cmd = conn.CreateCommand())
+                        {
+                        cmd.CommandType = System.Data.CommandType.TableDirect;
+                        cmd.CommandText = logTableName;
+                        cmd.IndexName = logTableIndexName;
+
+                        using (var resultSet = cmd.ExecuteResultSet(SqlCeRepository.UPDATABLE_RESULT_SET_OPTIONS))
+                            {
+                            foreach (var accessory in accessoriesList)
+                                {
+                                int currentId = accessory.Id;
+
+                                if (don_tAddNewToLog)
+                                    {
+                                    bool idCreatedOnThisPDT = minAccessoryIdForCurrentPdt <= currentId &&
+                                                              currentId <= maxAccessoryIdForCurrentPdt;
+
+                                    bool accessoryIsNotExistsInGreenhouse = idCreatedOnThisPDT &&
+                                                                            currentId > lastUploadedToGreenhouseId;
+                                    if (accessoryIsNotExistsInGreenhouse)
+                                        {
+                                        // this accessory will be uploaded even without log
+                                        continue;
+                                        }
+                                    }
+
+                                if (justInsert || !resultSet.Seek(DbSeekOptions.FirstEqual, currentId))
+                                    {
+                                    var newRow = resultSet.CreateRecord();
+                                    newRow.SetInt32(0, currentId);
+                                    resultSet.Insert(newRow);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            catch (Exception exp)
+                {
+                Trace.WriteLine(string.Format("Ошибка при записи в лог: {0}", exp.Message));
+                return false;
+                }
+
             return true;
             }
         }

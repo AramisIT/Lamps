@@ -10,7 +10,7 @@ namespace WMS_client.Repositories.Sql.Updaters
     class UnitsUpdater : AccessoryUpdater<Unit>
         {
         public UnitsUpdater()
-            : base("Units", "PK_Units")
+            : base("Units", "PK_Units", "UnitsUpdating", "PK_UnitsUpdating")
         { }
 
         protected override void fillValues(SqlCeResultSet record, Unit unit)
