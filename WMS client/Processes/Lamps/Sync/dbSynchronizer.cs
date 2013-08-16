@@ -67,22 +67,22 @@ namespace WMS_client
             totalTime.Start();
 
             infoLabel.Text = "Експорт ламп";
-            //if (!uploadAccessories(TypeOfAccessories.Lamp, "UpdateLamps"))
-            //    {
-            //    return;
-            //    }
+            if (!uploadAccessories(TypeOfAccessories.Lamp, "UpdateLamps"))
+                {
+                return;
+                }
 
-            //infoLabel.Text = "Експорт блоків";
-            //if (!uploadAccessories(TypeOfAccessories.ElectronicUnit, "UpdateUnits"))
-            //    {
-            //    return;
-            //    }
+            infoLabel.Text = "Експорт блоків";
+            if (!uploadAccessories(TypeOfAccessories.ElectronicUnit, "UpdateUnits"))
+                {
+                return;
+                }
 
-            //infoLabel.Text = "Експорт корпусів";
-            //if (!uploadAccessories(TypeOfAccessories.Case, "UpdateCases"))
-            //    {
-            //    return;
-            //    }
+            infoLabel.Text = "Експорт корпусів";
+            if (!uploadAccessories(TypeOfAccessories.Case, "UpdateCases"))
+                {
+                return;
+                }
 
             infoLabel.Text = "Імпорт ламп";
             if (!downloadAccessories<Lamp>(TypeOfAccessories.Lamp, "Lamps"))
@@ -220,12 +220,9 @@ namespace WMS_client
                 while (true)
                     {
                     iterationNumber++;
-                    //Debug.WriteLine(string.Format("lastDownLoadedId = {0}", lastDownLoadedId));
                     PerformQuery("DownloadUpdatedAccessories", (int)accessoryType, lastDownLoadedId,
                         RECORDS_QUANTITY_IN_TASK);
-
-                    //Debug.WriteLine(string.Format("Recieved lastDownLoadedId = {0}", lastDownLoadedId));
-
+                   
                     if (!SuccessQueryResult)
                         {
                         return false;
@@ -280,7 +277,7 @@ namespace WMS_client
                         }
 
                     lastDownLoadedId = lastAcceptedRowId;
-                   // Configuration.Current.Repository.SetLastDownloadedId(accessoryType, lastAcceptedRowId);
+                    Configuration.Current.Repository.SetLastDownloadedId(accessoryType, lastAcceptedRowId);
                     ShowProgress(iterationNumber, iterationsCount);
                     }
                 }
@@ -312,7 +309,7 @@ namespace WMS_client
 
 
 
-        private const int RECORDS_QUANTITY_IN_TASK = 200;
+        private const int RECORDS_QUANTITY_IN_TASK = 500;
 
         private bool uploadAccessories(TypeOfAccessories accessoriesType, string remoteMethodName)
             {

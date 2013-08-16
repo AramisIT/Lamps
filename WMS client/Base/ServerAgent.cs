@@ -310,6 +310,7 @@ namespace WMS_client
                 else
                     {
                     StorekeeperQuery = ReadStream();
+                    WriteToFile(" << ReadStream [" + StorekeeperQuery + "]", false);
                     }
 
 
@@ -320,11 +321,22 @@ namespace WMS_client
                     }
 
                 StorekeeperQuery = StorekeeperQueryHead + StorekeeperQuery;
+
+                if (!PackageViaWireless.isCompletelyPackage(StorekeeperQuery))
+                    {
+                    StorekeeperQueryHead = StorekeeperQuery;
+                    continue;
+                    }
+
                 WriteToFile(" << Read Query [" + StorekeeperQuery + "]", false);
-
-                if (!PackageViaWireless.isCompletelyPackage(StorekeeperQuery)) continue;
-
-                Package = new PackageViaWireless(StorekeeperQuery, out StorekeeperQueryHead);
+                try
+                    {
+                    Package = new PackageViaWireless(StorekeeperQuery, out StorekeeperQueryHead);
+                    }
+                catch (Exception exp)
+                    {
+                    string.Format("", exp.Message);
+                    }
 
                 if (PackageConvertation.PACKAGE_CONFIRMATION_NAME.Equals(Package.QueryName))
                     {
@@ -341,7 +353,7 @@ namespace WMS_client
 
                 #region Pinging server
 
-                Trace.WriteLine(string.Format("Pack id: {0}", Package.PackageID));
+                Trace.WriteLine(string.Format("Pack id: {0};\tquery = {1};\t{2}", Package.PackageID, Package.QueryName, DateTime.Now.ToString("mm:ss")));
 
                 if (Package.QueryName == "Ping")
                     {
@@ -530,7 +542,7 @@ namespace WMS_client
 
                     while (true)
                         {
-                        bool anyRead = NetStreamReadRes.AsyncWaitHandle.WaitOne();//(100, false);
+                        bool anyRead = NetStreamReadRes.AsyncWaitHandle.WaitOne(500, false);
                         if (!wifiEnabled)
                             {
                             return string.Empty;
@@ -551,7 +563,7 @@ namespace WMS_client
                     SetConnectionStatus(false);
                     return null;
                     }
-                } while (streamLength == 512 && ResultString.Substring(507) != "#END>");
+                } while (streamLength == 512 && ResultString.IndexOf("#END>") == -1);
 
             return SB.ToString();
             }
@@ -566,12 +578,12 @@ namespace WMS_client
 
         private void WriteToFile(string buffer)
             {
-            WriteToFile(buffer, false);
+            //WriteToFile(buffer, false);
             }
 
         private void WriteToFile(string buffer, bool rewrite)
             {
-            return;
+            // return;
             lock (this)
                 {
                 try
@@ -589,6 +601,9 @@ namespace WMS_client
 
                     myFile.WriteLine("\t" + DateTime.Now.ToString("HH:mm:ss"));
                     myFile.WriteLine(buffer);
+                    myFile.WriteLine("");
+                    myFile.WriteLine("");
+                    myFile.WriteLine("");
                     myFile.WriteLine("");
                     myFile.Close();
                     }
