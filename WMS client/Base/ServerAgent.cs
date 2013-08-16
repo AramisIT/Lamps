@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Net.Sockets;
@@ -18,6 +20,13 @@ namespace WMS_client
 
         public PackageViaWireless Package;
         public string WaitingPackageID = "";
+        private AutoResetEvent requestReadyTrigger = new AutoResetEvent(false);
+
+        public AutoResetEvent RequestReadyTrigger
+            {
+            get { return requestReadyTrigger; }
+            }
+
         public bool RequestReady = false;
         public bool OnLine
             {
@@ -78,7 +87,7 @@ namespace WMS_client
                 }
             }
 
-        public bool SendPackage(Byte[] Package)
+        public bool SendPackage(Byte[] package)
             {
             lock (this)
                 {
@@ -86,8 +95,8 @@ namespace WMS_client
                 bool repeat = false;
                 try
                     {
-                    TCPStream.Write(Package, 0, Package.Length);
-                    WriteToFile(" >> Write [" + Encoding.GetEncoding(1251).GetString(Package, 0, Package.Length) + "]", false);
+                    TCPStream.Write(package, 0, package.Length);
+                    //WriteToFile(" >> Write [" + Encoding.GetEncoding(1251).GetString(package, 0, package.Length) + "]", false);
                     return true;
                     }
                 catch
@@ -101,13 +110,13 @@ namespace WMS_client
                     {
                     try
                         {
-                        TCPStream.Write(Package, 0, Package.Length);
-                        WriteToFile(" >> Write [" + Encoding.GetEncoding(1251).GetString(Package, 0, Package.Length) + "]", false);
+                        TCPStream.Write(package, 0, package.Length);
+                        //WriteToFile(" >> Write [" + Encoding.GetEncoding(1251).GetString(package, 0, package.Length) + "]", false);
                         return true;
                         }
                     catch
                         {
-                        WriteToFile(" Writing error [" + Encoding.GetEncoding(1251).GetString(Package, 0, Package.Length) + "]", false);
+                        //WriteToFile(" Writing error [" + Encoding.GetEncoding(1251).GetString(package, 0, package.Length) + "]", false);
                         //Console.WriteLine("Can't send data: " + exp.Message);
                         }
                     }
@@ -276,6 +285,7 @@ namespace WMS_client
                 }
             }
 
+
         private void ReadPackages()
             {
             #region Define local variables
@@ -302,8 +312,12 @@ namespace WMS_client
                     StorekeeperQuery = ReadStream();
                     }
 
+
                 Package = null;
-                if (StorekeeperQuery == null) return;
+                if (StorekeeperQuery == null)
+                    {
+                    return;
+                    }
 
                 StorekeeperQuery = StorekeeperQueryHead + StorekeeperQuery;
                 WriteToFile(" << Read Query [" + StorekeeperQuery + "]", false);
@@ -312,11 +326,22 @@ namespace WMS_client
 
                 Package = new PackageViaWireless(StorekeeperQuery, out StorekeeperQueryHead);
 
+                if (PackageConvertation.PACKAGE_CONFIRMATION_NAME.Equals(Package.QueryName))
+                    {
+                    sentDeliveryReport(PackageConvertation.GetPatametersFromStr(Package.Parameters)[0] as string);
+                    continue;
+                    }
+
+                lastPackageId = Package.PackageID;
+                sentDeliveryReport(lastPackageId);
+
                 StorekeeperQuery = "";
 
                 #endregion
 
                 #region Pinging server
+
+                Trace.WriteLine(string.Format("Pack id: {0}", Package.PackageID));
 
                 if (Package.QueryName == "Ping")
                     {
@@ -383,6 +408,8 @@ namespace WMS_client
                 if (Package.PackageID != WaitingPackageID) continue;
                 Executed = true;
                 RequestReady = true;
+                requestReadyTrigger.Set();
+                requestReadyTrigger.WaitOne();
 
                 while (RequestReady)
                     {
@@ -390,6 +417,14 @@ namespace WMS_client
                     }
                 #endregion
                 }
+            }
+
+        private void sentDeliveryReport(string sentPackageId)
+            {
+            object[] parameters = new object[] { sentPackageId, lastPackageId.Equals(sentPackageId) };
+            var package = new PackageViaWireless(0, true);
+            package.DefineQueryAndParams(PackageConvertation.PACKAGE_CONFIRMATION_NAME, PackageConvertation.GetStrPatametersFromArray(parameters));
+            SendPackage(package.GetPackage());
             }
 
         private void SendKey()
@@ -481,7 +516,6 @@ namespace WMS_client
 
         private string ReadStream()
             {
-
             IAsyncResult NetStreamReadRes;
             Byte[] recivedData = new Byte[512];
             int streamLength = 0;
@@ -496,7 +530,7 @@ namespace WMS_client
 
                     while (true)
                         {
-                        bool anyRead = NetStreamReadRes.AsyncWaitHandle.WaitOne(100, false);
+                        bool anyRead = NetStreamReadRes.AsyncWaitHandle.WaitOne();//(100, false);
                         if (!wifiEnabled)
                             {
                             return string.Empty;
@@ -506,10 +540,10 @@ namespace WMS_client
                             break;
                             }
                         }
+
                     streamLength = TCPStream.EndRead(NetStreamReadRes);
                     NetStreamReadRes = null;
                     ResultString = Encoding.GetEncoding(1251).GetString(recivedData, 0, streamLength);
-                    WriteToFile(" << Read STREAM [" + ResultString + "]", false);
                     SB.Append(ResultString);
                     }
                 catch
@@ -519,9 +553,7 @@ namespace WMS_client
                     }
                 } while (streamLength == 512 && ResultString.Substring(507) != "#END>");
 
-
             return SB.ToString();
-
             }
 
         private void SetConnectionStatus(bool IsOnline)
@@ -570,6 +602,7 @@ namespace WMS_client
         #endregion
 
         private volatile bool wifiEnabled;
+        private string lastPackageId = string.Empty;
 
         internal void StopConnection()
             {
@@ -583,5 +616,7 @@ namespace WMS_client
                 return wifiEnabled;
                 }
             }
+
+
         }
     }

@@ -57,5 +57,9 @@ namespace WMS_client.Repositories
         List<List<int>> GetUpdateTasks(TypeOfAccessories accessoryType, int recordsQuantityInTask);
 
         bool ResetUpdateLog(TypeOfAccessories accessoriesType);
+
+        long GetLastDownloadedId(TypeOfAccessories accessoryType);
+
+        void SetLastDownloadedId(TypeOfAccessories accessoryType, long lastDownloadedId);
         }
     }

@@ -16,8 +16,12 @@ namespace WMS_client.Repositories
     {
     public class SqlCeRepository : IRepository
         {
-        private const int LAST_UPDATED_LAMP_ID = 0;
-        private const int LAST_UPDATED_UNIT_ID = 1;
+        private const int LAST_UPLOADED_LAMP_ID = 0;
+        private const int LAST_UPLOADED_UNIT_ID = 1;
+
+        private const int LAST_DOWNLOADED_LAMP_ID = 2;
+        private const int LAST_DOWNLOADED_UNIT_ID = 3;
+        private const int LAST_DOWNLOADED_CASE_ID = 4;
 
         public SqlCeRepository()
             {
@@ -29,11 +33,11 @@ namespace WMS_client.Repositories
             nextUnitId = getNextId("Units");
             nextLampId = getNextId("Lamps");
 
-            lastUpdatedLampId = readDatabaseParameter(LAST_UPDATED_LAMP_ID);
-            lastUpdatedUnitId = readDatabaseParameter(LAST_UPDATED_UNIT_ID);
+            lastUpdatedLampId = (int)readDatabaseParameter(LAST_UPLOADED_LAMP_ID);
+            lastUpdatedUnitId = (int)readDatabaseParameter(LAST_UPLOADED_UNIT_ID);
             }
 
-        private int readDatabaseParameter(int parameterId)
+        private long readDatabaseParameter(int parameterId)
             {
             using (var conn = getOpenedConnection())
                 {
@@ -48,12 +52,12 @@ namespace WMS_client.Repositories
                         if (result.Seek(DbSeekOptions.FirstEqual, parameterId))
                             {
                             result.Read();
-                            return result.GetInt32(DatabaseParameters.Value);
+                            return result.GetInt64(DatabaseParameters.Value);
                             }
                         else
                             {
                             var newRow = result.CreateRecord();
-                            newRow.SetInt32(DatabaseParameters.Value, 0);
+                            newRow.SetInt64(DatabaseParameters.Value, 0);
                             newRow.SetInt32(DatabaseParameters.Id, parameterId);
                             result.Insert(newRow);
                             return 0;
@@ -63,7 +67,7 @@ namespace WMS_client.Repositories
                 }
             }
 
-        private void updateDatabaseParameter(int parameterId, int value)
+        private void updateDatabaseParameter(int parameterId, long value)
             {
             using (var conn = getOpenedConnection())
                 {
@@ -78,13 +82,13 @@ namespace WMS_client.Repositories
                         if (result.Seek(DbSeekOptions.FirstEqual, parameterId))
                             {
                             result.Read();
-                            result.SetInt32(DatabaseParameters.Value, value);
+                            result.SetInt64(DatabaseParameters.Value, value);
                             result.Update();
                             }
                         else
                             {
                             var newRow = result.CreateRecord();
-                            newRow.SetInt32(DatabaseParameters.Value, value);
+                            newRow.SetInt64(DatabaseParameters.Value, value);
                             newRow.SetInt32(DatabaseParameters.Id, parameterId);
                             result.Insert(newRow);
                             }
@@ -737,13 +741,13 @@ select Id from Units where Id between @minId and @maxId";
                 {
                 case TypeOfAccessories.Lamp:
                     tableName = "LampsUpdating";
-                    parameterId = LAST_UPDATED_LAMP_ID;
+                    parameterId = LAST_UPLOADED_LAMP_ID;
                     getLastIdSql = "select Max(Id) from Lamps where Id between @minId and @maxId";
                     break;
 
                 case TypeOfAccessories.ElectronicUnit:
                     tableName = "UnitsUpdating";
-                    parameterId = LAST_UPDATED_UNIT_ID;
+                    parameterId = LAST_UPLOADED_UNIT_ID;
                     getLastIdSql = "select Max(Id) from Units where Id between @minId and @maxId";
                     break;
 
@@ -797,6 +801,37 @@ select Id from Units where Id between @minId and @maxId";
 
             return true;
             }
+
+        public long GetLastDownloadedId(TypeOfAccessories accessoryType)
+            {
+            int parameterId = getDownloadedParameterId(accessoryType);
+
+            return readDatabaseParameter(parameterId);
+            }
+
+        private int getDownloadedParameterId(TypeOfAccessories accessoryType)
+            {
+            switch (accessoryType)
+                {
+                case TypeOfAccessories.Case:
+                    return LAST_DOWNLOADED_CASE_ID;
+
+                case TypeOfAccessories.Lamp:
+                    return LAST_DOWNLOADED_LAMP_ID;
+
+                case TypeOfAccessories.ElectronicUnit:
+                    return LAST_DOWNLOADED_UNIT_ID;
+                }
+            return -1;
+            }
+
+        public void SetLastDownloadedId(TypeOfAccessories accessoryType, long lastDownloadedId)
+            {
+            int parameterId = getDownloadedParameterId(accessoryType);
+
+            updateDatabaseParameter(parameterId, lastDownloadedId);
+            }
+
         }
 
     }

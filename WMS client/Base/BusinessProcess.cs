@@ -74,6 +74,7 @@ namespace WMS_client
 
         protected BusinessProcess(WMSClient MainProcess, string CellName, string CellBarcode, int FormNumber)
             {
+            ShowProgress(1, 1);
             this.FormNumber = CellName == "" ? FormNumber : 0;
             if (FormNumber == 0)
                 {
@@ -256,6 +257,11 @@ namespace WMS_client
         /// <param name="value">from 0 to 100 value</param>
         protected void ShowProgress(int currentValue, int total)
             {
+            if (MainProcess == null)
+                {
+                return;
+                }
+
             if (total == currentValue || total == 0)
                 {
                 MainProcess.MainForm.ShowProgress(100);

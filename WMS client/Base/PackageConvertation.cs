@@ -8,7 +8,8 @@ namespace WMS_client
     {
     public class PackageConvertation
         {
-        private const string PACKAGE_HEADER = "$T@RT";
+        public static readonly string PACKAGE_CONFIRMATION_NAME = "DELIVERY_CONFIRMATION";
+        public const string PACKAGE_HEADER = "$T@RT";
         private const string PACKAGE_FOOTER = "#END>";
         private const string PACKAGE_SEPARATOR = "\t";
 

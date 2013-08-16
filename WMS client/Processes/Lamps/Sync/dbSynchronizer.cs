@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlServerCe;
@@ -52,6 +53,8 @@ namespace WMS_client
             Configuration.Current.Repository.LoadingDataFromGreenhouse = true;
             SynchronizeWithGreenhouse(serverIdProvider);
             Configuration.Current.Repository.LoadingDataFromGreenhouse = false;
+
+            ShowProgress(1, 1);
             }
 
         private void SynchronizeWithGreenhouse(IServerIdProvider serverIdProvider)
@@ -63,20 +66,38 @@ namespace WMS_client
             Stopwatch totalTime = new Stopwatch();
             totalTime.Start();
 
-            infoLabel.Text = "Лампи";
-            if (!syncAccessories(TypeOfAccessories.Lamp, "UpdateLamps"))
+            infoLabel.Text = "Експорт ламп";
+            //if (!uploadAccessories(TypeOfAccessories.Lamp, "UpdateLamps"))
+            //    {
+            //    return;
+            //    }
+
+            //infoLabel.Text = "Експорт блоків";
+            //if (!uploadAccessories(TypeOfAccessories.ElectronicUnit, "UpdateUnits"))
+            //    {
+            //    return;
+            //    }
+
+            //infoLabel.Text = "Експорт корпусів";
+            //if (!uploadAccessories(TypeOfAccessories.Case, "UpdateCases"))
+            //    {
+            //    return;
+            //    }
+
+            infoLabel.Text = "Імпорт ламп";
+            if (!downloadAccessories<Lamp>(TypeOfAccessories.Lamp, "Lamps"))
                 {
                 return;
                 }
 
-            infoLabel.Text = "Електронні блоки";
-            if (!syncAccessories(TypeOfAccessories.ElectronicUnit, "UpdateUnits"))
+            infoLabel.Text = "Імпорт блоків";
+            if (!downloadAccessories<Unit>(TypeOfAccessories.ElectronicUnit, "ElectronicUnits"))
                 {
                 return;
                 }
 
-            infoLabel.Text = "Корпуси";
-            if (!syncAccessories(TypeOfAccessories.Case, "UpdateCases"))
+            infoLabel.Text = "Імпорт корпусів";
+            if (!downloadAccessories<Case>(TypeOfAccessories.Case, "Cases"))
                 {
                 return;
                 }
@@ -170,12 +191,130 @@ namespace WMS_client
             logToFile("SynchLog.txt", logBuilder);
             }
 
+        private bool downloadAccessories<T>(TypeOfAccessories accessoryType, string greenhouseTableName) where T : IAccessory, new()
+            {
+            long lastDownLoadedId = Configuration.Current.Repository.GetLastDownloadedId(accessoryType);
+            PerformQuery("GetUpdatesCount", greenhouseTableName, lastDownLoadedId);
+            if (!SuccessQueryResult)
+                {
+                return false;
+                }
+
+            int updatesCount = Convert.ToInt32(ResultParameters[1]);
+
+            double iterationsCountDouble = (double)updatesCount / RECORDS_QUANTITY_IN_TASK;
+            int iterationsCount = (int)iterationsCountDouble;
+            if (iterationsCountDouble > iterationsCount)
+                {
+                iterationsCount++;
+                }
+
+            bool barcodeAccessory = typeof(T) != typeof(Case);
+            bool fixableAccessory = typeof(T) != typeof(Lamp);
+            bool isCase = typeof(T) == typeof(Case);
+
+            ShowProgress(0, iterationsCount);
+            int iterationNumber = 0;
+            try
+                {
+                while (true)
+                    {
+                    iterationNumber++;
+                    //Debug.WriteLine(string.Format("lastDownLoadedId = {0}", lastDownLoadedId));
+                    PerformQuery("DownloadUpdatedAccessories", (int)accessoryType, lastDownLoadedId,
+                        RECORDS_QUANTITY_IN_TASK);
+
+                    //Debug.WriteLine(string.Format("Recieved lastDownLoadedId = {0}", lastDownLoadedId));
+
+                    if (!SuccessQueryResult)
+                        {
+                        return false;
+                        }
+
+                    var table = ResultParameters[1] as DataTable;
+                    int lastAcceptedRowId = Convert.ToInt32(ResultParameters[2]);
+                    if (table == null || table.Rows.Count == 0)
+                        {
+                        break;
+                        }
+
+                    List<T> list = new List<T>();
+                    foreach (DataRow row in table.Rows)
+                        {
+                        T accessory = new T();
+
+                        accessory.Id = Convert.ToInt32(row["Id"]);
+                        accessory.Model = Convert.ToInt16(row["Model"]);
+                        accessory.Party = Convert.ToInt32(row["Party"]);
+                        accessory.Status = Convert.ToByte(row["Status"]);
+                        accessory.WarrantyExpiryDate = DateTime.ParseExact(row["WarrantyExpiryDate"] as string,
+                            "dd.MM.yyyy", null);
+
+                        if (barcodeAccessory)
+                            {
+                            ((IBarcodeAccessory)accessory).Barcode = Convert.ToInt32(row["Barcode"]);
+                            }
+
+                        if (fixableAccessory)
+                            {
+                            ((IFixableAccessory)accessory).RepairWarranty = Convert.ToBoolean(row["RepairWarranty"]);
+                            }
+
+                        if (isCase)
+                            {
+                            var _Case = accessory as Case;
+
+                            _Case.Lamp = Convert.ToInt32(row["Lamp"]);
+                            _Case.Unit = Convert.ToInt32(row["Unit"]);
+                            _Case.Map = Convert.ToInt32(row["Map"]);
+                            _Case.Register = Convert.ToInt16(row["Register"]);
+                            _Case.Position = Convert.ToByte(row["Position"]);
+                            }
+
+                        list.Add(accessory);
+                        }
+
+                    if (!updateAccessories(accessoryType, list))
+                        {
+                        return false;
+                        }
+
+                    lastDownLoadedId = lastAcceptedRowId;
+                   // Configuration.Current.Repository.SetLastDownloadedId(accessoryType, lastAcceptedRowId);
+                    ShowProgress(iterationNumber, iterationsCount);
+                    }
+                }
+            catch (Exception exp)
+                {
+                Trace.Write(string.Format(exp.Message));
+                }
+
+            ShowProgress(iterationsCount, iterationsCount);
+            return true;
+            }
+
+        private bool updateAccessories(TypeOfAccessories accessoryType, IList list)
+            {
+            switch (accessoryType)
+                {
+                case TypeOfAccessories.Lamp:
+                    return Configuration.Current.Repository.UpdateLamps((List<Lamp>)list, false);
+
+                case TypeOfAccessories.ElectronicUnit:
+                    return Configuration.Current.Repository.UpdateUnits((List<Unit>)list, false);
+
+                case TypeOfAccessories.Case:
+                    return Configuration.Current.Repository.UpdateCases((List<Case>)list, false);
+                }
+
+            return false;
+            }
 
 
 
-        private const int RECORDS_QUANTITY_IN_TASK = 100;
+        private const int RECORDS_QUANTITY_IN_TASK = 200;
 
-        private bool syncAccessories(TypeOfAccessories accessoriesType, string remoteMethodName)
+        private bool uploadAccessories(TypeOfAccessories accessoriesType, string remoteMethodName)
             {
             List<List<int>> tasks = Configuration.Current.Repository.GetUpdateTasks(accessoriesType, RECORDS_QUANTITY_IN_TASK);
 
