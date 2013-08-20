@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
+using Microsoft.WindowsMobile.Status;
 using WMS_client.Base.Visual.Constructor;
 using WMS_client.Enums;
 using WMS_client.db;
 using WMS_client.Models;
 using WMS_client.Processes;
 using WMS_client.Repositories;
+using WMS_client.Utils;
 
 namespace WMS_client
     {
@@ -25,6 +27,10 @@ namespace WMS_client
         public AccessoriesGroupRegistration(WMSClient MainProcess)
             : base(MainProcess, 1)
             {
+            if (applicationIsClosing)
+                {
+                return;
+                }
             StopNetworkConnection();
             }
 
@@ -118,6 +124,12 @@ namespace WMS_client
 
         public bool SaveGroupOfSets()
             {
+            if (BatteryChargeStatus.Low)
+                {
+                MessageBox.Show("Акумулятор розряджений. Негайно поставте термінал на зарядку та збережіть дані!");
+                return false;
+                }
+
             IRepository repository = Configuration.Current.Repository;
 
             List<Unit> units = new List<Unit>();

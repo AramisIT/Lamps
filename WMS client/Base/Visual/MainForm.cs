@@ -3,8 +3,10 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.IO;
 using Intermec.DataCollection;
+using Microsoft.WindowsMobile.Status;
 using WMS_client.db;
 using WMS_client.Base.Visual;
+using WMS_client.Utils;
 
 namespace WMS_client
     {
@@ -291,18 +293,8 @@ namespace WMS_client
 
         private void pictureBox1_DoubleClick(object sender, EventArgs e)
             {
-            progressBar.Visible = true;
-            for (int i = 0; i < 100; i += 50)
-                {
-                progressBar.Value = i;
-                progressText.Text = i.ToString() + "%";
-                progressText.Refresh();
-                System.Threading.Thread.Sleep(500);
-                }
-            progressBar.Visible = false;
-
             if (
-                MessageBox.Show(String.Format("[{0}]\r\n\r\nЗАКРЫТЬ ПРИЛОЖЕНИЕ?", ServerIP),
+                MessageBox.Show(String.Format("[{0}]\r\n\r\nЗАКРЫТЬ ПРИЛОЖЕНИЕ? Заряд {1} %", ServerIP, BatteryChargeStatus.ChargeValue),
                     "Aramis WMS Ver." + VersionNumber.ToString(), MessageBoxButtons.YesNo, MessageBoxIcon.Question,
                     MessageBoxDefaultButton.Button1) == DialogResult.Yes)
                 {
@@ -360,11 +352,7 @@ namespace WMS_client
         private void Form1_Load(object sender, EventArgs e)
             {
             (new emptyDialog()).ShowDialog();
-            //Platform plat = GetPlatform();
-            //if (plat == Platform.PocketPC)
-            //{
             WindowState = FormWindowState.Maximized;
-            //}
             }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)

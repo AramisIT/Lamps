@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Diagnostics;
 using WMS_client.Repositories;
+using WMS_client.Utils;
 using WMS_client.WinProcessesManagement;
 using System.Reflection;
 
@@ -14,8 +15,12 @@ namespace WMS_client
         [MTAThread]
         static void Main()
             {
-            //new MyDictTest();
-            //return;
+            if (BatteryChargeStatus.Low)
+                {
+                MessageBox.Show("Акумулятор розряджений. Необхідно зарядити термінал!");
+                return;
+                }
+
             if (isExistedSameProcess())
                 {
                 return;
@@ -72,10 +77,10 @@ public class MyDictTest
     }
 
 public class info
-{
+    {
     public int Map;
     public int Position;
     public int Register;
     public int Unit;
     public int Lamp;
-}
+    }

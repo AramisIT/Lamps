@@ -1,5 +1,7 @@
 using System.Windows.Forms;
 using System;
+using Microsoft.WindowsMobile.Status;
+using WMS_client.Utils;
 
 namespace WMS_client
     {
@@ -58,6 +60,7 @@ namespace WMS_client
         public string CellName;
         public int FormNumber = 0;
         public int NextFormNumber = 1;
+        protected bool applicationIsClosing;
         public bool IsExistParameters { get { return ResultParameters != null && ResultParameters.Length > 0 && ResultParameters[0] != null; } }
         public bool IsAnswerIsTrue { get { return IsExistParameters && Convert.ToBoolean(ResultParameters[0]); } }
         #endregion
@@ -74,6 +77,25 @@ namespace WMS_client
 
         protected BusinessProcess(WMSClient MainProcess, string CellName, string CellBarcode, int FormNumber)
             {
+            if (BatteryChargeStatus.Low)
+                {
+                MainProcess.ConnectionAgent.CloseAll();
+                MessageBox.Show("Акумулятор розряджений. Необхідно зарядити термінал!");
+                MainProcess.MainForm.Close();
+                Application.Exit();
+                applicationIsClosing = true;
+                return;
+                }
+
+            if (Configuration.Current.TimeToBackUp)
+                {
+                var backUpCreator = new BackUpCreator();
+                if (backUpCreator.CreateBackUp())
+                    {
+                    Configuration.Current.FixBackUpTime();
+                    }
+                }
+
             ShowProgress(1, 1);
             this.FormNumber = CellName == "" ? FormNumber : 0;
             if (FormNumber == 0)

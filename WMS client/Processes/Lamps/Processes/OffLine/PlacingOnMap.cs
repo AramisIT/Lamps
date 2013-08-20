@@ -19,7 +19,10 @@ namespace WMS_client.Processes.Lamps
         public PlacingOnMap(WMSClient wmsClient, int map, Int16 register, byte position)
             : base(wmsClient, 1)
             {
-
+            if (applicationIsClosing)
+                {
+                return;
+                }
             StopNetworkConnection();
 
             this.map = map;

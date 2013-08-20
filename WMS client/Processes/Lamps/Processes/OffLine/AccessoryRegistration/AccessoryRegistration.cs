@@ -53,6 +53,10 @@ namespace WMS_client
         public AccessoryRegistration(WMSClient MainProcess, TypeOfAccessories requaredAccessoryType)
             : base(MainProcess, 1)
             {
+            if (applicationIsClosing)
+                {
+                return;
+                }
             StopNetworkConnection();
 
             accessoriesSet = new AccessoriesSet();
@@ -95,6 +99,10 @@ namespace WMS_client
         public AccessoryRegistration(WMSClient MainProcess, AccessoriesSet accessoriesSet)
             : base(MainProcess, 1)
             {
+            if (applicationIsClosing)
+                {
+                return;
+                }
             this.accessoriesSet = accessoriesSet;
             requaredAccessoryType = accessoriesSet.CurrentAccessory.GetAccessoryType();
             updateCurrentTopic();

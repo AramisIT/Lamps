@@ -40,6 +40,10 @@ namespace WMS_client
         public dbSynchronizer(WMSClient MainProcess, IServerIdProvider serverIdProvider)
             : base(MainProcess, 1)
             {
+            if (applicationIsClosing)
+                {
+                return;
+                }
             StartNetworkConnection();
 
             if (serverIdProvider == null)
@@ -222,7 +226,7 @@ namespace WMS_client
                     iterationNumber++;
                     PerformQuery("DownloadUpdatedAccessories", (int)accessoryType, lastDownLoadedId,
                         RECORDS_QUANTITY_IN_TASK);
-                   
+
                     if (!SuccessQueryResult)
                         {
                         return false;
@@ -309,7 +313,7 @@ namespace WMS_client
 
 
 
-        private const int RECORDS_QUANTITY_IN_TASK = 500;
+        private const int RECORDS_QUANTITY_IN_TASK = 50;
 
         private bool uploadAccessories(TypeOfAccessories accessoriesType, string remoteMethodName)
             {

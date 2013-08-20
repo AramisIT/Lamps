@@ -5,12 +5,14 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
+using Microsoft.WindowsMobile.Status;
 using WMS_client.db;
 using WMS_client.Enums;
 using WMS_client.Models;
 using System.Data;
 using WMS_client.Repositories.Sql;
 using WMS_client.Repositories.Sql.Updaters;
+using WMS_client.Utils;
 
 namespace WMS_client.Repositories
     {
@@ -427,6 +429,16 @@ namespace WMS_client.Repositories
 
         private SqlCeConnection getOpenedConnection()
             {
+            if (BatteryChargeStatus.Critical)
+                {
+                MessageBox.Show("Акумулятор розряджений. Негайно поставте термінал на зарядку на натисніть ОК");
+
+                if (BatteryChargeStatus.Critical)
+                    {
+                    return null;
+                    }
+                }
+
             var conn = new SqlCeConnection(connectionString);
             try
                 {

@@ -43,6 +43,22 @@ namespace WMS_client
                 }
             }
 
+        public bool TimeToBackUp
+            {
+            get
+                {
+                return (lastBackUpTime.Equals(DateTime.MinValue)
+                        || (((TimeSpan)(DateTime.Now - lastBackUpTime)).TotalMinutes > 60));
+                }
+            }
+
+        public void FixBackUpTime()
+            {
+            lastBackUpTime = DateTime.Now;
+            }
+
+        private DateTime lastBackUpTime;
+
         public IRepository Repository { get; set; }
 
         public String PathToApplication

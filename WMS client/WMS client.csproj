@@ -59,6 +59,18 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\ClisentTest\bin\Microsoft.WindowsCE.Forms.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.WindowsMobile, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Windows Mobile 5.0 SDK R2\Managed Libraries\Microsoft.WindowsMobile.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsMobile.Forms, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Windows Mobile 5.0 SDK R2\Managed Libraries\Microsoft.WindowsMobile.Forms.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsMobile.Status, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\Windows Mobile 5.0 SDK R2\Managed Libraries\Microsoft.WindowsMobile.Status.dll</HintPath>
+    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="PackageViaWireless, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -228,6 +240,8 @@
     <Compile Include="Repositories\Sql\Updaters\LampsUpdater.cs" />
     <Compile Include="Repositories\Sql\Updaters\UnitsUpdater.cs" />
     <Compile Include="Utils\AccessoryHelper.cs" />
+    <Compile Include="Utils\BackUpCreator.cs" />
+    <Compile Include="Utils\BatteryState.cs" />
     <Compile Include="Utils\CatalogHelper.cs" />
     <Compile Include="Utils\StringParser.cs" />
     <Compile Include="WinProcessesManagement\ProcessInfo.cs" />
@@ -235,6 +249,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="LampsBase.sdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="media_player.ico" />
     <Content Include="PDT_ID.txt">
