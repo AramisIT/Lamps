@@ -91,7 +91,8 @@ namespace WMS_client
                 {
                 var backUpCreator = new BackUpCreator();
                 if (backUpCreator.CreateBackUp())
-                    {
+                {
+                    ShowMessage("Создана копия базы!");
                     Configuration.Current.FixBackUpTime();
                     }
                 }

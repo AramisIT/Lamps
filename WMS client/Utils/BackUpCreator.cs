@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using System.Windows.Forms;
 using WMS_client.Repositories;
 
 namespace WMS_client.Utils
@@ -85,37 +86,46 @@ namespace WMS_client.Utils
         private bool copyFile()
             {
             bool errorOccured = false;
-
-            using (Stream destin = File.OpenWrite(fileName))
+            try
                 {
-                using (Stream source = File.OpenRead(sourceFileName))
+                using (Stream destin = File.OpenWrite(fileName))
                     {
-                    byte[] buffer = new byte[1024];
-                    int bytesRead = source.Read(buffer, 0, buffer.Length);
-
-                    while (!errorOccured && bytesRead > 0)
+                    using (Stream source = File.OpenRead(sourceFileName))
                         {
-                        destin.Write(buffer, 0, bytesRead);
+                        byte[] buffer = new byte[1024];
+                        int bytesRead = source.Read(buffer, 0, buffer.Length);
 
-                        try
+                        while (!errorOccured && bytesRead > 0)
                             {
-                            bytesRead = source.Read(buffer, 0, buffer.Length);
-                            }
-                        catch (Exception exp)
-                            {
-                            Trace.WriteLine(exp.Message);
-                            errorOccured = true;
-                            bytesRead = 0;
+                            destin.Write(buffer, 0, bytesRead);
+
+                            try
+                                {
+                                bytesRead = source.Read(buffer, 0, buffer.Length);
+                                }
+                            catch (Exception exp)
+                                {
+                                MessageBox.Show(string.Format("Ошибка чтения файла: {0}", exp.Message));
+                                Trace.WriteLine(exp.Message);
+                                errorOccured = true;
+                                bytesRead = 0;
+                                }
                             }
                         }
-                    }
 
-                destin.Close();
+                    destin.Close();
+
+                    }
 
                 if (errorOccured)
                     {
                     return false;
                     }
+                }
+            catch (Exception copyExp)
+                {
+                MessageBox.Show(string.Format("Ошибка копирования файла: {0}", copyExp.Message));
+                return false;
                 }
 
             return true;

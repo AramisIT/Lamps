@@ -14,7 +14,6 @@ namespace WMS_client.Utils
             get
             {
                 //return false;
-                (new BackUpCreator()).CreateBackUp();
                 return SystemState.PowerBatteryState != BatteryState.Charging &&
                        (SystemState.PowerBatteryStrength == BatteryLevel.Low || SystemState.PowerBatteryStrength == BatteryLevel.VeryLow);
                 }
