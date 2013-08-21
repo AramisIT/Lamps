@@ -10,6 +10,8 @@ namespace WMS_client.Repositories
     {
     public interface IRepository
         {
+        bool IsIntactDatabase(out bool lowPower);
+
         bool LoadingDataFromGreenhouse { get; set; }
 
         int GetNextUnitId();

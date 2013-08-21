@@ -14,6 +14,20 @@ namespace WMS_client
 
         private Configuration()
             {
+            readPDTid();
+            checkIsReleaseMode();
+            }
+
+        private void checkIsReleaseMode()
+            {
+            ReleaseMode = false;
+#if !DEBUG
+            ReleaseMode = true;
+#endif
+            }
+
+        private void readPDTid()
+            {
             string settingsFileName = PathToApplication + @"\pdt_id.txt";
 
             string serverIdTxt = null;
@@ -47,6 +61,7 @@ namespace WMS_client
             {
             get
                 {
+
                 return (lastBackUpTime.Equals(DateTime.MinValue)
                         || (((TimeSpan)(DateTime.Now - lastBackUpTime)).TotalMinutes > 60));
                 }
@@ -73,5 +88,6 @@ namespace WMS_client
                 }
             }
 
+        public bool ReleaseMode { get; private set; }
         }
     }

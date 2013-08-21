@@ -79,21 +79,31 @@ namespace WMS_client
             {
             if (BatteryChargeStatus.Low)
                 {
-                MainProcess.ConnectionAgent.CloseAll();
                 MessageBox.Show("Акумулятор розряджений. Необхідно зарядити термінал!");
-                MainProcess.MainForm.Close();
-                Application.Exit();
-                applicationIsClosing = true;
+                TerminateApplication(MainProcess);
                 return;
                 }
 
             if (Configuration.Current.TimeToBackUp)
                 {
-                var backUpCreator = new BackUpCreator();
-                if (backUpCreator.CreateBackUp())
-                {
-                    ShowMessage("Создана копия базы!");
-                    Configuration.Current.FixBackUpTime();
+                bool lowPower;
+                if (Configuration.Current.Repository.IsIntactDatabase(out lowPower))
+                    {
+                    if (!lowPower)
+                        {
+                        var backUpCreator = new BackUpCreator();
+                        if (backUpCreator.CreateBackUp())
+                            {
+                            ShowMessage("Создана копия базы!");
+                            Configuration.Current.FixBackUpTime();
+                            }
+                        }
+                    }
+                else
+                    {
+                    ShowMessage("База даних пошкоджена. Необхідно звернутись до адміністратора.");
+                    TerminateApplication(MainProcess);
+                    return;
                     }
                 }
 
@@ -108,6 +118,15 @@ namespace WMS_client
             this.MainProcess = MainProcess;
             Start();
             }
+
+        private void TerminateApplication(WMSClient MainProcess)
+            {
+            MainProcess.ConnectionAgent.CloseAll();
+            MainProcess.MainForm.Close();
+            Application.Exit();
+            applicationIsClosing = true;
+            }
+
         #endregion
 
         protected void StopNetworkConnection()

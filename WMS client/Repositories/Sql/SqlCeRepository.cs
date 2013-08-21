@@ -101,6 +101,44 @@ namespace WMS_client.Repositories
 
         public bool LoadingDataFromGreenhouse { get; set; }
 
+        public bool IsIntactDatabase(out bool lowPower)
+            {
+            using (var conn = getOpenedConnection())
+                {
+                lowPower = BatteryChargeStatus.Critical;
+
+                if (conn == null)
+                    {
+                    return lowPower;
+                    }
+
+                using (var cmd = conn.CreateCommand())
+                    {
+                    const string sql = @"
+select Id from Lamps where Id <= 0
+union all
+select Id from Units where Id <= 0
+union all 
+select Id from Cases where Id <= 0
+";
+                    cmd.CommandText = sql;
+
+                    try
+                        {
+                        cmd.ExecuteScalar();
+                        }
+                    catch (Exception exp)
+                        {
+                        Trace.WriteLine(string.Format("Ошибка выполнения тестового запроса к основным таблицам: {0}",
+                            exp.Message));
+                        return false;
+                        }
+                    }
+                }
+
+            return true;
+            }
+
         public bool WriteModel(Model model)
             {
             using (var conn = getOpenedConnection())

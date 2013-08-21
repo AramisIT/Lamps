@@ -12,8 +12,11 @@ namespace WMS_client.Utils
         public static bool Low
             {
             get
-            {
-                //return false;
+                {
+                if (!Configuration.Current.ReleaseMode)
+                    {
+                    return false;
+                    }
                 return SystemState.PowerBatteryState != BatteryState.Charging &&
                        (SystemState.PowerBatteryStrength == BatteryLevel.Low || SystemState.PowerBatteryStrength == BatteryLevel.VeryLow);
                 }
@@ -23,7 +26,10 @@ namespace WMS_client.Utils
             {
             get
                 {
-                //return false;
+                if (!Configuration.Current.ReleaseMode)
+                    {
+                    return false;
+                    }
                 return SystemState.PowerBatteryState != BatteryState.Charging &&
                        SystemState.PowerBatteryStrength == BatteryLevel.VeryLow;
                 }
