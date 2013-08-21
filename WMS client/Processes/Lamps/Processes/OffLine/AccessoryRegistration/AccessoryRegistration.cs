@@ -410,7 +410,7 @@ namespace WMS_client
             exit();
             }
 
-        public bool SaveAccessoriesSet(Case _Case, Lamp lamp, Unit unit)
+        private bool SaveAccessoriesSet(Case _Case, Lamp lamp, Unit unit)
             {
             bool ok = true;
 

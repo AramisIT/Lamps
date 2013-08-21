@@ -129,7 +129,8 @@ select Id from Cases where Id <= 0
                         }
                     catch (Exception exp)
                         {
-                        Trace.WriteLine(string.Format("Ошибка выполнения тестового запроса к основным таблицам: {0}",
+                        Trace.WriteLine(string.Format(
+                            "Ошибка выполнения тестового запроса к основным таблицам: {0}",
                             exp.Message));
                         return false;
                         }
@@ -882,6 +883,28 @@ select Id from Units where Id between @minId and @maxId";
             updateDatabaseParameter(parameterId, lastDownloadedId);
             }
 
+        public List<int> GetCasesIds()
+            {
+            var result = new List<int>();
+
+            const string sql = @"select Id from cases where Map>0 and (Lamp = 0 or Unit = 0)";
+            using (var conn = getOpenedConnection())
+                {
+                using (var cmd = conn.CreateCommand())
+                    {
+                    cmd.CommandText = sql;
+                    using (var reader = cmd.ExecuteReader())
+                        {
+                        while (reader.Read())
+                            {
+                            result.Add(Convert.ToInt32(reader[0]));
+                            }
+                        }
+                    }
+                }
+
+            return result;
+            }
         }
 
     }

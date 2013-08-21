@@ -4,6 +4,7 @@ using WMS_client.Enums;
 using System;
 using System.Windows.Forms;
 using System.Data.SqlServerCe;
+using WMS_client.Models;
 using WMS_client.Processes.Lamps;
 using WMS_client.db;
 using WMS_client.Processes.Lamps.Sync;
@@ -175,16 +176,95 @@ namespace WMS_client
             MainProcess.Process = new Info(MainProcess);
             }
 
+        public bool SaveAccessoriesSet(Case _Case, Lamp lamp, Unit unit)
+            {
+            bool ok = true;
+
+            var repository = Configuration.Current.Repository;
+
+            if (unit != null)
+                {
+                if (unit.Id <= 0)
+                    {
+                    unit.Id = repository.GetNextUnitId();
+                    ok = ok && repository.UpdateUnits(new List<Unit>() { unit }, true);
+                    }
+                else
+                    {
+                    ok = ok && repository.UpdateUnits(new List<Unit>() { unit }, false);
+                    }
+                }
+            if (!ok)
+                {
+                return false;
+                }
+
+
+            if (lamp != null)
+                {
+                if (lamp.Id <= 0)
+                    {
+                    lamp.Id = repository.GetNextLampId();
+                    ok = ok && repository.UpdateLamps(new List<Lamp>() { lamp }, true);
+                    }
+                else
+                    {
+                    ok = ok && repository.UpdateLamps(new List<Lamp>() { lamp }, false);
+                    }
+                }
+            if (!ok)
+                {
+                return false;
+                }
+
+
+            if (_Case != null)
+                {
+                _Case.Lamp = lamp == null ? 0 : lamp.Id;
+                _Case.Unit = unit == null ? 0 : unit.Id;
+                ok = ok && repository.UpdateCases(new List<Case>() { _Case }, false);
+                }
+
+            return ok;
+            }
+
         private void fixLamps()
             {
-            for (int caseId = 3100; caseId <= 3407; caseId++)
+            List<int> ids = Configuration.Current.Repository.GetCasesIds();
+
+            var cases = Configuration.Current.Repository.ReadCases(ids);
+
+            foreach (var _case in cases)
                 {
-                if (!fixCase(caseId))
+                Lamp lamp = null;
+                if (_case.Lamp == 0)
                     {
-                    Trace.WriteLine(string.Format("Can't update case. Case id - {0}", caseId));
+                    lamp = new Lamp();
                     }
-                Trace.WriteLine(caseId);
+
+                Unit unit = null;
+                if (_case.Unit == 0)
+                    {
+                    unit = new Unit();
+                    }
+
+                if (!SaveAccessoriesSet(_case, lamp, unit))
+                    {
+                    ShowMessage("Не удалось исправить запись");
+                    return;
+                    }
                 }
+
+            ShowMessage("Записи исправлены");
+
+            //for (int caseId = 3100; caseId <= 3407; caseId++)
+            //    {
+            //    if (!fixCase(caseId))
+            //        {
+            //        Trace.WriteLine(string.Format("Can't update case. Case id - {0}", caseId));
+            //        }
+            //    Trace.WriteLine(caseId);
+            //    }
             }
 
         private bool fixCase(int caseId)

@@ -63,5 +63,7 @@ namespace WMS_client.Repositories
         long GetLastDownloadedId(TypeOfAccessories accessoryType);
 
         void SetLastDownloadedId(TypeOfAccessories accessoryType, long lastDownloadedId);
+
+        List<int> GetCasesIds();
         }
     }
