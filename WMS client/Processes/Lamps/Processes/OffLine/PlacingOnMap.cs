@@ -64,6 +64,18 @@ namespace WMS_client.Processes.Lamps
                     return;
                     }
 
+                if (_Case.Lamp == 0)
+                    {
+                    ShowMessage("Лампа не вказана! Операція відмінена!");
+                    return;
+                    }
+
+                if (_Case.Unit == 0)
+                    {
+                    ShowMessage("Електронний блок не вказаний! Операція відмінена!");
+                    return;
+                    }
+
                 _Case.Map = map;
                 _Case.Register = register;
                 _Case.Position = position;
