@@ -77,33 +77,36 @@ namespace WMS_client
 
         protected BusinessProcess(WMSClient MainProcess, string CellName, string CellBarcode, int FormNumber)
             {
-            if (BatteryChargeStatus.Low)
+            if (Configuration.Current.ReleaseMode)
                 {
-                MessageBox.Show("Акумулятор розряджений. Необхідно зарядити термінал!");
-                TerminateApplication(MainProcess);
-                return;
-                }
-
-            if (Configuration.Current.TimeToBackUp)
-                {
-                bool lowPower;
-                if (Configuration.Current.Repository.IsIntactDatabase(out lowPower))
+                if (BatteryChargeStatus.Low)
                     {
-                    if (!lowPower)
-                        {
-                        var backUpCreator = new BackUpCreator();
-                        if (backUpCreator.CreateBackUp())
-                            {
-                            ShowMessage("Создана копия базы!");
-                            Configuration.Current.FixBackUpTime();
-                            }
-                        }
-                    }
-                else
-                    {
-                    ShowMessage("База даних пошкоджена. Необхідно звернутись до адміністратора.");
+                    MessageBox.Show("Акумулятор розряджений. Необхідно зарядити термінал!");
                     TerminateApplication(MainProcess);
                     return;
+                    }
+
+                if (Configuration.Current.TimeToBackUp)
+                    {
+                    bool lowPower;
+                    if (Configuration.Current.Repository.IsIntactDatabase(out lowPower))
+                        {
+                        if (!lowPower)
+                            {
+                            var backUpCreator = new BackUpCreator();
+                            if (backUpCreator.CreateBackUp())
+                                {
+                                ShowMessage("Создана копия базы!");
+                                Configuration.Current.FixBackUpTime();
+                                }
+                            }
+                        }
+                    else
+                        {
+                        ShowMessage("База даних пошкоджена. Необхідно звернутись до адміністратора.");
+                        TerminateApplication(MainProcess);
+                        return;
+                        }
                     }
                 }
 
