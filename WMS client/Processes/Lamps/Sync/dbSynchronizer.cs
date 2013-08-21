@@ -31,6 +31,7 @@ namespace WMS_client
         private List<DataAboutDeferredProperty> deferredProperty;
 
         private StringBuilder logBuilder;
+        private const string DATE_TIME_FORMAT = "dd.MM.yyyy";
 
         /// <summary>Константная часть имени параметра</summary>
         public const string PARAMETER = "Parameter";
@@ -106,14 +107,30 @@ namespace WMS_client
                 return;
                 }
 
-            return;
-
-            //Документи
-            infoLabel.Text = "Контрагенти";
-            if (!SyncObjects<Contractors>(WaysOfSync.OneWay, FilterSettings.CanSynced))
+            infoLabel.Text = "Імпорт моделей";
+            if (!downloadCatalogs<Model, Int16>("LampsModels"))
                 {
                 return;
                 }
+
+            infoLabel.Text = "Імпорт мап";
+            if (!downloadCatalogs<Map, Int32>("Maps"))
+                {
+                return;
+                }
+
+            infoLabel.Text = "Імпорт партій";
+            if (!downloadCatalogs<PartyModel, Int32>("Party"))
+                {
+                return;
+                }
+
+            return;
+            //infoLabel.Text = "Контрагенти";
+            //if (!SyncObjects<Contractors>(WaysOfSync.OneWay, FilterSettings.CanSynced))
+            //    {
+            //    return;
+            //    }
 
             infoLabel.Text = "Карти";
             if (!SyncObjects<Maps>(false))
@@ -195,6 +212,94 @@ namespace WMS_client
             logToFile("SynchLog.txt", logBuilder);
             }
 
+        private bool downloadCatalogs<T, ID>(string greenhouseTableName) where T : ICatalog<ID>, new()
+            {
+            long lastDownLoadedId = Configuration.Current.Repository.GetLastDownloadedId(typeof(T));
+            bool isParty = typeof(T) == typeof(PartyModel);
+
+            try
+                {
+                PerformQuery("DownloadUpdatedCatalogs", greenhouseTableName, lastDownLoadedId);
+                if (!SuccessQueryResult)
+                    {
+                    return false;
+                    }
+
+                var table = ResultParameters[1] as DataTable;
+                lastDownLoadedId = Convert.ToInt32(ResultParameters[2]);
+
+                if (table == null || table.Rows.Count == 0)
+                    {
+                    return true;
+                    }
+
+                List<T> list = new List<T>();
+                foreach (DataRow row in table.Rows)
+                    {
+                    T catalog = new T();
+                    catalog.Description = Convert.ToString(row["Description"]);
+                    catalog.Deleted = Convert.ToBoolean(row["Deleted"]);
+
+                    int id = Convert.ToInt32(row["Id"]);
+                    if (catalog is ICatalog<Int16>)
+                        {
+                        ((ICatalog<Int16>)catalog).Id = (Int16)id;
+                        }
+                    else
+                        {
+                        ((ICatalog<Int32>)catalog).Id = id;
+                        }
+
+                    if (isParty)
+                        {
+                        var party = (PartyModel)((ICatalog<Int32>)catalog);
+
+                        party.ContractorDescription = Convert.ToString(row["ContractorDescription"]);
+                        party.WarrantyHours = Convert.ToInt16(row["WarrantyHours"]);
+                        party.WarrantyYears = Convert.ToInt16(row["WarrantyYears"]);
+                        party.Date = DateTime.ParseExact(row["WarrantyExpiryDate"] as string, DATE_TIME_FORMAT, null);
+                        party.DateOfActSet = DateTime.ParseExact(row["DateOfActSet"] as string, DATE_TIME_FORMAT, null);
+                        }
+
+                    list.Add(catalog);
+                    }
+
+                if (!updateCatalogs(typeof(T), list))
+                    {
+                    return false;
+                    }
+
+                Configuration.Current.Repository.SetLastDownloadedId(typeof(T), lastDownLoadedId);
+                }
+            catch (Exception exp)
+                {
+                Trace.Write(string.Format(exp.Message));
+                return false;
+                }
+
+            return true;
+            }
+
+        private bool updateCatalogs(Type catalogType, IList list)
+            {
+            var repository = Configuration.Current.Repository;
+
+            if (catalogType == typeof(Map))
+                {
+                return repository.UpdateMaps((List<Map>)list);
+                }
+            else if (catalogType == typeof(Model))
+                {
+                return repository.UpdateModels((List<Model>)list);
+                }
+            else if (catalogType == typeof(PartyModel))
+                {
+                return repository.UpdateParties((List<PartyModel>)list);
+                }
+
+            return false;
+            }
+
         private bool downloadAccessories<T>(TypeOfAccessories accessoryType, string greenhouseTableName) where T : IAccessory, new()
             {
             long lastDownLoadedId = Configuration.Current.Repository.GetLastDownloadedId(accessoryType);
@@ -249,7 +354,7 @@ namespace WMS_client
                         accessory.Party = Convert.ToInt32(row["Party"]);
                         accessory.Status = Convert.ToByte(row["Status"]);
                         accessory.WarrantyExpiryDate = DateTime.ParseExact(row["WarrantyExpiryDate"] as string,
-                            "dd.MM.yyyy", null);
+                            DATE_TIME_FORMAT, null);
 
                         if (barcodeAccessory)
                             {
@@ -288,6 +393,7 @@ namespace WMS_client
             catch (Exception exp)
                 {
                 Trace.Write(string.Format(exp.Message));
+                return false;
                 }
 
             ShowProgress(iterationsCount, iterationsCount);
@@ -310,8 +416,6 @@ namespace WMS_client
 
             return false;
             }
-
-
 
         private const int RECORDS_QUANTITY_IN_TASK = 50;
 
@@ -401,7 +505,7 @@ namespace WMS_client
                 newRow["Model"] = Convert.ToInt32(accessory.Model);
                 newRow["Party"] = Convert.ToInt32(accessory.Party);
                 newRow["Status"] = Convert.ToInt32(accessory.Status);
-                newRow["WarrantyExpiryDate"] = accessory.WarrantyExpiryDate.ToString("dd.MM.yyyy");
+                newRow["WarrantyExpiryDate"] = accessory.WarrantyExpiryDate.ToString(DATE_TIME_FORMAT);
 
                 if (barcodeAccessory)
                     {

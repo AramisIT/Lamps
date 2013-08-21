@@ -18,9 +18,11 @@ namespace WMS_client.Repositories
 
         int GetNextLampId();
 
-        bool WriteModel(Model model);
+        bool UpdateMaps(List<Map> maps);
 
-        bool WriteParty(PartyModel party);
+        bool UpdateParties(List<PartyModel> parties);
+
+        bool UpdateModels(List<Model> models);
 
         bool UpdateLamps(List<Lamp> list, bool justInsert);
 
@@ -54,8 +56,6 @@ namespace WMS_client.Repositories
 
         List<Lamp> ReadLamps(List<int> idsList);
 
-        bool WriteMap(Map map);
-
         List<List<int>> GetUpdateTasks(TypeOfAccessories accessoryType, int recordsQuantityInTask);
 
         bool ResetUpdateLog(TypeOfAccessories accessoriesType);
@@ -65,5 +65,9 @@ namespace WMS_client.Repositories
         void SetLastDownloadedId(TypeOfAccessories accessoryType, long lastDownloadedId);
 
         List<int> GetCasesIds();
+
+        long GetLastDownloadedId(Type catalogType);
+
+        void SetLastDownloadedId(Type catalogType, long lastAcceptedRowId);
         }
     }

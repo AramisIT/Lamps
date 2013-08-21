@@ -16,15 +16,9 @@ using WMS_client.Utils;
 
 namespace WMS_client.Repositories
     {
+
     public class SqlCeRepository : IRepository
         {
-        private const int LAST_UPLOADED_LAMP_ID = 0;
-        private const int LAST_UPLOADED_UNIT_ID = 1;
-
-        private const int LAST_DOWNLOADED_LAMP_ID = 2;
-        private const int LAST_DOWNLOADED_UNIT_ID = 3;
-        private const int LAST_DOWNLOADED_CASE_ID = 4;
-
         public SqlCeRepository()
             {
             initConnectionString();
@@ -35,12 +29,13 @@ namespace WMS_client.Repositories
             nextUnitId = getNextId("Units");
             nextLampId = getNextId("Lamps");
 
-            lastUpdatedLampId = (int)readDatabaseParameter(LAST_UPLOADED_LAMP_ID);
-            lastUpdatedUnitId = (int)readDatabaseParameter(LAST_UPLOADED_UNIT_ID);
+            lastUpdatedLampId = (int)readDatabaseParameter(DatabaseParametersConsts.LAST_UPLOADED_LAMP_ID);
+            lastUpdatedUnitId = (int)readDatabaseParameter(DatabaseParametersConsts.LAST_UPLOADED_UNIT_ID);
             }
 
-        private long readDatabaseParameter(int parameterId)
+        private long readDatabaseParameter(DatabaseParametersConsts databaseParameterId)
             {
+            int parameterId = (int)databaseParameterId;
             using (var conn = getOpenedConnection())
                 {
                 using (var cmd = conn.CreateCommand())
@@ -69,8 +64,9 @@ namespace WMS_client.Repositories
                 }
             }
 
-        private void updateDatabaseParameter(int parameterId, long value)
+        private void updateDatabaseParameter(DatabaseParametersConsts databaseParameter, long value)
             {
+            int parameterId = (int)databaseParameter;
             using (var conn = getOpenedConnection())
                 {
                 using (var cmd = conn.CreateCommand())
@@ -140,104 +136,21 @@ select Id from Cases where Id <= 0
             return true;
             }
 
-        public bool WriteModel(Model model)
+        public bool UpdateMaps(List<Map> maps)
             {
-            using (var conn = getOpenedConnection())
-                {
-                using (var cmd = conn.CreateCommand())
-                    {
-                    cmd.CommandText = @"update models set Description=@Description where Id=@Id";
-                    cmd.Parameters.AddWithValue("Description", model.Description);
-                    cmd.Parameters.AddWithValue("Id", model.Id);
-
-                    bool rowExists = cmd.ExecuteNonQuery() > 0;
-
-                    if (!rowExists)
-                        {
-                        cmd.CommandText = @"insert into models(Id,Description) Values(@Id,@Description);";
-                        try
-                            {
-                            return cmd.ExecuteNonQuery() > 0;
-                            }
-                        catch (Exception exception)
-                            {
-                            MessageBox.Show(string.Format("Ошибка вставки модели: {0}", exception.Message));
-                            return false;
-                            }
-                        }
-
-                    return true;
-                    }
-                }
+            var updater = new MapsUpdater();
+            updater.InitUpdater(maps, getOpenedConnection);
+            return updater.Update();
             }
 
-        public bool WriteParty(PartyModel party)
+        public bool UpdateParties(List<PartyModel> parties)
             {
-            using (var conn = getOpenedConnection())
-                {
-                using (var cmd = conn.CreateCommand())
-                    {
-                    cmd.CommandText =
-                        @"update Parties set Date = @Date, DateOfActSet = @DateOfActSet, ContractorDescription=@ContractorDescription, Description=@Description, WarrantyHours=@WarrantyHours, WarrantyYears=@WarrantyYears where Id=@Id";
-                    cmd.Parameters.AddWithValue("Description", party.Description);
-                    cmd.Parameters.AddWithValue("Id", party.Id);
-                    cmd.Parameters.AddWithValue("WarrantyHours", party.WarrantyHours);
-                    cmd.Parameters.AddWithValue("WarrantyYears", party.WarrantyYears);
-                    cmd.Parameters.AddWithValue("ContractorDescription", party.ContractorDescription);
-                    cmd.Parameters.AddWithValue("DateOfActSet", party.DateOfActSet);
-                    cmd.Parameters.AddWithValue("Date", party.Date);
-
-                    bool rowExists = cmd.ExecuteNonQuery() > 0;
-
-                    if (!rowExists)
-                        {
-                        cmd.CommandText =
-                            @"insert into Parties(Id, Description, ContractorDescription, [Date], DateOfActSet, WarrantyHours, WarrantyYears) Values(@Id,@Description,@ContractorDescription,@Date,@DateOfActSet,@WarrantyHours,@WarrantyYears);";
-                        try
-                            {
-                            return cmd.ExecuteNonQuery() > 0;
-                            }
-                        catch (Exception exception)
-                            {
-                            MessageBox.Show(string.Format("Ошибка вставки партии: {0}", exception.Message));
-                            return false;
-                            }
-                        }
-
-                    return true;
-                    }
-                }
+            return true;
             }
 
-        public bool WriteMap(Map map)
+        public bool UpdateModels(List<Model> models)
             {
-            using (var conn = getOpenedConnection())
-                {
-                using (var cmd = conn.CreateCommand())
-                    {
-                    cmd.CommandText = @"update maps set Description=@Description where Id=@Id";
-                    cmd.Parameters.AddWithValue("Description", map.Description);
-                    cmd.Parameters.AddWithValue("Id", map.Id);
-
-                    bool rowExists = cmd.ExecuteNonQuery() > 0;
-
-                    if (!rowExists)
-                        {
-                        cmd.CommandText = @"insert into maps(Id,Description) Values(@Id,@Description);";
-                        try
-                            {
-                            return cmd.ExecuteNonQuery() > 0;
-                            }
-                        catch (Exception exception)
-                            {
-                            MessageBox.Show(string.Format("Ошибка вставки карты: {0}", exception.Message));
-                            return false;
-                            }
-                        }
-
-                    return true;
-                    }
-                }
+            return true;
             }
 
         public bool UpdateCases(List<Case> cases, bool justInsert)
@@ -786,19 +699,19 @@ select Id from Units where Id between @minId and @maxId";
             {
             string tableName;
             string getLastIdSql = string.Empty;
-            int parameterId = -1;
+            DatabaseParametersConsts parameterId = DatabaseParametersConsts.EMPTY_ID;
 
             switch (accessoriesType)
                 {
                 case TypeOfAccessories.Lamp:
                     tableName = "LampsUpdating";
-                    parameterId = LAST_UPLOADED_LAMP_ID;
+                    parameterId = DatabaseParametersConsts.LAST_UPLOADED_LAMP_ID;
                     getLastIdSql = "select Max(Id) from Lamps where Id between @minId and @maxId";
                     break;
 
                 case TypeOfAccessories.ElectronicUnit:
                     tableName = "UnitsUpdating";
-                    parameterId = LAST_UPLOADED_UNIT_ID;
+                    parameterId = DatabaseParametersConsts.LAST_UPLOADED_UNIT_ID;
                     getLastIdSql = "select Max(Id) from Units where Id between @minId and @maxId";
                     break;
 
@@ -855,30 +768,64 @@ select Id from Units where Id between @minId and @maxId";
 
         public long GetLastDownloadedId(TypeOfAccessories accessoryType)
             {
-            int parameterId = getDownloadedParameterId(accessoryType);
+            var parameterId = getDownloadedParameterId(accessoryType);
 
             return readDatabaseParameter(parameterId);
             }
 
-        private int getDownloadedParameterId(TypeOfAccessories accessoryType)
+        public long GetLastDownloadedId(Type catalogType)
+            {
+            var parameterId = getDownloadedParameterId(catalogType);
+
+            return readDatabaseParameter(parameterId);
+            }
+
+        private DatabaseParametersConsts getDownloadedParameterId(Type catalogType)
+            {
+            if (catalogType == typeof(Map))
+                {
+                return DatabaseParametersConsts.LAST_DOWNLOADED_MAP_ID;
+                }
+            else if (catalogType == typeof(Model))
+                {
+                return DatabaseParametersConsts.LAST_DOWNLOADED_MODEL_ID;
+                }
+            else if (catalogType == typeof(PartyModel))
+                {
+                return DatabaseParametersConsts.LAST_DOWNLOADED_PARTY_ID;
+                }
+            else
+                {
+                return DatabaseParametersConsts.EMPTY_ID;
+                }
+            }
+
+        private DatabaseParametersConsts getDownloadedParameterId(TypeOfAccessories accessoryType)
             {
             switch (accessoryType)
                 {
                 case TypeOfAccessories.Case:
-                    return LAST_DOWNLOADED_CASE_ID;
+                    return DatabaseParametersConsts.LAST_DOWNLOADED_CASE_ID;
 
                 case TypeOfAccessories.Lamp:
-                    return LAST_DOWNLOADED_LAMP_ID;
+                    return DatabaseParametersConsts.LAST_DOWNLOADED_LAMP_ID;
 
                 case TypeOfAccessories.ElectronicUnit:
-                    return LAST_DOWNLOADED_UNIT_ID;
+                    return DatabaseParametersConsts.LAST_DOWNLOADED_UNIT_ID;
                 }
-            return -1;
+            return DatabaseParametersConsts.EMPTY_ID;
             }
 
         public void SetLastDownloadedId(TypeOfAccessories accessoryType, long lastDownloadedId)
             {
-            int parameterId = getDownloadedParameterId(accessoryType);
+            var parameterId = getDownloadedParameterId(accessoryType);
+
+            updateDatabaseParameter(parameterId, lastDownloadedId);
+            }
+
+        public void SetLastDownloadedId(Type catalogType, long lastDownloadedId)
+            {
+            var parameterId = getDownloadedParameterId(catalogType);
 
             updateDatabaseParameter(parameterId, lastDownloadedId);
             }
@@ -905,6 +852,23 @@ select Id from Units where Id between @minId and @maxId";
 
             return result;
             }
+
+        }
+
+    enum DatabaseParametersConsts
+        {
+        LAST_UPLOADED_LAMP_ID = 0,
+        LAST_UPLOADED_UNIT_ID = 1,
+
+        LAST_DOWNLOADED_LAMP_ID = 2,
+        LAST_DOWNLOADED_UNIT_ID = 3,
+        LAST_DOWNLOADED_CASE_ID = 4,
+
+        LAST_DOWNLOADED_MODEL_ID = 11,
+        LAST_DOWNLOADED_PARTY_ID = 12,
+        LAST_DOWNLOADED_MAP_ID = 13,
+
+        EMPTY_ID = -1
         }
 
     }

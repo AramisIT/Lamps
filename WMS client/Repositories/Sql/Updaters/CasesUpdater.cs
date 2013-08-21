@@ -7,7 +7,7 @@ using WMS_client.Models;
 
 namespace WMS_client.Repositories.Sql.Updaters
     {
-    class CasesUpdater : AccessoryUpdater<Case>
+    sealed class CasesUpdater : AccessoryUpdater<Case>
         {
         public CasesUpdater()
             : base("Cases", "PK_Cases", "CasesUpdating", "PK_CasesUpdating")

@@ -7,33 +7,16 @@ using System.Text;
 using WMS_client.Models;
 using WMS_client.WinProcessesManagement;
 
-namespace WMS_client.Repositories.Sql
+namespace WMS_client.Repositories.Sql.Updaters
     {
-    public abstract class AccessoryUpdater<T> where T : IAccessory
+    abstract class AccessoryUpdater<T> : TableUpdater<T> where T : IAccessory
         {
-        private List<T> accessoriesList;
-        private Func<SqlCeConnection> getSqlConnection;
-
-        private readonly string tableName;
-        private readonly string tableIndexName;
         private readonly string logTableIndexName;
         private readonly string logTableName;
 
         private bool justInsert;
         private bool don_tAddNewToLog;
-        protected abstract void fillValues(SqlCeResultSet record, T accessory);
-        protected abstract void fillValues(SqlCeUpdatableRecord record, T accessory);
-
-        protected object getSqlDateTime(DateTime dateTime)
-            {
-            object result = DBNull.Value;
-            if (!DateTime.MinValue.Equals(dateTime))
-                {
-                result = dateTime;
-                }
-            return result;
-            }
-
+       
         public AccessoryUpdater(string tableName, string tableIndexName, string logTableName,
             string logTableIndexName)
             {
@@ -82,7 +65,7 @@ namespace WMS_client.Repositories.Sql
 
         public void InitUpdater(List<T> accessories, Func<SqlCeConnection> getSqlConnection)
             {
-            this.accessoriesList = accessories;
+            this.itemsList = accessories;
             this.getSqlConnection = getSqlConnection;
             }
 
@@ -98,7 +81,7 @@ namespace WMS_client.Repositories.Sql
 
                     using (var resultSet = cmd.ExecuteResultSet(SqlCeRepository.UPDATABLE_RESULT_SET_OPTIONS))
                         {
-                        foreach (var accessory in accessoriesList)
+                        foreach (var accessory in itemsList)
                             {
                             if (!justInsert && resultSet.Seek(DbSeekOptions.FirstEqual, accessory.Id))
                                 {
@@ -146,7 +129,7 @@ namespace WMS_client.Repositories.Sql
 
                         using (var resultSet = cmd.ExecuteResultSet(SqlCeRepository.UPDATABLE_RESULT_SET_OPTIONS))
                             {
-                            foreach (var accessory in accessoriesList)
+                            foreach (var accessory in itemsList)
                                 {
                                 int currentId = accessory.Id;
 

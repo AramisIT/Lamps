@@ -229,6 +229,9 @@
     <Compile Include="Base\ServerAgent.cs" />
     <Compile Include="Repositories\RepositoryHelper.cs" />
     <Compile Include="Repositories\Sql\TablesColumns\CasesTable.cs" />
+    <Compile Include="Repositories\Sql\TablesColumns\PartiesTable.cs" />
+    <Compile Include="Repositories\Sql\TablesColumns\ModelsTable.cs" />
+    <Compile Include="Repositories\Sql\TablesColumns\MapsTable.cs" />
     <Compile Include="Repositories\Sql\TablesColumns\DatabaseParameters.cs" />
     <Compile Include="Repositories\Sql\TablesColumns\LampsTable.cs" />
     <Compile Include="Repositories\Sql\TablesColumns\UnitsTable.cs" />
@@ -237,7 +240,12 @@
     <Compile Include="Repositories\IRepository.cs" />
     <Compile Include="Repositories\Sql\SqlCeRepository.cs" />
     <Compile Include="Repositories\Sql\Updaters\CasesUpdater.cs" />
+    <Compile Include="Repositories\Sql\Updaters\CatalogUpdater.cs" />
+    <Compile Include="Repositories\Sql\Updaters\PartiesUpdater.cs" />
+    <Compile Include="Repositories\Sql\Updaters\ModelsUpdater.cs" />
     <Compile Include="Repositories\Sql\Updaters\LampsUpdater.cs" />
+    <Compile Include="Repositories\Sql\Updaters\MapsUpdater.cs" />
+    <Compile Include="Repositories\Sql\Updaters\TableUpdater.cs" />
     <Compile Include="Repositories\Sql\Updaters\UnitsUpdater.cs" />
     <Compile Include="Utils\AccessoryHelper.cs" />
     <Compile Include="Utils\BackUpCreator.cs" />

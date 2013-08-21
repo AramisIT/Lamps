@@ -7,7 +7,7 @@ using WMS_client.Models;
 
 namespace WMS_client.Repositories.Sql.Updaters
     {
-    class UnitsUpdater : AccessoryUpdater<Unit>
+    sealed class UnitsUpdater : AccessoryUpdater<Unit>
         {
         public UnitsUpdater()
             : base("Units", "PK_Units", "UnitsUpdating", "PK_UnitsUpdating")

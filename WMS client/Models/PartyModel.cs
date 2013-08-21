@@ -20,5 +20,7 @@ namespace WMS_client.Models
         public Int16 WarrantyHours { get; set; }
 
         public Int16 WarrantyYears { get; set; }
+
+        public bool Deleted { get; set; }
         }
     }

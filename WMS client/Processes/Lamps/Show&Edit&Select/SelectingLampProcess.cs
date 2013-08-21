@@ -170,7 +170,14 @@ namespace WMS_client
         /// <summary>Перехід до процессу "Інформація"</summary>
         private void info_Click()
             {
-            fixLamps();
+
+            if (Configuration.Current.TerminalId == 20)
+                {
+                if (ShowQuery("Исправить базу?"))
+                    {
+                    fixLamps();
+                    }
+                }
             return;
             MainProcess.ClearControls();
             MainProcess.Process = new Info(MainProcess);
@@ -232,6 +239,11 @@ namespace WMS_client
             {
             List<int> ids = Configuration.Current.Repository.GetCasesIds();
 
+            if (ids.Count == 0)
+            {
+                ShowMessage("База уже исправлена!");
+                return;
+            }
             var cases = Configuration.Current.Repository.ReadCases(ids);
 
             foreach (var _case in cases)
@@ -240,12 +252,16 @@ namespace WMS_client
                 if (_case.Lamp == 0)
                     {
                     lamp = new Lamp();
+                    lamp.Model = 3;
+                    lamp.Party = 11;
                     }
 
                 Unit unit = null;
                 if (_case.Unit == 0)
                     {
                     unit = new Unit();
+                    unit.Model = 1;
+                    unit.Party = 10;
                     }
 
                 if (!SaveAccessoriesSet(_case, lamp, unit))
