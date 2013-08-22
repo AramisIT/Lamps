@@ -125,11 +125,11 @@ namespace WMS_client.Utils
                         }
 
                     destin.Close();
-
                     }
 
                 if (errorOccured)
                     {
+                    undoOperation();
                     return false;
                     }
                 }
@@ -140,6 +140,17 @@ namespace WMS_client.Utils
                 }
 
             return true;
+            }
+
+        private void undoOperation()
+            {
+            try
+                {
+                File.Delete(fileName);
+                }
+            catch
+                {
+                }
             }
 
         private bool checkBackupDirectory()
