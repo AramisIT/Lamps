@@ -307,7 +307,7 @@ namespace WMS_client
                 return;
                 }
 
-            if (total == currentValue || total == 0)
+            if (total <= currentValue || total == 0)
                 {
                 MainProcess.MainForm.ShowProgress(100);
                 }
