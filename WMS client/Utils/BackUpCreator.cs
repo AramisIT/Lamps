@@ -53,7 +53,7 @@ namespace WMS_client.Utils
         private const string DATABASE_EXTENTION = ".sdf";
         private const string DATETIME_FORMAT = "yy-MM-dd hh_mm_ss";
 
-        private void deleteIfOld(string fileName)
+        private DateTime getBackupDateTime(string fileName)
             {
             string dateTime = Path.GetFileNameWithoutExtension(fileName);
             DateTime dateOfFile = DateTime.Now;
@@ -64,7 +64,18 @@ namespace WMS_client.Utils
                 }
             catch (Exception exp)
                 {
-                Trace.WriteLine(string.Format("Ошибка при удалении старого файла: ", exp.Message));
+                Trace.WriteLine(string.Format("Ошибка при получении даты бекапа: ", exp.Message));
+                return DateTime.MinValue;
+                }
+
+            return dateOfFile;
+            }
+
+        private void deleteIfOld(string fileName)
+            {
+            var dateOfFile = getBackupDateTime(fileName);
+            if (dateOfFile.Equals(DateTime.MinValue))
+                {
                 return;
                 }
 
@@ -146,6 +157,43 @@ namespace WMS_client.Utils
                 }
 
             return true;
+            }
+
+        internal DateTime GetLastBackUpTime()
+            {
+            if (!checkBackupDirectory())
+                {
+                return DateTime.MinValue;
+                }
+
+            DateTime maxDateTime = DateTime.MinValue;
+
+            string[] files = Directory.GetFiles(fullBackupDirectoryPath);
+            foreach (var fileName in files)
+                {
+                if (fileName.EndsWith(DATABASE_EXTENTION))
+                    {
+                    var dateOfFile = getBackupDateTime(fileName);
+                    if (dateOfFile.Equals(DateTime.MinValue))
+                        {
+                        continue;
+                        }
+
+                    bool fileEmpty = (new FileInfo(fileName)).Length == 0;
+                    if (fileEmpty)
+                        {
+                        File.Delete(fileName);
+                        continue;
+                        }
+
+                    if (maxDateTime < dateOfFile)
+                        {
+                        maxDateTime = dateOfFile;
+                        }
+                    }
+                }
+
+            return maxDateTime;
             }
         }
     }

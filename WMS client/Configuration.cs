@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using WMS_client.Repositories;
+using WMS_client.Utils;
 
 namespace WMS_client
     {
@@ -16,6 +17,13 @@ namespace WMS_client
             {
             readPDTid();
             checkIsReleaseMode();
+            initLastBackUpTime();
+            }
+
+        private void initLastBackUpTime()
+            {
+            var backUpCreator = new BackUpCreator();
+            lastBackUpTime = backUpCreator.GetLastBackUpTime();
             }
 
         private void checkIsReleaseMode()
