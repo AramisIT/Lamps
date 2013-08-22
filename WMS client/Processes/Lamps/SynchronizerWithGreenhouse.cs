@@ -22,6 +22,7 @@ namespace WMS_client
         private MobileLabel infoLabel;
 
         private long lastTSDSyncronizationRowId;
+        private long lastTSDSyncronizationRowIdAfterExport;
 
         private const string DATE_TIME_FORMAT = "dd.MM.yyyy";
 
@@ -66,6 +67,8 @@ namespace WMS_client
                 {
                 return;
                 }
+
+            lastTSDSyncronizationRowIdAfterExport = getLastTSDSyncronizationRowId();
 
             if (!downloadAccessories<Lamp>("Імпорт ламп", TypeOfAccessories.Lamp, "Lamps"))
                 {
@@ -315,6 +318,7 @@ namespace WMS_client
                 return false;
                 }
 
+            Configuration.Current.Repository.SetLastDownloadedId(accessoryType, lastTSDSyncronizationRowIdAfterExport);
             ShowProgress(iterationsCount, iterationsCount);
             return true;
             }
