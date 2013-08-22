@@ -29,7 +29,7 @@ namespace WMS_client.Repositories.Sql.Updaters
             record.SetInt32(PartiesTable.Id, item.Id);
             record.SetString(PartiesTable.Description, item.Description);
             record.SetString(PartiesTable.ContractorDescription, item.ContractorDescription);
-            record.SetValue(PartiesTable.DateOfActSet, item.DateOfActSet);
+            record.SetValue(PartiesTable.DateOfActSet, getSqlDateTime(item.DateOfActSet));
             record.SetInt16(PartiesTable.WarrantyHours, item.WarrantyHours);
             record.SetInt16(PartiesTable.WarrantyYears, item.WarrantyYears);
             record.SetDateTime(PartiesTable.Date, item.Date);

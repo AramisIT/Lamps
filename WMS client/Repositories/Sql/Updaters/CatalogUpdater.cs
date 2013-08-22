@@ -35,14 +35,15 @@ namespace WMS_client.Repositories.Sql.Updaters
 
                     using (var resultSet = cmd.ExecuteResultSet(SqlCeRepository.UPDATABLE_RESULT_SET_OPTIONS))
                         {
-                        foreach (var accessory in itemsList)
+                        foreach (var catalog in itemsList)
                             {
-                            bool recordFound = resultSet.Seek(DbSeekOptions.FirstEqual, accessory.Id);
+                            bool recordFound = resultSet.Seek(DbSeekOptions.FirstEqual, catalog.Id);
 
-                            if (accessory.Deleted)
+                            if (catalog.Deleted)
                                 {
                                 if (recordFound)
                                     {
+                                    resultSet.Read();
                                     resultSet.Delete();
                                     }
                                 continue;
@@ -52,7 +53,7 @@ namespace WMS_client.Repositories.Sql.Updaters
                                 {
                                 resultSet.Read();
 
-                                fillValues(resultSet, accessory);
+                                fillValues(resultSet, catalog);
 
                                 resultSet.Update();
                                 }
@@ -60,7 +61,7 @@ namespace WMS_client.Repositories.Sql.Updaters
                                 {
                                 var newRow = resultSet.CreateRecord();
 
-                                fillValues(newRow, accessory);
+                                fillValues(newRow, catalog);
 
                                 try
                                     {

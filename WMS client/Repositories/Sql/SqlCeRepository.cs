@@ -439,7 +439,13 @@ select Id from Cases where Id <= 0
                 catalog.Description = (reader["Description"] as string).TrimEnd();
                 catalog.ContractorDescription = (reader["ContractorDescription"] as string).TrimEnd();
                 catalog.Date = (DateTime)(reader["Date"]);
-                catalog.DateOfActSet = (DateTime)(reader["DateOfActSet"]);
+
+                object dateTimeValue = reader["DateOfActSet"];
+                if (DBNull.Value.Equals(dateTimeValue))
+                    {
+                    dateTimeValue = DateTime.MinValue;
+                    }
+                catalog.DateOfActSet = (DateTime)dateTimeValue;
             });
 
             return result;

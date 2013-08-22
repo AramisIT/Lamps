@@ -70,7 +70,7 @@ namespace WMS_client
             logBuilder.AppendLine();
             Stopwatch totalTime = new Stopwatch();
             totalTime.Start();
-
+            goto Models;
             infoLabel.Text = "Експорт ламп";
             if (!uploadAccessories(TypeOfAccessories.Lamp, "UpdateLamps"))
                 {
@@ -106,7 +106,7 @@ namespace WMS_client
                 {
                 return;
                 }
-
+Models:
             bool catalogChanged;
             var repository = Configuration.Current.Repository;
 
@@ -275,7 +275,7 @@ namespace WMS_client
                         party.ContractorDescription = Convert.ToString(row["ContractorDescription"]);
                         party.WarrantyHours = Convert.ToInt16(row["WarrantyHours"]);
                         party.WarrantyYears = Convert.ToInt16(row["WarrantyYears"]);
-                        party.Date = DateTime.ParseExact(row["WarrantyExpiryDate"] as string, DATE_TIME_FORMAT, null);
+                        party.Date = DateTime.ParseExact(row["Date"] as string, DATE_TIME_FORMAT, null);
                         party.DateOfActSet = DateTime.ParseExact(row["DateOfActSet"] as string, DATE_TIME_FORMAT, null);
                         }
 
