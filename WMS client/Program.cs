@@ -27,6 +27,7 @@ namespace WMS_client
                 }
 
             Configuration.Current.Repository = new SqlCeRepository();
+            Configuration.Current.InitLastBackUpTime();
 
             MainForm mform = new MainForm();
             //   mform.MinimizeBox = true;

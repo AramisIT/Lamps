@@ -17,10 +17,9 @@ namespace WMS_client
             {
             readPDTid();
             checkIsReleaseMode();
-            initLastBackUpTime();
             }
 
-        private void initLastBackUpTime()
+        public void InitLastBackUpTime()
             {
             var backUpCreator = new BackUpCreator();
             lastBackUpTime = backUpCreator.GetLastBackUpTime();
