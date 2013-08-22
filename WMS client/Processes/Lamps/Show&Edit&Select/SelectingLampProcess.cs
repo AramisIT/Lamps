@@ -14,17 +14,11 @@ namespace WMS_client
     /// <summary>Выбор процесса (для светильников)</summary>
     public class SelectingLampProcess : BusinessProcess
         {
-        IServerIdProvider serverIdProvider = null;
         /// <summary>Выбор процесса (для светильников)</summary>
         /// <param name="MainProcess">Основной процесс</param>
         public SelectingLampProcess(WMSClient MainProcess)//, IServerIdProvider serverIdProvider)
             : base(MainProcess, 1)
             {
-            //if (serverIdProvider == null)
-            //    {
-            //    throw new ArgumentException("ServerIdProvider");
-            //    }
-            this.serverIdProvider = new ServerIdProvider(); //serverIdProvider;
             BusinessProcessType = ProcessType.Selecting;
             FormNumber = 1;
             }
@@ -110,7 +104,7 @@ namespace WMS_client
                     break;
                 //Синхронізація
                 case KeyAction.Proceed:
-                    new dbSynchronizer(MainProcess, serverIdProvider);
+                    new dbSynchronizer(MainProcess);
                     MainProcess.ClearControls();
                     MainProcess.Process = new SelectingLampProcess(MainProcess);
                     break;
