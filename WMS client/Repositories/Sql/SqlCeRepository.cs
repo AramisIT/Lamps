@@ -145,12 +145,16 @@ select Id from Cases where Id <= 0
 
         public bool UpdateParties(List<PartyModel> parties)
             {
-            return true;
+            var updater = new PartiesUpdater();
+            updater.InitUpdater(parties, getOpenedConnection);
+            return updater.Update();
             }
 
         public bool UpdateModels(List<Model> models)
             {
-            return true;
+            var updater = new ModelsUpdater();
+            updater.InitUpdater(models, getOpenedConnection);
+            return updater.Update();
             }
 
         public bool UpdateCases(List<Case> cases, bool justInsert)
@@ -853,6 +857,20 @@ select Id from Units where Id between @minId and @maxId";
             return result;
             }
 
+        public void ResetModels()
+            {
+            modelsCache = null;
+            }
+
+        public void ResetMaps()
+            {
+            mapsCache = null;
+            }
+
+        public void ResetParties()
+            {
+            partiesCache = null;
+            }
         }
 
     enum DatabaseParametersConsts

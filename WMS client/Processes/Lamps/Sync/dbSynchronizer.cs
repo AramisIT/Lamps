@@ -107,22 +107,37 @@ namespace WMS_client
                 return;
                 }
 
+            bool catalogChanged;
+            var repository = Configuration.Current.Repository;
+
             infoLabel.Text = "Імпорт моделей";
-            if (!downloadCatalogs<Model, Int16>("LampsModels"))
+            if (!downloadCatalogs<Model, Int16>("LampsModels", out catalogChanged))
                 {
                 return;
+                }
+            if (catalogChanged)
+                {
+                repository.ResetModels();
                 }
 
             infoLabel.Text = "Імпорт мап";
-            if (!downloadCatalogs<Map, Int32>("Maps"))
+            if (!downloadCatalogs<Map, Int32>("Maps", out catalogChanged))
                 {
                 return;
                 }
+            if (catalogChanged)
+                {
+                repository.ResetMaps();
+                }
 
             infoLabel.Text = "Імпорт партій";
-            if (!downloadCatalogs<PartyModel, Int32>("Party"))
+            if (!downloadCatalogs<PartyModel, Int32>("Party", out catalogChanged))
                 {
                 return;
+                }
+            if (catalogChanged)
+                {
+                repository.ResetParties();
                 }
 
             return;
@@ -212,8 +227,9 @@ namespace WMS_client
             logToFile("SynchLog.txt", logBuilder);
             }
 
-        private bool downloadCatalogs<T, ID>(string greenhouseTableName) where T : ICatalog<ID>, new()
+        private bool downloadCatalogs<T, ID>(string greenhouseTableName, out bool catalogChanged) where T : ICatalog<ID>, new()
             {
+            catalogChanged = false;
             long lastDownLoadedId = Configuration.Current.Repository.GetLastDownloadedId(typeof(T));
             bool isParty = typeof(T) == typeof(PartyModel);
 
@@ -232,6 +248,8 @@ namespace WMS_client
                     {
                     return true;
                     }
+
+                catalogChanged = true;
 
                 List<T> list = new List<T>();
                 foreach (DataRow row in table.Rows)

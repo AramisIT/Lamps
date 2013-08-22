@@ -10,7 +10,7 @@ namespace WMS_client.Repositories.Sql.Updaters
     sealed class ModelsUpdater : CatalogUpdater<Model, Int16>
         {
         public ModelsUpdater()
-            : base("Models", "PK__Models")
+            : base("Models", "PK_Models")
         { }
 
         protected override void fillValues(SqlCeResultSet record, Model item)

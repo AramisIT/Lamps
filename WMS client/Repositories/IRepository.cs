@@ -69,5 +69,11 @@ namespace WMS_client.Repositories
         long GetLastDownloadedId(Type catalogType);
 
         void SetLastDownloadedId(Type catalogType, long lastAcceptedRowId);
+
+        void ResetModels();
+
+        void ResetMaps();
+
+        void ResetParties();
         }
     }
