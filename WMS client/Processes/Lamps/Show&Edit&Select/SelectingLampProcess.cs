@@ -7,7 +7,6 @@ using System.Data.SqlServerCe;
 using WMS_client.Models;
 using WMS_client.Processes.Lamps;
 using WMS_client.db;
-using WMS_client.Processes.Lamps.Sync;
 
 namespace WMS_client
     {
@@ -104,7 +103,7 @@ namespace WMS_client
                     break;
                 //Синхронізація
                 case KeyAction.Proceed:
-                    new dbSynchronizer(MainProcess);
+                    new SynchronizerWithGreenhouse(MainProcess);
                     MainProcess.ClearControls();
                     MainProcess.Process = new SelectingLampProcess(MainProcess);
                     break;

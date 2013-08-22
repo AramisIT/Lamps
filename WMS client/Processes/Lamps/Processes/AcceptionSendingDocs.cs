@@ -145,8 +145,8 @@ WHERE c.TypeOfAccessory=@Type AND c.{1}=1", subTableName, dbObject.IS_SYNCED);
 
             foreach (string a in accepted)
                 {
-                command.AppendFormat(" OR Document=@{0}{1}", dbSynchronizer.PARAMETER, index);
-                parameters.Add(string.Concat(dbSynchronizer.PARAMETER, index), a);
+                command.AppendFormat(" OR Document=@{0}{1}", SynchronizerWithGreenhouse.PARAMETER, index);
+                parameters.Add(string.Concat(SynchronizerWithGreenhouse.PARAMETER, index), a);
                 index++;
                 }
 

@@ -2,22 +2,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlServerCe;
+using System.Diagnostics;
 using System.Drawing;
-using System.IO;
-using System.Reflection;
 using System.Text;
 using WMS_client.Enums;
-using WMS_client.db;
 using WMS_client.Models;
-using WMS_client.Processes.Lamps.Sync;
-using System.Diagnostics;
-using WMS_client.Utils;
 
 namespace WMS_client
     {
     /// <summary>Синхронизация данных между ТСД и сервером</summary>
-    public class dbSynchronizer : BusinessProcess
+    public class SynchronizerWithGreenhouse : BusinessProcess
         {
         /// <summary>
         /// Использовать для синхронизации ламп механизм логирования на сервере
@@ -35,7 +29,7 @@ namespace WMS_client
 
         /// <summary>Синхронизация данных между ТСД и сервером</summary>
         /// <param name="MainProcess"></param>
-        public dbSynchronizer(WMSClient MainProcess)
+        public SynchronizerWithGreenhouse(WMSClient MainProcess)
             : base(MainProcess, 1)
             {
             if (applicationIsClosing)

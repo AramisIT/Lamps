@@ -182,7 +182,7 @@ WHERE d.{6}=1",
                     {
                     foreach (KeyValuePair<long, string> v in row.Value)
                         {
-                        string currParameter = string.Concat(dbSynchronizer.PARAMETER, index++);
+                        string currParameter = string.Concat(SynchronizerWithGreenhouse.PARAMETER, index++);
 
                         whereClause.AppendFormat(" OR RTRIM({0})=RTRIM(@{1})", dbObject.BARCODE_NAME, currParameter);
                         parameters.Add(currParameter, v.Key.ToString());

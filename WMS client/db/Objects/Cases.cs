@@ -319,11 +319,11 @@ WHERE RTRIM(c.BarCode)=RTRIM(@BarCode)"))
             {
             string command = string.Format(
                 @"SELECT {0} {2},CASE WHEN RTRIM(s.{3})=@{4} THEN 1 ELSE 0 END IsEmpty FROM {1} m JOIN {0}s s ON m.{0}=s.{2} WHERE m.{3}=@{3}",
-                accessory, typeof(Cases).Name, IDENTIFIER_NAME, BARCODE_NAME, dbSynchronizer.PARAMETER);
+                accessory, typeof(Cases).Name, IDENTIFIER_NAME, BARCODE_NAME, SynchronizerWithGreenhouse.PARAMETER);
             using (SqlCeCommand query = dbWorker.NewQuery(command))
                 {
                 query.AddParameter(BARCODE_NAME, lightBarcode);
-                query.AddParameter(dbSynchronizer.PARAMETER, string.Empty);
+                query.AddParameter(SynchronizerWithGreenhouse.PARAMETER, string.Empty);
                 SqlCeDataReader reader = query.ExecuteReader();
 
                 if (reader != null && reader.Read())

@@ -121,10 +121,10 @@ FROM(
             string command = string.Format(@"SELECT 1 FROM {0} WHERE RTRIM({1})=RTRIM(@{2})",
                                            type.Name,
                                            dbObject.SYNCREF_NAME,
-                                           dbSynchronizer.PARAMETER);
+                                           SynchronizerWithGreenhouse.PARAMETER);
             using (SqlCeCommand query = dbWorker.NewQuery(command))
                 {
-                query.AddParameter(dbSynchronizer.PARAMETER, syncRef);
+                query.AddParameter(SynchronizerWithGreenhouse.PARAMETER, syncRef);
                 object result = query.ExecuteScalar();
 
                 return result != null;
@@ -162,10 +162,10 @@ FROM(
                                            dbObject.IDENTIFIER_NAME,
                                            type.Name,
                                            dbObject.SYNCREF_NAME,
-                                           dbSynchronizer.PARAMETER);
+                                           SynchronizerWithGreenhouse.PARAMETER);
             using (SqlCeCommand query = dbWorker.NewQuery(command))
                 {
-                query.AddParameter(dbSynchronizer.PARAMETER, syncRef);
+                query.AddParameter(SynchronizerWithGreenhouse.PARAMETER, syncRef);
                 object result = query.ExecuteScalar();
 
                 return result ?? 0;

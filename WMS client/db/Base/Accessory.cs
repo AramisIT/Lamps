@@ -136,11 +136,11 @@ namespace WMS_client.db
 
             string command = string.Format(
                 "UPDATE {0}s SET Status=@{1} WHERE RTRIM({2})=RTRIM(@{2})",
-                accessory, dbSynchronizer.PARAMETER, BARCODE_NAME);
+                accessory, SynchronizerWithGreenhouse.PARAMETER, BARCODE_NAME);
             using (SqlCeCommand query = dbWorker.NewQuery(command))
                 {
                 query.AddParameter(BARCODE_NAME, barcode);
-                query.AddParameter(dbSynchronizer.PARAMETER, state);
+                query.AddParameter(SynchronizerWithGreenhouse.PARAMETER, state);
                 query.ExecuteNonQuery();
                 }
             }

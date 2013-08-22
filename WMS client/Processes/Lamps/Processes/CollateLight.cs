@@ -235,7 +235,7 @@ namespace WMS_client
             using (SqlCeCommand query = dbWorker.NewQuery(command))
                 {
                 query.AddParameter(dbObject.BARCODE_NAME, lampBarcode);
-                query.AddParameter(dbSynchronizer.PARAMETER, 0);
+                query.AddParameter(SynchronizerWithGreenhouse.PARAMETER, 0);
                 query.AddParameter(dbObject.IDENTIFIER_NAME, lampId);
                 query.ExecuteNonQuery();
                 }
@@ -252,7 +252,7 @@ namespace WMS_client
             using (SqlCeCommand query = dbWorker.NewQuery(command))
                 {
                 query.AddParameter(dbObject.BARCODE_NAME, unitBarcode);
-                query.AddParameter(dbSynchronizer.PARAMETER, 0);
+                query.AddParameter(SynchronizerWithGreenhouse.PARAMETER, 0);
                 query.AddParameter(dbObject.IDENTIFIER_NAME, unitId);
                 query.ExecuteNonQuery();
                 }
