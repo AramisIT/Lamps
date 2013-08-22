@@ -21,7 +21,8 @@ namespace WMS_client
         /// <summary>Информационная метка для уведомления текущего процессе синхронизации</summary>
         private MobileLabel infoLabel;
 
-        private StringBuilder logBuilder;
+        private long lastTSDSyncronizationRowId;
+
         private const string DATE_TIME_FORMAT = "dd.MM.yyyy";
 
         /// <summary>Константная часть имени параметра</summary>
@@ -37,7 +38,7 @@ namespace WMS_client
                 return;
                 }
             StartNetworkConnection();
-           
+
             Configuration.Current.Repository.LoadingDataFromGreenhouse = true;
 
             SynchronizeWithGreenhouse();
@@ -49,43 +50,34 @@ namespace WMS_client
 
         private void SynchronizeWithGreenhouse()
             {
-            logBuilder = new StringBuilder(string.Format("Synchronizing start: {0}", DateTime.Now.ToString("HH:mm:ss dd.MM.yyyy")));
-            logBuilder.AppendLine();
-            Stopwatch totalTime = new Stopwatch();
-            totalTime.Start();
+            lastTSDSyncronizationRowId = getLastTSDSyncronizationRowId();
 
-            infoLabel.Text = "Експорт ламп";
-            if (!uploadAccessories(TypeOfAccessories.Lamp, "UpdateLamps"))
+            if (!uploadAccessories("Експорт ламп", TypeOfAccessories.Lamp, "UpdateLamps"))
                 {
                 return;
                 }
 
-            infoLabel.Text = "Експорт блоків";
-            if (!uploadAccessories(TypeOfAccessories.ElectronicUnit, "UpdateUnits"))
+            if (!uploadAccessories("Експорт блоків", TypeOfAccessories.ElectronicUnit, "UpdateUnits"))
                 {
                 return;
                 }
 
-            infoLabel.Text = "Експорт корпусів";
-            if (!uploadAccessories(TypeOfAccessories.Case, "UpdateCases"))
+            if (!uploadAccessories("Експорт корпусів", TypeOfAccessories.Case, "UpdateCases"))
                 {
                 return;
                 }
 
-            infoLabel.Text = "Імпорт ламп";
-            if (!downloadAccessories<Lamp>(TypeOfAccessories.Lamp, "Lamps"))
+            if (!downloadAccessories<Lamp>("Імпорт ламп", TypeOfAccessories.Lamp, "Lamps"))
                 {
                 return;
                 }
 
-            infoLabel.Text = "Імпорт блоків";
-            if (!downloadAccessories<Unit>(TypeOfAccessories.ElectronicUnit, "ElectronicUnits"))
+            if (!downloadAccessories<Unit>("Імпорт блоків", TypeOfAccessories.ElectronicUnit, "ElectronicUnits"))
                 {
                 return;
                 }
 
-            infoLabel.Text = "Імпорт корпусів";
-            if (!downloadAccessories<Case>(TypeOfAccessories.Case, "Cases"))
+            if (!downloadAccessories<Case>("Імпорт корпусів", TypeOfAccessories.Case, "Cases"))
                 {
                 return;
                 }
@@ -93,8 +85,7 @@ namespace WMS_client
             bool catalogChanged;
             var repository = Configuration.Current.Repository;
 
-            infoLabel.Text = "Імпорт моделей";
-            if (!downloadCatalogs<Model, Int16>("LampsModels", out catalogChanged))
+            if (!downloadCatalogs<Model, Int16>("Імпорт моделей", "LampsModels", out catalogChanged))
                 {
                 return;
                 }
@@ -103,8 +94,7 @@ namespace WMS_client
                 repository.ResetModels();
                 }
 
-            infoLabel.Text = "Імпорт мап";
-            if (!downloadCatalogs<Map, Int32>("Maps", out catalogChanged))
+            if (!downloadCatalogs<Map, Int32>("Імпорт мап", "Maps", out catalogChanged))
                 {
                 return;
                 }
@@ -113,8 +103,8 @@ namespace WMS_client
                 repository.ResetMaps();
                 }
 
-            infoLabel.Text = "Імпорт партій";
-            if (!downloadCatalogs<PartyModel, Int32>("Party", out catalogChanged))
+
+            if (!downloadCatalogs<PartyModel, Int32>("Імпорт партій", "Party", out catalogChanged))
                 {
                 return;
                 }
@@ -124,8 +114,21 @@ namespace WMS_client
                 }
             }
 
-        private bool downloadCatalogs<T, ID>(string greenhouseTableName, out bool catalogChanged) where T : ICatalog<ID>, new()
+        private long getLastTSDSyncronizationRowId()
             {
+            PerformQuery("GetLastTSDSyncronizationRowId");
+
+            if (!SuccessQueryResult)
+                {
+                return 0;
+                }
+
+            return Convert.ToInt64(ResultParameters[1]);
+            }
+
+        private bool downloadCatalogs<T, ID>(string processName, string greenhouseTableName, out bool catalogChanged) where T : ICatalog<ID>, new()
+            {
+            infoLabel.Text = processName;
             catalogChanged = false;
             long lastDownLoadedId = Configuration.Current.Repository.GetLastDownloadedId(typeof(T));
             bool isParty = typeof(T) == typeof(PartyModel);
@@ -215,10 +218,11 @@ namespace WMS_client
             return false;
             }
 
-        private bool downloadAccessories<T>(TypeOfAccessories accessoryType, string greenhouseTableName) where T : IAccessory, new()
+        private bool downloadAccessories<T>(string processName, TypeOfAccessories accessoryType, string greenhouseTableName) where T : IAccessory, new()
             {
+            infoLabel.Text = processName;
             long lastDownLoadedId = Configuration.Current.Repository.GetLastDownloadedId(accessoryType);
-            PerformQuery("GetUpdatesCount", greenhouseTableName, lastDownLoadedId);
+            PerformQuery("GetUpdatesCount", greenhouseTableName, lastDownLoadedId, lastTSDSyncronizationRowId);
             if (!SuccessQueryResult)
                 {
                 return false;
@@ -245,7 +249,7 @@ namespace WMS_client
                     {
                     iterationNumber++;
                     PerformQuery("DownloadUpdatedAccessories", (int)accessoryType, lastDownLoadedId,
-                        RECORDS_QUANTITY_IN_TASK);
+                        RECORDS_QUANTITY_IN_TASK, lastTSDSyncronizationRowId);
 
                     if (!SuccessQueryResult)
                         {
@@ -334,8 +338,9 @@ namespace WMS_client
 
         private const int RECORDS_QUANTITY_IN_TASK = 50;
 
-        private bool uploadAccessories(TypeOfAccessories accessoriesType, string remoteMethodName)
+        private bool uploadAccessories(string processName, TypeOfAccessories accessoriesType, string remoteMethodName)
             {
+            infoLabel.Text = processName;
             List<List<int>> tasks = Configuration.Current.Repository.GetUpdateTasks(accessoriesType, RECORDS_QUANTITY_IN_TASK);
 
             int totalTasks = tasks.Count;
@@ -447,19 +452,6 @@ namespace WMS_client
                 }
 
             return resultTable;
-            }
-
-        private long getLastUpdateRowId()
-            {
-            PerformQuery("GetLastTSDSyncronizationRowId");
-            if (SuccessQueryResult)
-                {
-                return Convert.ToInt64(ResultParameters[1] ?? -1);
-                }
-            else
-                {
-                return -1;
-                }
             }
 
         #region Overrides of BusinessProcess
