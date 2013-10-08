@@ -26,5 +26,20 @@ namespace WMS_client
             List<Case> cases = repository.ReadCases(new List<int>() { id });
             return cases.Count > 0 ? cases[0] : null;
             }
+
+        public static bool WriteCase(this IRepository repository, Case _Case)
+            {
+            return repository.UpdateCases(new List<Case>() { _Case }, false);
+            }
+
+        public static bool WriteLamp(this IRepository repository, Lamp lamp)
+            {
+            return repository.UpdateLamps(new List<Lamp>() { lamp }, false);
+            }
+
+        public static bool WriteUnit(this IRepository repository, Unit unit)
+            {
+            return repository.UpdateUnits(new List<Unit>() { unit }, false);
+            }
         }
     }

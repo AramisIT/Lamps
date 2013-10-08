@@ -21,8 +21,15 @@ namespace WMS_client
 
         public void InitLastBackUpTime()
             {
-            var backUpCreator = new BackUpCreator();
-            lastBackUpTime = backUpCreator.GetLastBackUpTime();
+            try
+                {
+                var backUpCreator = new BackUpCreator();
+                lastBackUpTime = backUpCreator.GetLastBackUpTime();
+                }
+            catch (Exception exp)
+                {
+                MessageBox.Show(string.Format("Ошибка получения даты последнего бекапа: {0}", exp.Message));
+                }
             }
 
         private void checkIsReleaseMode()

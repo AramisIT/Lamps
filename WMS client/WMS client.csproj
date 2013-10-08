@@ -168,6 +168,7 @@
     <Compile Include="Processes\Lamps\Processes\CollateLight.cs" />
     <Compile Include="Processes\Lamps\Processes\AcceptionSendingDocs.cs" />
     <Compile Include="Processes\Lamps\Processes\OnLine\AcceptingAfterFixing.cs" />
+    <Compile Include="Processes\Lamps\Processes\OnLine\ScannerMode.cs" />
     <Compile Include="Processes\Lamps\Processes\Processes.cs" />
     <Compile Include="Processes\Lamps\Processes\RepairUnit.cs" />
     <Compile Include="Processes\Lamps\Processes\RepairLight.cs" />
@@ -248,6 +249,7 @@
     <Compile Include="Utils\BackUpCreator.cs" />
     <Compile Include="Utils\BatteryState.cs" />
     <Compile Include="Utils\CatalogHelper.cs" />
+    <Compile Include="Utils\Extentions.cs" />
     <Compile Include="Utils\StringParser.cs" />
     <Compile Include="WinProcessesManagement\ProcessInfo.cs" />
     <Compile Include="WMSClient.cs" />

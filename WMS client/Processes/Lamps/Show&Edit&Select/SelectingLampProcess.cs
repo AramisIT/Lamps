@@ -26,7 +26,7 @@ namespace WMS_client
         public override void DrawControls()
             {
             MainProcess.ToDoCommand = "Оберіть процес";
-            MainProcess.CreateButton("Інфо", 20, 75, 200, 45, "info", info_Click);
+            MainProcess.CreateButton("Режим сканеру", 20, 75, 200, 45, string.Empty, scannerMode_Click);
             MainProcess.CreateButton("Процеси", 20, 150, 200, 45, "process", process_Click);
             MainProcess.CreateButton("Реєстрація", 20, 225, 200, 45, "registration", registration_Click);
             MainProcess.CreateLabel("Синхронізація - F5", 25, 280, 230, MobileFontSize.Large);
@@ -45,24 +45,20 @@ namespace WMS_client
                 }
             else if (barcode.IsAccessoryBarcode())
                 {
-                //Тип комплектуючого визначений за штрихкодом (якщо ШК відсутній, то тип = None)
-                TypeOfAccessories type = BarcodeWorker.GetTypeOfAccessoriesByBarcode(barcode);
-
-                //Перехід на відповідний процес відповідно до типу комплектуючого
-                switch (type)
+                var foundAccessory = Configuration.Current.Repository.FindAccessory(barcode.GetIntegerBarcode());
+                var accessoryType = AccessoryHelper.GetAccessoryType(foundAccessory);
+                if (accessoryType == TypeOfAccessories.Case && "Переместить светильник в цех?".Ask())
                     {
-                    case TypeOfAccessories.Lamp:
-                        lampProcess(barcode);
-                        break;
-                    case TypeOfAccessories.ElectronicUnit:
-                        unitProcess(barcode);
-                        break;
-                    case TypeOfAccessories.Case:
-                        caseProcess(barcode);
-                        break;
-                    default:
-                        ShowMessage("Не існує комплектуюче з таким штрихкодом!");
-                        break;
+                    var _Case = foundAccessory as Case;
+                    _Case.Map = 0;
+                    _Case.Position = 0;
+                    _Case.Register = 0;
+
+                    if (!Configuration.Current.Repository.WriteCase(_Case))
+                        {
+                        "Не удалось переместить корпус в цех!".Warning();
+                        return;
+                        }
                     }
                 }
             }
@@ -161,19 +157,10 @@ namespace WMS_client
 
         #region ButtonClick
         /// <summary>Перехід до процессу "Інформація"</summary>
-        private void info_Click()
+        private void scannerMode_Click()
             {
-
-            if (Configuration.Current.TerminalId == 20)
-                {
-                if (ShowQuery("Исправить базу?"))
-                    {
-                    fixLamps();
-                    }
-                }
-            return;
             MainProcess.ClearControls();
-            MainProcess.Process = new Info(MainProcess);
+            MainProcess.Process = new ScannerMode(MainProcess);
             }
 
         public bool SaveAccessoriesSet(Case _Case, Lamp lamp, Unit unit)
@@ -233,10 +220,10 @@ namespace WMS_client
             List<int> ids = Configuration.Current.Repository.GetCasesIds();
 
             if (ids.Count == 0)
-            {
+                {
                 ShowMessage("База уже исправлена!");
                 return;
-            }
+                }
             var cases = Configuration.Current.Repository.ReadCases(ids);
 
             foreach (var _case in cases)

@@ -144,6 +144,7 @@ namespace WMS_client
             {
             if (!waitingForBarcode)
                 {
+                tryReplaceOrRemoveAccessory(barcode);
                 return;
                 }
 
@@ -175,6 +176,132 @@ namespace WMS_client
                 ShowMessage("Невірний формат штрихкоду!");
                 exit();
                 }
+            }
+
+        private void tryReplaceOrRemoveAccessory(string barcode)
+            {
+            if (requaredAccessoryType == TypeOfAccessories.Case)
+                {
+                return;
+                }
+
+            var foundAccessory = Configuration.Current.Repository.FindAccessory(barcode.GetIntegerBarcode());
+            var accessoryType = AccessoryHelper.GetAccessoryType(foundAccessory);
+
+            if (requaredAccessoryType != accessoryType && foundAccessory != null)
+                {
+                return;
+                }
+
+            if (foundAccessory != null)
+                {
+                switch (accessoryType)
+                    {
+                    case TypeOfAccessories.ElectronicUnit:
+                        if (accessoriesSet.Unit == null)
+                            {
+                            return;
+                            }
+
+                        if (!accessoriesSet.Unit.Id.Equals(foundAccessory.Id))
+                            {
+                            if (ShowQuery("Заменить блок?"))
+                                {
+                                replaceUnit(foundAccessory as Unit);
+                                }
+                            }
+                        else
+                            {
+                            tryRemoveUnit(barcode);
+                            }
+                        break;
+
+                    case TypeOfAccessories.Lamp:
+                        if (accessoriesSet.Lamp == null)
+                            {
+                            return;
+                            }
+
+                        if (!accessoriesSet.Lamp.Id.Equals(foundAccessory.Id))
+                            {
+                            if (ShowQuery("Заменить лампу?"))
+                                {
+                                replaceLamp(foundAccessory as Lamp);
+                                }
+                            }
+                        break;
+                    }
+                return;
+                }
+
+            if (!tryRemoveUnit(barcode))
+                {
+                tryRemoveLamp(barcode);
+                }
+            }
+
+        private void tryRemoveLamp(string barcode)
+            {
+            if (!ShowQuery("Извлечь лампу?"))
+                {
+                return;
+                }
+            accessoriesSet.Lamp.Barcode = barcode.GetIntegerBarcode();
+            if (!Configuration.Current.Repository.WriteLamp(accessoriesSet.Lamp))
+                {
+                ShowMessage("Не удалось назначить штрих-код старой лампе");
+                return;
+                }
+
+            accessoriesSet.Lamp = null;
+            saveAccessoriesSet();
+            setNewCurrentAccessory(accessoriesSet.Case);
+            }
+
+        private bool tryRemoveUnit(string barcode)
+            {
+            if (!ShowQuery("Извлечь электронный блок?"))
+                {
+                return false;
+                }
+
+            if (accessoriesSet.Unit.Barcode != barcode.GetIntegerBarcode())
+                {
+                accessoriesSet.Unit.Barcode = barcode.GetIntegerBarcode();
+                if (!Configuration.Current.Repository.WriteUnit(accessoriesSet.Unit))
+                    {
+                    ShowMessage("Не удалось назначить штрих-код старому блоку");
+                    return false;
+                    }
+                }
+
+            accessoriesSet.Unit = null;
+            saveAccessoriesSet();
+            setNewCurrentAccessory(accessoriesSet.Case);
+            return true;
+            }
+
+        private void replaceLamp(Lamp lamp)
+            {
+            accessoriesSet.Lamp.Barcode = lamp.Barcode;
+
+            if (!Configuration.Current.Repository.WriteLamp(accessoriesSet.Lamp))
+                {
+                ShowMessage("Не удалось назначить штрих-код старой лампе");
+                return;
+                }
+
+            lamp.Barcode = 0;
+            accessoriesSet.Lamp = lamp;
+            saveAccessoriesSet();
+            setNewCurrentAccessory(accessoriesSet.Lamp);
+            }
+
+        private void replaceUnit(Unit unit)
+            {
+            accessoriesSet.Unit = unit;
+            saveAccessoriesSet();
+            setNewCurrentAccessory(accessoriesSet.Unit);
             }
 
         private void showData()
@@ -401,7 +528,7 @@ namespace WMS_client
                 }
 
             if (
-                !SaveAccessoriesSet(accessoriesSet.Case, accessoriesSet.Lamp, accessoriesSet.Unit))
+                !saveAccessoriesSet())
                 {
                 MessageBox.Show("Не вдалося зберегти світильник");
                 return;
@@ -410,8 +537,11 @@ namespace WMS_client
             exit();
             }
 
-        private bool SaveAccessoriesSet(Case _Case, Lamp lamp, Unit unit)
+        private bool saveAccessoriesSet()
             {
+            Case _Case = accessoriesSet.Case;
+            Lamp lamp = accessoriesSet.Lamp;
+            Unit unit = accessoriesSet.Unit;
             bool ok = true;
 
             var repository = Configuration.Current.Repository;

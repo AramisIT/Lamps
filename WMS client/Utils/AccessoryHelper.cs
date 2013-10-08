@@ -107,7 +107,11 @@ namespace WMS_client
 
         public static TypeOfAccessories GetAccessoryType(this IAccessory accessory)
             {
-            if (accessory is Case)
+            if (accessory == null)
+                {
+                return TypeOfAccessories.None;
+                }
+            else if (accessory is Case)
                 {
                 return TypeOfAccessories.Case;
                 }

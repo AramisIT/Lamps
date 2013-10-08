@@ -23,18 +23,25 @@ namespace WMS_client.Utils
 
         public bool CreateBackUp()
             {
-            if (!checkBackupDirectory())
+            try
                 {
+                if (!checkBackupDirectory())
+                    {
+                    return false;
+                    }
+
+                if (!copyFile())
+                    {
+                    return false;
+                    }
+
+                deleteOldFiles();
+                }
+            catch (Exception exp)
+                {
+                MessageBox.Show(string.Format("Ошибка создания бекапа: {0}", exp.Message));
                 return false;
                 }
-
-            if (!copyFile())
-                {
-                return false;
-                }
-
-            deleteOldFiles();
-
             return true;
             }
 

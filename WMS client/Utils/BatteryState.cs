@@ -13,6 +13,7 @@ namespace WMS_client.Utils
             {
             get
                 {
+                //return false;
                 if (!Configuration.Current.ReleaseMode)
                     {
                     return false;
@@ -25,7 +26,8 @@ namespace WMS_client.Utils
         public static bool Critical
             {
             get
-                {
+            {
+                //return false;
                 if (!Configuration.Current.ReleaseMode)
                     {
                     return false;
