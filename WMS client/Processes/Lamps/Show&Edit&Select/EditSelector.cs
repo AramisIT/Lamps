@@ -32,7 +32,7 @@ namespace WMS_client
                 {
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
-                    MainProcess.Process = new SelectingLampProcess(MainProcess);
+                    MainProcess.Process = new StartProcess(MainProcess);
                     break;
                 }
             }

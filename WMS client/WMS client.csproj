@@ -186,7 +186,7 @@
     <Compile Include="Processes\Lamps\Processes\InstallingNewLighter.cs" />
     <Compile Include="Processes\Lamps\Processes\ReplaceLights_SelectNew.cs" />
     <Compile Include="Processes\Lamps\Processes\ChooseLighterOnHectare.cs" />
-    <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\SelectingLampProcess.cs" />
+    <Compile Include="Processes\Lamps\StartProcess.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\SelectMap.cs" />
     <Compile Include="Base\Visual\MainForm.cs">
       <SubType>Form</SubType>
@@ -223,7 +223,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="Processes\Lamps\RegistrationProcess.cs" />
     <Compile Include="Base\ServerAgent.cs" />
     <Compile Include="Repositories\RepositoryHelper.cs" />
     <Compile Include="Repositories\Sql\TablesColumns\CasesTable.cs" />

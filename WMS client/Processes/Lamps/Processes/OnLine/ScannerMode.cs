@@ -16,15 +16,15 @@ namespace WMS_client.Processes.Lamps
         public ScannerMode(WMSClient wmsClient)
             : base(wmsClient, 1)
             {
-
+            StartNetworkConnection();
             }
 
         public override void DrawControls()
             {
-            MainProcess.ToDoCommand = "Режим сканеру";
+            MainProcess.ToDoCommand = "Режим сканера";
 
             barcodeDataLabel = MainProcess.CreateLabel("<нема штрих-коду>", 8, 70, 224, ControlsStyle.LabelLarge);
-            serverReplyLabel = MainProcess.CreateLabel("", 8, 120, 224, ControlsStyle.LabelMultiline);
+            serverReplyLabel = MainProcess.CreateLabel("", 8, 120, 224, 220, ControlsStyle.LabelMultiline);
             }
 
         public override void OnBarcode(string barcode)
@@ -37,7 +37,7 @@ namespace WMS_client.Processes.Lamps
         private void leaveProcess()
             {
             ClearControls();
-            MainProcess.Process = new SelectingLampProcess(MainProcess);
+            MainProcess.Process = new StartProcess(MainProcess);
             }
 
         public override void OnHotKey(KeyAction key)

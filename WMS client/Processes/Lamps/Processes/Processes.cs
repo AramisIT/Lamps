@@ -91,7 +91,7 @@ namespace WMS_client.Processes.Lamps
                     if (Stage == Stages.First)
                         {
                         MainProcess.ClearControls();
-                        MainProcess.Process = new SelectingLampProcess(MainProcess);
+                        MainProcess.Process = new StartProcess(MainProcess);
                         }
                     else
                         {

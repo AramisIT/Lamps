@@ -42,7 +42,7 @@ namespace WMS_client.Processes.Lamps
             mapDescription = (Configuration.Current.Repository.GetMap(map) ?? new Map()).Description;
             if (string.IsNullOrEmpty(mapDescription))
                 {
-                MainProcess.Process = new SelectingLampProcess(MainProcess);
+                MainProcess.Process = new StartProcess(MainProcess);
                 return;
                 }
 
@@ -104,7 +104,7 @@ namespace WMS_client.Processes.Lamps
         private void leaveProcess()
             {
             ClearControls();
-            MainProcess.Process = new SelectingLampProcess(MainProcess);
+            MainProcess.Process = new StartProcess(MainProcess);
             }
         }
     }

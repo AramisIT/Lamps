@@ -11,11 +11,14 @@ using WMS_client.db;
 namespace WMS_client
     {
     /// <summary>Выбор процесса (для светильников)</summary>
-    public class SelectingLampProcess : BusinessProcess
+    public class StartProcess : BusinessProcess
         {
+        private MobileButton wifiOffButton;
+        private MobileLabel connectionStatusLabel;
+
         /// <summary>Выбор процесса (для светильников)</summary>
         /// <param name="MainProcess">Основной процесс</param>
-        public SelectingLampProcess(WMSClient MainProcess)//, IServerIdProvider serverIdProvider)
+        public StartProcess(WMSClient MainProcess)//, IServerIdProvider serverIdProvider)
             : base(MainProcess, 1)
             {
             BusinessProcessType = ProcessType.Selecting;
@@ -26,10 +29,35 @@ namespace WMS_client
         public override void DrawControls()
             {
             MainProcess.ToDoCommand = "Оберіть процес";
-            MainProcess.CreateButton("Режим сканеру", 20, 75, 200, 45, string.Empty, scannerMode_Click);
-            MainProcess.CreateButton("Процеси", 20, 150, 200, 45, "process", process_Click);
-            MainProcess.CreateButton("Реєстрація", 20, 225, 200, 45, "registration", registration_Click);
+
+            MainProcess.CreateButton("Режим сканера", 10, 75, 220, 40, string.Empty, scannerMode_Click);
+            MainProcess.CreateButton("Реєстрація", 10, 125, 220, 40, "registration", registration_Click);
+
+            connectionStatusLabel = MainProcess.CreateLabel(string.Empty, 10, 195, 230, MobileFontSize.Normal);
+            wifiOffButton = MainProcess.CreateButton(string.Empty, 10, 220, 220, 40, "WifiOff", changeConnectionStatus);
+            updateWifiOnOffButtonState(MainProcess.ConnectionAgent.WifiEnabled);
+
             MainProcess.CreateLabel("Синхронізація - F5", 25, 280, 230, MobileFontSize.Large);
+            }
+
+        private void changeConnectionStatus()
+            {
+            bool startStatus = MainProcess.ConnectionAgent.WifiEnabled;
+            if (startStatus)
+                {
+                MainProcess.ConnectionAgent.StopConnection();
+                }
+            else
+                {
+                MainProcess.StartConnectionAgent();
+                }
+            updateWifiOnOffButtonState(!startStatus);
+            }
+
+        private void updateWifiOnOffButtonState(bool wifiEnabled)
+            {
+            wifiOffButton.Text = wifiEnabled ? "ВІД'ЄДНАТИ" : "ПІД'ЄДНАТИ";
+            connectionStatusLabel.Text = (wifiEnabled ? "" : "не ") + "під'єднан до мережі";
             }
 
         public override void OnBarcode(string barcode)
@@ -80,28 +108,11 @@ namespace WMS_client
             {
             switch (TypeOfAction)
                 {
-                //Назад
-                case KeyAction.Esc:
-                    MainProcess.ClearControls();
-                    MainProcess.Process = new RegistrationProcess(MainProcess);
-                    break;
-                //Очищення
-                case KeyAction.Complate:
-                    if (MessageBox.Show(
-                        "Очистить все данные на ТСД?",
-                        "Очистка",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question,
-                        MessageBoxDefaultButton.Button1) == DialogResult.Yes)
-                        {
-                        dbArchitector.ClearAll();
-                        }
-                    break;
                 //Синхронізація
                 case KeyAction.Proceed:
                     new SynchronizerWithGreenhouse(MainProcess);
                     MainProcess.ClearControls();
-                    MainProcess.Process = new SelectingLampProcess(MainProcess);
+                    MainProcess.Process = new StartProcess(MainProcess);
                     break;
                 }
             }

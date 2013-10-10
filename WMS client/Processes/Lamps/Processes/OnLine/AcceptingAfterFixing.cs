@@ -272,7 +272,7 @@ namespace WMS_client.Processes.Lamps
             if (complateProcess())
                 {
                 ClearControls();
-                MainProcess.Process = new SelectingLampProcess(MainProcess);
+                MainProcess.Process = new StartProcess(MainProcess);
                 }
             }
 

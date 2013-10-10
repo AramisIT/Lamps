@@ -117,7 +117,7 @@ WHERE c.TypeOfAccessory=@Type AND c.{1}=1", subTableName, dbObject.IS_SYNCED);
                 {
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
-                    MainProcess.Process = new SelectingLampProcess(MainProcess);
+                    MainProcess.Process = new StartProcess(MainProcess);
                     break;
                 }
             }
@@ -129,7 +129,7 @@ WHERE c.TypeOfAccessory=@Type AND c.{1}=1", subTableName, dbObject.IS_SYNCED);
             {
             Accept();
             MainProcess.ClearControls();
-            MainProcess.Process = new SelectingLampProcess(MainProcess);
+            MainProcess.Process = new StartProcess(MainProcess);
             }
         #endregion
 

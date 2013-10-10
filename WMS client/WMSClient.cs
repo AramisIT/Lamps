@@ -430,7 +430,7 @@ namespace WMS_client
             {
             NeedToUpdate = true;
 
-            if (Process.GetType() == typeof(RegistrationProcess))
+            if (Process.GetType() == typeof(StartProcess))
                 {
                 MainForm.PerformInMainThread = Updating;
                 MainForm.PerformMainThreadEvent();
@@ -512,11 +512,9 @@ namespace WMS_client
             //}
             //else
                 {
-                User = 12;
-                //Process = new SelectingProcess(this);
-                Process = new RegistrationProcess(this);
+                User = 1;
+                Process = new StartProcess(this);
                 }
-
             }
 
         public void Exit()

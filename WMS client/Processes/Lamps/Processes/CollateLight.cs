@@ -92,7 +92,7 @@ namespace WMS_client
                 {
                 case KeyAction.Esc:
                     MainProcess.ClearControls();
-                    MainProcess.Process = new SelectingLampProcess(MainProcess);
+                    MainProcess.Process = new StartProcess(MainProcess);
                     break;
                 }
             }
@@ -112,7 +112,7 @@ namespace WMS_client
         private void Cancel_click()
             {
             MainProcess.ClearControls();
-            MainProcess.Process = new SelectingLampProcess(MainProcess);
+            MainProcess.Process = new StartProcess(MainProcess);
             }
         #endregion
 
@@ -181,7 +181,7 @@ namespace WMS_client
                 }
 
             MainProcess.ClearControls();
-            MainProcess.Process = new SelectingLampProcess(MainProcess);
+            MainProcess.Process = new StartProcess(MainProcess);
             }
         #endregion
 
