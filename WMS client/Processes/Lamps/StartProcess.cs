@@ -62,12 +62,7 @@ namespace WMS_client
 
         public override void OnBarcode(string barcode)
             {
-            if (barcode.Equals(AcceptingAfterFixing.START_ACCEPTING_AFTER_FIXING_BARCODE))
-                {
-                MainProcess.ClearControls();
-                MainProcess.Process = new AcceptingAfterFixing(MainProcess);
-                }
-            else if (barcode.IsValidPositionBarcode())
+          if (barcode.IsValidPositionBarcode())
                 {
                 tryPlacingLight(barcode);
                 }
@@ -117,55 +112,7 @@ namespace WMS_client
                 }
             }
         #endregion
-
-        #region Processes
-        /// <summary>Перехід до процесу з лампою</summary>
-        /// <param name="barcode">Штрихкод комплектуючого</param>
-        private void lampProcess(string barcode)
-            {
-            MainProcess.ClearControls();
-            MainProcess.Process = new ChooseLamp(MainProcess, barcode);
-            }
-
-        /// <summary>Перехід до процесу з блоком</summary>
-        /// <param name="barcode">Штрихкод комплектуючого</param>
-        private void unitProcess(string barcode)
-            {
-            MainProcess.ClearControls();
-            MainProcess.Process = new ChooseUnit(MainProcess, barcode);
-            }
-
-        /// <summary>Перехід до процесу з корпусом</summary>
-        /// <param name="Barcode">Штрихкод комплектуючого</param>
-        private void caseProcess(string Barcode)
-            {
-            bool onHectar = isCasePerHectare(Barcode);
-            object[] array;
-
-            //работает ли лампа = на гектаре
-            if (onHectar)
-                {
-                array = LuminaireOnHectareInfo(Barcode);
-
-                if (array.Length != 0)
-                    {
-                    MainProcess.ClearControls();
-                    MainProcess.Process = new ChooseLighterOnHectare(MainProcess, array, Barcode);
-                    }
-                }
-            else
-                {
-                array = LuminairePerHectareInfo(Barcode);
-
-                if (array.Length != 0)
-                    {
-                    MainProcess.ClearControls();
-                    MainProcess.Process = new ChooseLighterPerHectare(MainProcess, array, Barcode);
-                    }
-                }
-            }
-        #endregion
-
+        
         #region ButtonClick
         /// <summary>Перехід до процессу "Інформація"</summary>
         private void scannerMode_Click()
@@ -305,12 +252,7 @@ where Cases.Id = @caseId";
 
             }
 
-        /// <summary>Перехід для вибору процесу</summary>
-        private void process_Click()
-            {
-            MainProcess.ClearControls();
-            MainProcess.Process = new Processes.Lamps.Processes(MainProcess);
-            }
+       
 
         /// <summary>Регістрація/редагування</summary>
         private void registration_Click()
