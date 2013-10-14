@@ -18,11 +18,11 @@ namespace WMS_client.Repositories.Sql.Updaters
             record.SetInt32(PartiesTable.Id, item.Id);
             record.SetString(PartiesTable.Description, item.Description);
             record.SetString(PartiesTable.ContractorDescription, item.ContractorDescription);
-            record.SetValue(PartiesTable.DateOfActSet, item.DateOfActSet);
+            record.SetValue(PartiesTable.DateOfActSet, getSqlDateTime(item.DateOfActSet));
             record.SetInt16(PartiesTable.WarrantyHours, item.WarrantyHours);
-            record.SetInt16(PartiesTable.WarrantyType, item.WarrantyType);
-            record.SetInt16(PartiesTable.WarrantyMonths, item.WarrantyMonths);
             record.SetDateTime(PartiesTable.Date, item.Date);
+            record.SetInt16(PartiesTable.WarrantyMonths, item.WarrantyMonths);
+            record.SetByte(PartiesTable.WarrantyType, item.WarrantyType);
             }
 
         protected override void fillValues(SqlCeUpdatableRecord record, PartyModel item)
@@ -32,7 +32,7 @@ namespace WMS_client.Repositories.Sql.Updaters
             record.SetString(PartiesTable.ContractorDescription, item.ContractorDescription);
             record.SetValue(PartiesTable.DateOfActSet, getSqlDateTime(item.DateOfActSet));
             record.SetInt16(PartiesTable.WarrantyHours, item.WarrantyHours);
-            record.SetInt16(PartiesTable.WarrantyType, item.WarrantyType);
+            record.SetByte(PartiesTable.WarrantyType, item.WarrantyType);
             record.SetInt16(PartiesTable.WarrantyMonths, item.WarrantyMonths);
             record.SetDateTime(PartiesTable.Date, item.Date);
             }
