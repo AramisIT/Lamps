@@ -29,7 +29,7 @@ namespace WMS_client.db
         public long UnitModel { get; set; }
         /// <summary>Тип приемки</summary>
         [dbFieldAtt(Description = "TypeOfAcceptance")]
-        public TypesOfLampsWarrantly TypesOfWarrantly { get; set; }
+        public WarrantyTypes TypesOfWarrantly { get; set; }
         /// <summary>Тип комплектующего</summary>
         [dbFieldAtt(Description = "TypeOfAccessories")]
         public TypeOfAccessories TypeOfAccessories { get; set; }

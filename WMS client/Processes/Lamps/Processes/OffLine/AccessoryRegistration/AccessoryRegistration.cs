@@ -405,7 +405,7 @@ namespace WMS_client
 
             top += delta;
             warrantyTypeButton = MainProcess.CreateButton(string.Empty, 5, top, 230, 20, string.Empty, propertyButton_Click,
-               new PropertyButtonInfo() { PropertyName = "RepairWarranty", PropertyDescription = "Тип гарантії", PropertyType = typeof(TypesOfLampsWarrantly) });
+               new PropertyButtonInfo() { PropertyName = "RepairWarranty", PropertyDescription = "Тип гарантії", PropertyType = typeof(WarrantyTypes) });
 
             top += delta;
             warrantyExpiryDateButton = MainProcess.CreateButton(string.Empty, 5, top, 230, 20, string.Empty, propertyButton_Click,

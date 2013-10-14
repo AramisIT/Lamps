@@ -35,7 +35,7 @@ namespace WMS_client.db
         public TypesOfLampsStatus Status { get; set; }
         /// <summary>Тип гарантії</summary>
         [dbFieldAtt(Description = "Тип гарантії", ShowInEditForm = true)]
-        public TypesOfLampsWarrantly TypeOfWarrantly { get; set; }
+        public WarrantyTypes TypeOfWarrantly { get; set; }
         /// <summary>Завершення гарантії</summary>
         [dbFieldAtt(Description = "Завершення гарантії", ShowInEditForm = true)]
         public DateTime DateOfWarrantyEnd { get; set; }

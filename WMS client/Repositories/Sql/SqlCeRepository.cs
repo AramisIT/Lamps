@@ -429,17 +429,17 @@ select Id from Cases where Id <= 0
             var result = new CatalogCache<int, PartyModel>();
 
             const string sql =
-                "select Id, Description, ContractorDescription, DateOfActSet, Date, WarrantyHours, WarrantyYears from Parties order by Date desc";
+                "select Id, Description, ContractorDescription, DateOfActSet, Date, WarrantyHours, WarrantyMonths, WarrantyType from Parties order by Date desc";
 
             result.Load(sql, getOpenedConnection, (reader, catalog) =>
             {
                 catalog.Id = Convert.ToInt32(reader["Id"]);
                 catalog.WarrantyHours = Convert.ToInt16(reader["WarrantyHours"]);
-                catalog.WarrantyYears = Convert.ToInt16(reader["WarrantyYears"]);
+                catalog.WarrantyMonths = Convert.ToInt16(reader["WarrantyMonths"]);
                 catalog.Description = (reader["Description"] as string).TrimEnd();
                 catalog.ContractorDescription = (reader["ContractorDescription"] as string).TrimEnd();
                 catalog.Date = (DateTime)(reader["Date"]);
-
+                catalog.WarrantyType = (byte)reader["WarrantyType"];
                 object dateTimeValue = reader["DateOfActSet"];
                 if (DBNull.Value.Equals(dateTimeValue))
                     {

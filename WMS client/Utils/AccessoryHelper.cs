@@ -82,11 +82,11 @@ namespace WMS_client
 
         public static string GetWarrantyType(this IAccessory accessory)
             {
-            TypesOfLampsWarrantly warrantyType;
+            WarrantyTypes warrantyType;
 
             if (accessory.HasNullWarrantyExpiryDate())
                 {
-                warrantyType = TypesOfLampsWarrantly.Without;
+                warrantyType = WarrantyTypes.Without;
                 }
             else
                 {
@@ -94,15 +94,15 @@ namespace WMS_client
 
                 if (fixableAccessory == null || !fixableAccessory.RepairWarranty)
                     {
-                    warrantyType = TypesOfLampsWarrantly.Factory;
+                    warrantyType = WarrantyTypes.Factory;
                     }
                 else
                     {
-                    warrantyType = TypesOfLampsWarrantly.Repair;
+                    warrantyType = WarrantyTypes.Repair;
                     }
                 }
 
-            return getEnumDescription<TypesOfLampsWarrantly>((byte)warrantyType);
+            return getEnumDescription<WarrantyTypes>((byte)warrantyType);
             }
 
         public static TypeOfAccessories GetAccessoryType(this IAccessory accessory)

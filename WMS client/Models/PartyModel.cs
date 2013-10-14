@@ -19,8 +19,19 @@ namespace WMS_client.Models
 
         public Int16 WarrantyHours { get; set; }
 
-        public Int16 WarrantyYears { get; set; }
+        public Int16 WarrantyMonths { get; set; }
 
         public bool Deleted { get; set; }
+
+        public byte WarrantyType { get; set; }
+        }
+
+    public static class PartyExtentions
+        {
+        public static DateTime GetExpiryDate(this PartyModel party)
+            {
+            var result = party.Date.AddMonths(party.WarrantyMonths);
+            return result;
+            }
         }
     }

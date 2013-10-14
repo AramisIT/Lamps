@@ -20,7 +20,8 @@ namespace WMS_client.Repositories.Sql.Updaters
             record.SetString(PartiesTable.ContractorDescription, item.ContractorDescription);
             record.SetValue(PartiesTable.DateOfActSet, item.DateOfActSet);
             record.SetInt16(PartiesTable.WarrantyHours, item.WarrantyHours);
-            record.SetInt16(PartiesTable.WarrantyYears, item.WarrantyYears);
+            record.SetInt16(PartiesTable.WarrantyType, item.WarrantyType);
+            record.SetInt16(PartiesTable.WarrantyMonths, item.WarrantyMonths);
             record.SetDateTime(PartiesTable.Date, item.Date);
             }
 
@@ -31,7 +32,8 @@ namespace WMS_client.Repositories.Sql.Updaters
             record.SetString(PartiesTable.ContractorDescription, item.ContractorDescription);
             record.SetValue(PartiesTable.DateOfActSet, getSqlDateTime(item.DateOfActSet));
             record.SetInt16(PartiesTable.WarrantyHours, item.WarrantyHours);
-            record.SetInt16(PartiesTable.WarrantyYears, item.WarrantyYears);
+            record.SetInt16(PartiesTable.WarrantyType, item.WarrantyType);
+            record.SetInt16(PartiesTable.WarrantyMonths, item.WarrantyMonths);
             record.SetDateTime(PartiesTable.Date, item.Date);
             }
         }

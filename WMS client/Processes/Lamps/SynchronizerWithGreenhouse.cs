@@ -177,9 +177,10 @@ namespace WMS_client
 
                         party.ContractorDescription = Convert.ToString(row["ContractorDescription"]);
                         party.WarrantyHours = Convert.ToInt16(row["WarrantyHours"]);
-                        party.WarrantyYears = Convert.ToInt16(row["WarrantyYears"]);
+                        party.WarrantyMonths = Convert.ToInt16(row["WarrantyMonths"]);
                         party.Date = DateTime.ParseExact(row["Date"] as string, DATE_TIME_FORMAT, null);
                         party.DateOfActSet = DateTime.ParseExact(row["DateOfActSet"] as string, DATE_TIME_FORMAT, null);
+                        party.WarrantyType = Convert.ToByte(row["WarrantyType"]);
                         }
 
                     list.Add(catalog);

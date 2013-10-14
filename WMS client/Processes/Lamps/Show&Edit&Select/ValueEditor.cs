@@ -305,16 +305,15 @@ namespace WMS_client
                         break;
 
                     case "RepairWarranty":
-                        var typeOfWarranty = (TypesOfLampsWarrantly)Convert.ToInt32(value);
+                        var typeOfWarranty = (WarrantyTypes)Convert.ToInt32(value);
 
                         var fixableAccessory = accessoriesSet.CurrentAccessory as IFixableAccessory;
                         if (fixableAccessory != null)
                             {
-                            fixableAccessory.RepairWarranty = typeOfWarranty == TypesOfLampsWarrantly.Repair;
+                            fixableAccessory.RepairWarranty = typeOfWarranty == WarrantyTypes.Repair;
                             }
 
-                        if (typeOfWarranty == TypesOfLampsWarrantly.None ||
-                        typeOfWarranty == TypesOfLampsWarrantly.Without)
+                        if (typeOfWarranty == WarrantyTypes.Without)
                             {
                             accessoriesSet.CurrentAccessory.WarrantyExpiryDate = DateTime.MinValue;
                             }
