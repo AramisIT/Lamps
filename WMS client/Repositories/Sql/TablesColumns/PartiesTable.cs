@@ -12,8 +12,7 @@ namespace WMS_client.Models
         public const int ContractorDescription = 2;
         public const int DateOfActSet = 3;
         public const int WarrantyHours = 4;
-        public const int WarrantyMonths = 5;
-        public const int Date = 6;
-        public const int WarrantyType = 7;
+        public const int Date = 5;
+        public const int WarrantyType = 6;
         }
     }
