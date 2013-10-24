@@ -25,13 +25,4 @@ namespace WMS_client.Models
 
         public byte WarrantyType { get; set; }
         }
-
-    public static class PartyExtentions
-        {
-        public static DateTime GetExpiryDate(this PartyModel party)
-            {
-            var result = party.Date.AddMonths(party.WarrantyMonths);
-            return result;
-            }
-        }
     }

@@ -30,14 +30,15 @@ namespace WMS_client
         private MobileButton modelButton;
         private MobileButton statusButton;
         private MobileButton partyButton;
-        private MobileButton contractorButton;
-        private MobileButton partyDateButton;
-        private MobileButton warrantyTypeButton;
-        private MobileButton warrantyExpiryDateButton;
+        private MobileLabel contractorLabel;
+        private MobileLabel partyDateLabel;
+        private MobileLabel warrantyTypeLabel;
+        private MobileLabel warrantyExpiryDateLabel;
         private bool newAccesory;
         private bool registrationAdditionalAccessory;
         private bool waitingForBarcode;
         private MobileLabel positionLabel;
+        private Unit newUnit;
 
         /// <summary>Напис кнопки для збереження данних (завершення гілки)</summary>
         private const string okBtnText = "Ок";
@@ -142,6 +143,19 @@ namespace WMS_client
         /// <param name="Barcode">ШтрихКод</param>
         public override sealed void OnBarcode(string barcode)
             {
+            if (newUnit != null)
+                {
+                var foundAccessory = Configuration.Current.Repository.FindAccessory(barcode.GetIntegerBarcode());
+                if (foundAccessory != null)
+                    {
+                    "Отсканированный штрих-код уже используется! Наклейте новый.".Warning();
+                    return;
+                    }
+                replaceUnit(newUnit, barcode.GetIntegerBarcode());
+                newUnit = null;
+                return;
+                }
+
             if (!waitingForBarcode)
                 {
                 tryReplaceOrRemoveAccessory(barcode);
@@ -207,7 +221,15 @@ namespace WMS_client
                             {
                             if (ShowQuery("Заменить блок?"))
                                 {
-                                replaceUnit(foundAccessory as Unit);
+                                if (accessoriesSet.Unit.Barcode > 0)
+                                    {
+                                    replaceUnit(foundAccessory as Unit, accessoriesSet.Unit.Barcode);
+                                    }
+                                else
+                                    {
+                                    newUnit = foundAccessory as Unit;
+                                    "Наклейте штрих-код на старый блок. Отсканируйте его".ShowMessage();
+                                    }
                                 }
                             }
                         else
@@ -297,9 +319,21 @@ namespace WMS_client
             setNewCurrentAccessory(accessoriesSet.Lamp);
             }
 
-        private void replaceUnit(Unit unit)
+        private void replaceUnit(Unit newUnit, int barcodeOfOldUnit)
             {
-            accessoriesSet.Unit = unit;
+            var newBarcodeGlued = accessoriesSet.Unit.Barcode != barcodeOfOldUnit;
+            if (newBarcodeGlued)
+                {
+                accessoriesSet.Unit.Barcode = barcodeOfOldUnit;
+
+                if (!Configuration.Current.Repository.WriteUnit(accessoriesSet.Unit))
+                    {
+                    ShowMessage("Не удалось назначить штрих-код старому блоку");
+                    return;
+                    }
+                }
+
+            accessoriesSet.Unit = newUnit;
             saveAccessoriesSet();
             setNewCurrentAccessory(accessoriesSet.Unit);
             }
@@ -396,20 +430,20 @@ namespace WMS_client
                 new PropertyButtonInfo() { PropertyName = "Party", PropertyDescription = "Партія", PropertyType = typeof(PartyModel) });
 
             top += delta;
-            contractorButton = MainProcess.CreateButton(string.Empty, 5, top, 230,
-                20, string.Empty, null, null, false);
+            contractorLabel = MainProcess.CreateLabel(string.Empty, 5, top, 230,
+               MobileFontSize.Normal, MobileFontPosition.Left, MobileFontColors.Info, FontStyle.Bold);
 
             top += delta;
-            partyDateButton = MainProcess.CreateButton(string.Empty, 5, top, 230,
-                20, string.Empty, null, null, false);
+            partyDateLabel = MainProcess.CreateLabel(string.Empty, 5, top, 230,
+                MobileFontSize.Normal, MobileFontPosition.Left, MobileFontColors.Info, FontStyle.Bold);
 
             top += delta;
-            warrantyTypeButton = MainProcess.CreateButton(string.Empty, 5, top, 230, 20, string.Empty, propertyButton_Click,
-               new PropertyButtonInfo() { PropertyName = "RepairWarranty", PropertyDescription = "Тип гарантії", PropertyType = typeof(WarrantyTypes) });
+            warrantyTypeLabel = MainProcess.CreateLabel(string.Empty, 5, top, 230,
+                MobileFontSize.Normal, MobileFontPosition.Left, MobileFontColors.Info, FontStyle.Bold);
 
             top += delta;
-            warrantyExpiryDateButton = MainProcess.CreateButton(string.Empty, 5, top, 230, 20, string.Empty, propertyButton_Click,
-                new PropertyButtonInfo() { PropertyName = "WarrantyExpiryDate", PropertyDescription = "Завершення гарантії", PropertyType = typeof(DateTime) });
+            warrantyExpiryDateLabel = MainProcess.CreateLabel(string.Empty, 5, top, 230,
+                MobileFontSize.Normal, MobileFontPosition.Left, MobileFontColors.Info, FontStyle.Bold);
 
             top += delta;
 
@@ -422,10 +456,10 @@ namespace WMS_client
             modelButton.Text = string.Format("Модель: {0}", accessoriesSet.CurrentAccessory.GetModelDescription());
             statusButton.Text = string.Format("Статус: {0}", accessoriesSet.CurrentAccessory.GetStatusDescription());
             partyButton.Text = string.Format("Партія: {0}", accessoriesSet.CurrentAccessory.GetPartyDescription());
-            contractorButton.Text = string.Format("Контрагент: {0}", accessoriesSet.CurrentAccessory.GetPartyContractor());
-            partyDateButton.Text = string.Format("Дата партії: {0}", accessoriesSet.CurrentAccessory.GetPartyDate());
-            warrantyTypeButton.Text = string.Format("Тип гарантії: {0}", accessoriesSet.CurrentAccessory.GetWarrantyType());
-            warrantyExpiryDateButton.Text = string.Format("Завершення гарантії: {0}", accessoriesSet.CurrentAccessory.GetWarrantyExpiryDate());
+            contractorLabel.Text = string.Format("Контрагент: {0}", accessoriesSet.CurrentAccessory.GetPartyContractor());
+            partyDateLabel.Text = string.Format("Дата партії: {0}", accessoriesSet.CurrentAccessory.GetPartyDate());
+            warrantyTypeLabel.Text = string.Format("Тип гарантії: {0}", accessoriesSet.CurrentAccessory.GetWarrantyType());
+            warrantyExpiryDateLabel.Text = string.Format("Зав. гар-ї: {0}", accessoriesSet.CurrentAccessory.GetWarrantyExpiryDate());
 
             if (accessoriesSet.Case != null)
                 {

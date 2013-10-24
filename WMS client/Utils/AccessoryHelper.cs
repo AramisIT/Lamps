@@ -54,7 +54,10 @@ namespace WMS_client
 
         public static string GetWarrantyExpiryDate(this IAccessory accessory)
             {
-            return accessory.WarrantyExpiryDate.ToString("dd.MM.yyyy");
+            var party = Configuration.Current.Repository.GetParty(accessory.Party);
+            var expiryDate = party.GetExpiryDate();
+            var result = (expiryDate.Date.Equals(party.Date.Date)) ? "   -   " : expiryDate.ToString("dd.MM.yyyy");
+            return result;
             }
 
         public static string GetStatusDescription(this IAccessory accessory)
@@ -82,27 +85,15 @@ namespace WMS_client
 
         public static string GetWarrantyType(this IAccessory accessory)
             {
-            WarrantyTypes warrantyType;
+            var party = Configuration.Current.Repository.GetParty(accessory.Party);
+            var warrantyDescription = getEnumDescription<WarrantyTypes>(party.WarrantyType);
+            return warrantyDescription;
+            }
 
-            if (accessory.HasNullWarrantyExpiryDate())
-                {
-                warrantyType = WarrantyTypes.Without;
-                }
-            else
-                {
-                var fixableAccessory = accessory as IFixableAccessory;
-
-                if (fixableAccessory == null || !fixableAccessory.RepairWarranty)
-                    {
-                    warrantyType = WarrantyTypes.Factory;
-                    }
-                else
-                    {
-                    warrantyType = WarrantyTypes.Repair;
-                    }
-                }
-
-            return getEnumDescription<WarrantyTypes>((byte)warrantyType);
+        public static DateTime GetExpiryDate(this PartyModel party)
+            {
+            var result = party.Date.AddMonths(party.WarrantyMonths);
+            return result;
             }
 
         public static TypeOfAccessories GetAccessoryType(this IAccessory accessory)
