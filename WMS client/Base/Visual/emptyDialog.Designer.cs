@@ -1,6 +1,6 @@
 ﻿namespace WMS_client.Base.Visual
 {
-    partial class emptyDialog
+    partial class EmptyDialog
     {
         /// <summary>
         /// Required designer variable.

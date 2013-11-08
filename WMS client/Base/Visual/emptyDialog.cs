@@ -9,9 +9,9 @@ using System.Windows.Forms;
 
 namespace WMS_client.Base.Visual
 {
-    public partial class emptyDialog : Form
+    public partial class EmptyDialog : Form
     {
-        public emptyDialog()
+        public EmptyDialog()
         {
             InitializeComponent();
         }

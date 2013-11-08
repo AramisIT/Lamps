@@ -96,11 +96,11 @@
     <Compile Include="Base\Visual\Constructor\LabelForConstructor.cs" />
     <Compile Include="Base\Visual\Constructor\ListOfLableConstructor.cs" />
     <Compile Include="Base\Visual\Controls\MobileButton.cs" />
-    <Compile Include="Base\Visual\emptyDialog.cs">
+    <Compile Include="Base\Visual\EmptyDialog.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Base\Visual\emptyDialog.Designer.cs">
-      <DependentUpon>emptyDialog.cs</DependentUpon>
+    <Compile Include="Base\Visual\EmptyDialog.Designer.cs">
+      <DependentUpon>EmptyDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Configuration.cs" />
     <Compile Include="db\Attributes\dbElementAtt.cs" />
@@ -181,8 +181,8 @@
     <Compile Include="Base\PackageConvertation.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Base\Visual\emptyDialog.resx">
-      <DependentUpon>emptyDialog.cs</DependentUpon>
+    <EmbeddedResource Include="Base\Visual\EmptyDialog.resx">
+      <DependentUpon>EmptyDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Base\Visual\MainForm.resx">
       <SubType>Designer</SubType>
