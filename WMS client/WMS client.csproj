@@ -160,10 +160,10 @@
     <Compile Include="Processes\Lamps\Processes\OffLine\AccessoryRegistration\PropertyButtonInfo.cs" />
     <Compile Include="Processes\Lamps\Processes\OffLine\PlacingOnMap.cs" />
     <Compile Include="Processes\Lamps\Processes\OnLine\ScannerMode.cs" />
+    <Compile Include="Processes\Lamps\Processes\OnLine\SynchronizerWithGreenhouse.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\ValueEditor.cs" />
     <Compile Include="Processes\Lamps\Processes\OffLine\AccessoryRegistration\AccessoryRegistration.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\EditSelector.cs" />
-    <Compile Include="Processes\Lamps\SynchronizerWithGreenhouse.cs" />
     <Compile Include="Processes\Lamps\Show&amp;Edit&amp;Select\Info.cs" />
     <Compile Include="InfoObjects\MapInfo.cs" />
     <Compile Include="Processes\Lamps\StartProcess.cs" />
