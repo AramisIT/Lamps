@@ -11,7 +11,8 @@ namespace WMS_client
     {
     static class Program
         {
-        private const string STARTUP_PATH = @"\Program files\WMS_client\WMS client.exe";
+        private static readonly string STARTUP_PATH = System.IO.Path.GetFullPath(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase);
+        
         [MTAThread]
         static void Main()
             {
