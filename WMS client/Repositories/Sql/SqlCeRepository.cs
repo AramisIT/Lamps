@@ -891,6 +891,67 @@ select Id from Units where Id between @minId and @maxId";
             var result = updater.Update();
             return result;
             }
+
+        public List<List<BrokenLightsRecord>> GetBrokenLightsData()
+            {
+            var result = new List<List<BrokenLightsRecord>>();
+
+            using (var conn = getOpenedConnection())
+                {
+                using (var cmd = conn.CreateCommand())
+                    {
+                    cmd.CommandText = @"select Register, Amount, Map from BrokenLights order by Map, Register";
+                    using (var reader = cmd.ExecuteReader())
+                        {
+                        var currentMap = 0;
+                        List<BrokenLightsRecord> currentList = null;
+
+                        while (reader.Read())
+                            {
+                            var brokenLightData = new BrokenLightsRecord();
+                            brokenLightData.Map = Convert.ToInt32(reader[2]);
+                            brokenLightData.RegisterNumber = Convert.ToInt16(reader[0]);
+                            brokenLightData.Amount = Convert.ToByte(reader[1]);
+
+                            if (currentMap != brokenLightData.Map)
+                                {
+                                currentList = new List<BrokenLightsRecord>();
+                                result.Add(currentList);
+                                currentMap = brokenLightData.Map;
+                                }
+
+                            currentList.Add(brokenLightData);
+                            }
+                        }
+                    }
+                }
+
+            return result;
+            }
+
+        public int DeleteBrokenLightsForMap(int mapId)
+            {
+            using (var conn = getOpenedConnection())
+                {
+                using (var cmd = conn.CreateCommand())
+                    {
+                    const string sql = @"delete from BrokenLights where Map = @Map";
+                    cmd.CommandText = sql;
+                    cmd.AddParameter("Map", mapId);
+                    try
+                        {
+                        return cmd.ExecuteNonQuery();
+                        }
+                    catch (Exception exp)
+                        {
+                        Trace.WriteLine(string.Format(
+                            "Ошибка выполнения тестового запроса к основным таблицам: {0}",
+                            exp.Message));
+                        return -1;
+                        }
+                    }
+                }
+            }
         }
 
     enum DatabaseParametersConsts

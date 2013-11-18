@@ -51,6 +51,12 @@ namespace WMS_client
 
         private void SynchronizeWithGreenhouse()
             {
+            if (!uploadBrokenLights())
+                {
+                "Не вдалося відправити дані про непрацюючі світильники".Warning();
+                return;
+                }
+
             lastTSDSyncronizationRowId = getLastTSDSyncronizationRowId();
 
             if (!uploadAccessories("Експорт ламп", TypeOfAccessories.Lamp, "UpdateLamps"))
@@ -115,6 +121,39 @@ namespace WMS_client
                 {
                 repository.ResetParties();
                 }
+            }
+
+        private bool uploadBrokenLights()
+            {
+            var tasks = Configuration.Current.Repository.GetBrokenLightsData();
+
+            var table = new DataTable();
+            table.Columns.AddRange(new DataColumn[] { new DataColumn("Register", typeof(int)), new DataColumn("Amount", typeof(int)) });
+
+            foreach (var task in tasks)
+                {
+                table.Rows.Clear();
+                int mapId = task[0].Map;
+                foreach (var brokenLightsRecord in task)
+                    {
+                    var newRow = table.NewRow();
+                    newRow[0] = brokenLightsRecord.RegisterNumber;
+                    newRow[1] = brokenLightsRecord.Amount;
+                    table.Rows.Add(newRow);
+                    }
+                if (!uploadBrokenLightForMap(mapId, table)) return false;
+
+                var deletedRowsCount = Configuration.Current.Repository.DeleteBrokenLightsForMap(mapId);
+                if (deletedRowsCount != task.Count) return false;
+                }
+
+            return true;
+            }
+
+        private bool uploadBrokenLightForMap(int mapId, DataTable table)
+            {
+            PerformQuery("UploadBrokenLights", mapId, table);
+            return SuccessQueryResult;
             }
 
         private long getLastTSDSyncronizationRowId()

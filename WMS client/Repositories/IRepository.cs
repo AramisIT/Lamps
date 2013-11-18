@@ -79,5 +79,9 @@ namespace WMS_client.Repositories
         void ResetParties();
 
         bool UpdateBrokenLightsRecord(BrokenLightsRecord brokenLightsRecord);
+
+        List<List<BrokenLightsRecord>> GetBrokenLightsData();
+
+        int DeleteBrokenLightsForMap(int mapId);
         }
     }
