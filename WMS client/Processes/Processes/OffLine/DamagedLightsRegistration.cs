@@ -12,13 +12,56 @@ namespace WMS_client.Processes.Lamps
     public class DamagedLightsRegistration : BusinessProcess
         {
         private int mapId;
-        private Int16 register;
-        private byte amount;
+
+        private Int16 registerNumber
+            {
+            get
+                {
+                if (string.IsNullOrEmpty(registerTextBox.Text))
+                    {
+                    return 0;
+                    }
+                try
+                    {
+                    return Convert.ToInt16(registerTextBox.Text);
+                    }
+                catch
+                    {
+                    return 0;
+                    }
+                }
+            set
+                {
+                registerTextBox.Text = (value == 0) ? string.Empty : value.ToString();
+                }
+            }
+        private byte amount
+            {
+            get
+                {
+                if (string.IsNullOrEmpty(amountTextBox.Text))
+                    {
+                    return 0;
+                    }
+                try
+                    {
+                    return Convert.ToByte(amountTextBox.Text);
+                    }
+                catch
+                    {
+                    return 0;
+                    }
+                }
+            set
+                {
+                amountTextBox.Text = (value == 0) ? string.Empty : value.ToString();
+                }
+            }
 
         private MobileButton mapButton;
         private MobileButton proceedButton;
-        private MobileControl registerTextBox;
-        private MobileControl amountTextBox;
+        private MobileTextBox registerTextBox;
+        private MobileTextBox amountTextBox;
 
         public DamagedLightsRegistration()
             : base(1)
@@ -42,11 +85,11 @@ namespace WMS_client.Processes.Lamps
 
             top += delta;
             MainProcess.CreateLabel("Регістр", 5, top, 160, ControlsStyle.LabelNormal);
-            registerTextBox = MainProcess.CreateTextBox(190, top, 40, string.Empty, ControlsStyle.LabelLarge, false);
+            registerTextBox = MainProcess.CreateTextBox(190, top, 40, string.Empty, ControlsStyle.LabelLarge, null, false);
 
             top += delta;
             MainProcess.CreateLabel("Кількість непраціючих", 5, top, 180, ControlsStyle.LabelNormal);
-            amountTextBox = MainProcess.CreateTextBox(190, top, 40, string.Empty, ControlsStyle.LabelLarge, false);
+            amountTextBox = MainProcess.CreateTextBox(190, top, 40, string.Empty, ControlsStyle.LabelLarge, null, false);
 
             top += delta;
             top += delta;
@@ -74,7 +117,34 @@ namespace WMS_client.Processes.Lamps
 
         private void proceedClick()
             {
+            if (!writeData()) return;
 
+            registerNumber = 0;
+            amount = 0;
+            }
+
+        private bool writeData()
+            {
+            if (mapId == 0)
+                {
+                "Виберіть мапу!".Warning();
+                return false;
+                }
+
+            if (registerNumber == 0)
+                {
+                "Вкажіть регістр!".Warning();
+                return false;
+                }
+
+            var brokenLightsRecord = new BrokenLightsRecord() { Map = mapId, RegisterNumber = registerNumber, Amount = amount };
+            if (!Configuration.Current.Repository.UpdateBrokenLightsRecord(brokenLightsRecord))
+                {
+                "Помилка при збереженні даних".Warning();
+                return false;
+                }
+
+            return true;
             }
 
         public override void OnBarcode(string barcode)
@@ -87,7 +157,17 @@ namespace WMS_client.Processes.Lamps
             switch (key)
                 {
                 case KeyAction.Esc:
-                    leaveProcess();
+                    if ("Вийти?".Ask())
+                        {
+                        leaveProcess();
+                        }
+                    break;
+
+                case KeyAction.Complate:
+                    if (writeData())
+                        {
+                        leaveProcess();
+                        }
                     break;
                 }
             }

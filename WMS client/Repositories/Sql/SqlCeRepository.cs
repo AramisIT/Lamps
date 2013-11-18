@@ -881,9 +881,16 @@ select Id from Units where Id between @minId and @maxId";
         #region IRepository Members
 
 
-        
+
 
         #endregion
+
+        public bool UpdateBrokenLightsRecord(BrokenLightsRecord brokenLightsRecord)
+            {
+            var updater = new BrokenLightsUpdater(brokenLightsRecord, getOpenedConnection);
+            var result = updater.Update();
+            return result;
+            }
         }
 
     enum DatabaseParametersConsts

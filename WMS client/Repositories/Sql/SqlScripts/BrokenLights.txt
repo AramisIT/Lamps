@@ -1,0 +1,8 @@
+﻿Create table BrokenLights 
+(
+Map int not null,
+Register smallInt not null,
+Amount tinyint not null
+);
+
+create unique nonclustered index BrokenLights_Register on BrokenLights (Register, Map);

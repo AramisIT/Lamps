@@ -90,6 +90,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration.cs" />
+    <Compile Include="Models\BrokenLightsRecord.cs" />
+    <Compile Include="Repositories\Sql\TablesColumns\BrokenLightsTable.cs" />
+    <Compile Include="Repositories\Sql\Updaters\BrokenLightsUpdater.cs" />
     <Compile Include="Workers\BarcodeWorker.cs" />
     <Compile Include="Workers\EnumWorker.cs" />
     <Compile Include="Enums\TypesOfLampsStatus.cs">
@@ -159,11 +162,13 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="LampsBase.sdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="media_player.ico" />
     <Content Include="PDT_ID.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Repositories\Sql\SqlScripts\BrokenLights.txt" />
     <Content Include="ServerIP.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
