@@ -44,6 +44,11 @@ namespace WMS_client
             {
             string settingsFileName = PathToApplication + @"\pdt_id.txt";
 
+            if (!File.Exists(settingsFileName))
+                {
+                return;
+                }
+
             string serverIdTxt = null;
             using (StreamReader idFile = File.OpenText(settingsFileName))
                 {

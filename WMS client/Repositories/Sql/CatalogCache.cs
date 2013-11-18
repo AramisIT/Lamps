@@ -17,6 +17,23 @@ namespace WMS_client.Repositories
                 }
             }
 
+        public List<CatalogItem> ItemsList
+            {
+            get
+                {
+                var result = new List<CatalogItem>();
+
+                foreach (var item in catalogList)
+                    {
+                    var catalogItem = new CatalogItem() { Description = item.Description };
+                    catalogItem.Id = Convert.ToInt64(item.Id);
+                    result.Add(catalogItem);
+                    }
+
+                return result;
+                }
+            }
+
         public C GetCatalogItem(ID id)
             {
             C foundedCatalogItem;

@@ -30,9 +30,11 @@ namespace WMS_client.Repositories
 
         bool UpdateCases(List<Case> cases, bool justInsert);
 
-        List<Model> ModelsList { get; }
+        List<CatalogItem> ModelsList { get; }
 
-        List<PartyModel> PartiesList { get; }
+        List<CatalogItem> PartiesList { get; }
+
+        List<CatalogItem> MapsList { get; }
 
         Model GetModel(short modelId);
 

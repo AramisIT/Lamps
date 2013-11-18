@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Windows.Forms;
 using System.Diagnostics;
+using AramisPDTClient;
 using WMS_client.Repositories;
 using WMS_client.Utils;
 using WMS_client.WinProcessesManagement;
@@ -11,48 +12,62 @@ namespace WMS_client
     {
     static class Program
         {
-        private static readonly string STARTUP_PATH = System.IO.Path.GetFullPath(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase);
         
+
         [MTAThread]
         static void Main()
             {
+            if (new SystemInfo().IsExistedSameProcess()) return;
+
+            var releaseMode = false;
+#if !DEBUG
+            releaseMode = true;
+#endif
+            new SystemInfo().SetReleaseMode(releaseMode);
+
             if (BatteryChargeStatus.Low)
                 {
                 MessageBox.Show("Акумулятор розряджений. Необхідно зарядити термінал!");
                 return;
                 }
 
-            if (isExistedSameProcess())
-                {
-                return;
-                }
-
             Configuration.Current.Repository = new SqlCeRepository();
             Configuration.Current.InitLastBackUpTime();
 
-            MainForm mform = new MainForm();
+            BusinessProcess.OnProcessCreated += new Action<BusinessProcess>(BusinessProcess_OnProcessCreated);
+
+            MainForm mform = new MainForm(typeof(StartProcess));
             //   mform.MinimizeBox = true;
             //   mform.WindowState = FormWindowState.Normal;
             Application.Run(mform);
             }
 
-        private static bool isExistedSameProcess()
+        static void BusinessProcess_OnProcessCreated(BusinessProcess process)
             {
-            int currentPId = Process.GetCurrentProcess().Id;
-            ProcessInfo[] processes = ProcessCE.GetProcesses();
-            foreach (ProcessInfo pInfo in processes)
+            if (Configuration.Current.TimeToBackUp)
                 {
-                if (pInfo.Pid.ToInt32() == currentPId)
+                bool lowPower;
+                if (Configuration.Current.Repository.IsIntactDatabase(out lowPower))
                     {
-                    continue;
+                    if (!lowPower)
+                        {
+                        var backUpCreator = new BackUpCreator();
+                        if (backUpCreator.CreateBackUp())
+                            {
+                            "Создана копия базы!".ShowMessage();
+                            Configuration.Current.FixBackUpTime();
+                            }
+                        }
                     }
-                if (pInfo.FullPath.Equals(STARTUP_PATH))
+                else
                     {
-                    return true;
+                    "База даних пошкоджена. Необхідно звернутись до адміністратора.".ShowMessage();
+                    process.TerminateApplication();
                     }
                 }
-            return false;
             }
+
+        
 
 
         }

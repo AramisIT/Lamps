@@ -217,30 +217,30 @@ select Id from Cases where Id <= 0
             return nextId;
             }
 
-        public List<Model> ModelsList
+        public List<CatalogItem> ModelsList
             {
             get
                 {
                 var cache = modelsCache ?? (modelsCache = buildModelsCache());
-                return cache.CatalogList;
+                return cache.ItemsList;
                 }
             }
 
-        public List<Map> MapsList
+        public List<CatalogItem> MapsList
             {
             get
                 {
                 var cache = mapsCache ?? (mapsCache = buildMapsCache());
-                return cache.CatalogList;
+                return cache.ItemsList;
                 }
             }
 
-        public List<PartyModel> PartiesList
+        public List<CatalogItem> PartiesList
             {
             get
                 {
                 var cache = partiesCache ?? (partiesCache = buildPartiesCache());
-                return cache.CatalogList;
+                return cache.ItemsList;
                 }
             }
 
@@ -877,6 +877,13 @@ select Id from Units where Id between @minId and @maxId";
             {
             partiesCache = null;
             }
+
+        #region IRepository Members
+
+
+        
+
+        #endregion
         }
 
     enum DatabaseParametersConsts
