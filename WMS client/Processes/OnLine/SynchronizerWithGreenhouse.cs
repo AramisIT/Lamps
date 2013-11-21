@@ -24,8 +24,6 @@ namespace WMS_client
         private long lastTSDSyncronizationRowId;
         private long lastTSDSyncronizationRowIdAfterExport;
 
-        private const string DATE_TIME_FORMAT = "dd.MM.yyyy";
-
         /// <summary>Константная часть имени параметра</summary>
         public const string PARAMETER = "Parameter";
 
@@ -217,8 +215,8 @@ namespace WMS_client
                         party.ContractorDescription = Convert.ToString(row["ContractorDescription"]);
                         party.WarrantyHours = Convert.ToInt16(row["WarrantyHours"]);
                         party.WarrantyMonths = Convert.ToInt16(row["WarrantyMonths"]);
-                        party.Date = DateTime.ParseExact(row["Date"] as string, DATE_TIME_FORMAT, null);
-                        party.DateOfActSet = DateTime.ParseExact(row["DateOfActSet"] as string, DATE_TIME_FORMAT, null);
+                        party.Date = (row["Date"] as string).ToDateTime();
+                        party.DateOfActSet = (row["DateOfActSet"] as string).ToDateTime();
                         party.WarrantyType = Convert.ToByte(row["WarrantyType"]);
                         }
 
@@ -315,8 +313,7 @@ namespace WMS_client
                         accessory.Model = Convert.ToInt16(row["Model"]);
                         accessory.Party = Convert.ToInt32(row["Party"]);
                         accessory.Status = Convert.ToByte(row["Status"]);
-                        accessory.WarrantyExpiryDate = DateTime.ParseExact(row["WarrantyExpiryDate"] as string,
-                            DATE_TIME_FORMAT, null);
+                        accessory.WarrantyExpiryDate = (row["WarrantyExpiryDate"] as string).ToDateTime();
 
                         if (barcodeAccessory)
                             {
@@ -469,7 +466,7 @@ namespace WMS_client
                 newRow["Model"] = Convert.ToInt32(accessory.Model);
                 newRow["Party"] = Convert.ToInt32(accessory.Party);
                 newRow["Status"] = Convert.ToInt32(accessory.Status);
-                newRow["WarrantyExpiryDate"] = accessory.WarrantyExpiryDate.ToString(DATE_TIME_FORMAT);
+                newRow["WarrantyExpiryDate"] = accessory.WarrantyExpiryDate.ToStandartString();
 
                 if (barcodeAccessory)
                     {
