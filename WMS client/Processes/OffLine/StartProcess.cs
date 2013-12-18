@@ -36,7 +36,7 @@ namespace WMS_client
             wifiOffButton = MainProcess.CreateButton(string.Empty, 10, 220, 220, 40, "WifiOff", changeConnectionStatus);
             updateWifiOnOffButtonState(MainProcess.ConnectionAgent.WifiEnabled);
 
-            MainProcess.CreateLabel("Синхронізація - F5", 25, 280, 230, MobileFontSize.Large);
+            wifiOffButton = MainProcess.CreateButton("Синхронізація - F5", 10, 280, 220, 30, "Sync", synchronaize);
             }
 
         private void changeConnectionStatus()
@@ -104,12 +104,18 @@ namespace WMS_client
                 {
                 //Синхронізація
                 case KeyAction.Proceed:
-                    new SynchronizerWithGreenhouse();
-                    MainProcess.ClearControls();
-                    MainProcess.Process = new StartProcess();
-                    break;
+                    synchronaize();
+                        break;
                 }
             }
+
+        private void synchronaize()
+            {
+            new SynchronizerWithGreenhouse();
+            MainProcess.ClearControls();
+            MainProcess.Process = new StartProcess();
+            }
+
         #endregion
         
         #region ButtonClick

@@ -40,17 +40,20 @@ namespace WMS_client
 #endif
             }
 
+        private string getPdtIdPath()
+            {
+            return PathToApplication + @"\pdt_id.txt";
+            }
+
         private void readPDTid()
             {
-            string settingsFileName = PathToApplication + @"\pdt_id.txt";
-
-            if (!File.Exists(settingsFileName))
+            if (!File.Exists(getPdtIdPath()))
                 {
                 return;
                 }
 
             string serverIdTxt = null;
-            using (StreamReader idFile = File.OpenText(settingsFileName))
+            using (StreamReader idFile = File.OpenText(getPdtIdPath()))
                 {
                 serverIdTxt = idFile.ReadLine();
                 }
@@ -108,5 +111,14 @@ namespace WMS_client
             }
 
         public bool ReleaseMode { get; private set; }
+
+        internal void SetTerminalId(int pdtId)
+            {
+            using (StreamWriter idFile = File.AppendText(getPdtIdPath()))
+                {
+                idFile.WriteLine(pdtId.ToString());
+                }
+            TerminalId = pdtId;
+            }
         }
     }

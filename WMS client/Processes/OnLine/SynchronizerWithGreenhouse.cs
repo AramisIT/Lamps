@@ -45,6 +45,8 @@ namespace WMS_client
             Configuration.Current.Repository.LoadingDataFromGreenhouse = false;
 
             ShowProgress(1, 1);
+
+            new SoftUpdater();
             }
 
         private void SynchronizeWithGreenhouse()
@@ -55,6 +57,7 @@ namespace WMS_client
                 return;
                 }
 
+            updateIDOfPDT();
             lastTSDSyncronizationRowId = getLastTSDSyncronizationRowId();
 
             if (!uploadAccessories("Експорт ламп", TypeOfAccessories.Lamp, "UpdateLamps"))
@@ -119,6 +122,22 @@ namespace WMS_client
                 {
                 repository.ResetParties();
                 }
+            }
+
+        private void updateIDOfPDT()
+            {
+            PerformQuery("GetIDOfPDT");
+            if (!SuccessQueryResult)
+                {
+                return;
+                }
+
+            int pdtId = Convert.ToInt32(ResultParameters[1]);
+            if (pdtId == 0) return;
+
+            if (pdtId == Configuration.Current.TerminalId) return;
+
+            Configuration.Current.SetTerminalId(pdtId);
             }
 
         private bool uploadBrokenLights()
