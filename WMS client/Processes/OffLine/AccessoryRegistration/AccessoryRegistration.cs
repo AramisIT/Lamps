@@ -141,7 +141,7 @@ namespace WMS_client
 
         /// <summary>Комплектующее отсканировано, нужно начать редактирование</summary>
         /// <param name="Barcode">ШтрихКод</param>
-        public override sealed void OnBarcode(string barcode)
+        protected override sealed void OnBarcode(string barcode)
             {
             if (newUnit != null)
                 {
@@ -392,7 +392,7 @@ namespace WMS_client
                 }
             }
 
-        public override void OnHotKey(KeyAction TypeOfAction)
+        protected override void OnHotKey(KeyAction TypeOfAction)
             {
             switch (TypeOfAction)
                 {

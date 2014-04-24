@@ -524,11 +524,11 @@ namespace WMS_client
             infoLabel = MainProcess.CreateLabel(string.Empty, 5, 175, 230, MobileFontSize.Normal, MobileFontPosition.Center, MobileFontColors.Default, FontStyle.Bold);
             }
 
-        public override void OnBarcode(string Barcode)
+        protected override void OnBarcode(string Barcode)
             {
             }
 
-        public override void OnHotKey(KeyAction Key)
+        protected override void OnHotKey(KeyAction Key)
             {
             }
         #endregion

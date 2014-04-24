@@ -79,11 +79,11 @@ namespace WMS_client
                 }
             }
 
-        public override void OnBarcode(string Barcode)
+        protected override void OnBarcode(string Barcode)
             {
             }
 
-        public override void OnHotKey(KeyAction TypeOfAction)
+        protected override void OnHotKey(KeyAction TypeOfAction)
             {
             }
         #endregion

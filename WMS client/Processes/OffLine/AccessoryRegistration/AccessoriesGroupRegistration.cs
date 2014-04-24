@@ -52,7 +52,7 @@ namespace WMS_client
 
         /// <summary>Комплектующее отсканировано, нужно начать редактирование</summary>
         /// <param name="Barcode">ШтрихКод</param>
-        public override sealed void OnBarcode(string barcode)
+        protected override sealed void OnBarcode(string barcode)
             {
             if (barcode.IsAccessoryBarcode())
                 {
@@ -161,7 +161,7 @@ namespace WMS_client
             barcodesQuantityLabel.Text = string.Format("{0} шт.", barcodes.Count);
             }
 
-        public override void OnHotKey(KeyAction TypeOfAction)
+        protected override void OnHotKey(KeyAction TypeOfAction)
             {
             switch (TypeOfAction)
                 {

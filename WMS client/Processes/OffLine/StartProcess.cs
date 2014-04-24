@@ -59,7 +59,7 @@ namespace WMS_client
             connectionStatusLabel.Text = (wifiEnabled ? "" : "не ") + "під'єднан до мережі";
             }
 
-        public override void OnBarcode(string barcode)
+        protected override void OnBarcode(string barcode)
             {
           if (barcode.IsValidPositionBarcode())
                 {
@@ -98,7 +98,7 @@ namespace WMS_client
                 }
             }
 
-        public override void OnHotKey(KeyAction TypeOfAction)
+        protected override void OnHotKey(KeyAction TypeOfAction)
             {
             switch (TypeOfAction)
                 {

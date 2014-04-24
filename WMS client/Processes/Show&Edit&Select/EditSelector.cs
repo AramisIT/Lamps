@@ -37,11 +37,11 @@ namespace WMS_client
             MainProcess.CreateButton("Групова реєстрація комплектів", 10, buttonTop, 220, 40, "case", groupRegistration_Click);
             }
 
-        public override void OnBarcode(string Barcode)
+        protected override void OnBarcode(string Barcode)
             {
             }
 
-        public override void OnHotKey(KeyAction TypeOfAction)
+        protected override void OnHotKey(KeyAction TypeOfAction)
             {
             switch (TypeOfAction)
                 {

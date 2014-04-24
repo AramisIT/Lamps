@@ -27,7 +27,7 @@ namespace WMS_client.Processes.Lamps
             serverReplyLabel = MainProcess.CreateLabel("", 8, 120, 224, 220, ControlsStyle.LabelMultiline);
             }
 
-        public override void OnBarcode(string barcode)
+        protected override void OnBarcode(string barcode)
             {
             barcodeDataLabel.Text = barcode;
             PerformQuery("PerformeBarcodeAction", barcode);
@@ -40,7 +40,7 @@ namespace WMS_client.Processes.Lamps
             MainProcess.Process = new StartProcess();
             }
 
-        public override void OnHotKey(KeyAction key)
+        protected override void OnHotKey(KeyAction key)
             {
             switch (key)
                 {

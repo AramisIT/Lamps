@@ -147,12 +147,12 @@ namespace WMS_client.Processes.Lamps
             return true;
             }
 
-        public override void OnBarcode(string barcode)
+        protected override void OnBarcode(string barcode)
             {
 
             }
 
-        public override void OnHotKey(KeyAction key)
+        protected override void OnHotKey(KeyAction key)
             {
             switch (key)
                 {
